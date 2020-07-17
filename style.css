@@ -1,0 +1,61 @@
+@font-face {
+    font-family: Vitreous-Outline;
+    src: url('./resources/Vitreous-Outline.ttf'); 
+  }
+  *{
+    font-family: 'Vitreous-Outline';
+  }
+  body, html {
+    padding: 0;
+    margin: 0;
+    background-color: rgb(115, 115, 115);
+  }
+  .hidden{
+    display: none;
+  }
+  #p5Div, #threeDiv{
+    position: fixed;
+
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+  }
+  #mainMenu{
+    position: fixed;
+    z-index: 100;
+
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+
+    background: rgb(10,10,10);
+  }
+  #mainMenu img{
+    position: fixed;
+    
+    top: 15vh;
+    width: 100vw;    
+  }
+  button{
+    position: fixed;
+
+    left: 35vw;
+    top: 70vh;
+    width: 30vw;
+    height: 17vh;
+
+    background: rgb(10,10,10);
+    color: rgb(216, 216, 216);
+    
+    font-size: 6vw;
+  }
+  button:focus{
+    outline:0;
+    border: inset;
+  }
+  button:hover{
+    color: rgb(240,240,240);
+    border: outset;
+  }
