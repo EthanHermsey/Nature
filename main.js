@@ -20,7 +20,7 @@ const gridSize = 32;
 const gridSizeY = 80;
 const gridScale = 8;
 const chunkSize = gridSize * gridScale;
-const chunkViewDistance = 5;
+const chunkViewDistance = 8;
 const initialTerrainCount = Math.pow( chunkViewDistance * 2 + 1, 2 );
 
 //chunks
@@ -47,15 +47,15 @@ const key = {
 
 
 
-//                        .                          
-//                      .o8                          
-//  .oooo.o  .ooooo.  .o888oo oooo  oooo  oo.ooooo.  
-// d88(  "8 d88' `88b   888   `888  `888   888' `88b 
-// `"Y88b.  888ooo888   888    888   888   888   888 
-// o.  )88b 888    .o   888 .  888   888   888   888 
-// 8""888P' `Y8bod8P'   "888"  `V88V"V8P'  888bod8P' 
-//                                         888       
-//                                        o888o 
+//                        .
+//                      .o8
+//  .oooo.o  .ooooo.  .o888oo oooo  oooo  oo.ooooo.
+// d88(  "8 d88' `88b   888   `888  `888   888' `88b
+// `"Y88b.  888ooo888   888    888   888   888   888
+// o.  )88b 888    .o   888 .  888   888   888   888
+// 8""888P' `Y8bod8P'   "888"  `V88V"V8P'  888bod8P'
+//                                         888
+//                                        o888o
 
 function setup() {
 
@@ -83,7 +83,7 @@ function setup() {
 
 	}
 
-	
+
 
 	//lights
 	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.5 );
@@ -95,21 +95,27 @@ function setup() {
 
 
 	//fog
-	scene.fog = new THREE.Fog( 'white', chunkSize * 2, chunkViewDistance * chunkSize * 1.4 );
+	scene.fog = new THREE.Fog( 'lightgrey', chunkSize * 2, chunkViewDistance * chunkSize * 1.4 );
 
 
 	//preload materials
 	whiteMaterial = new THREE.MeshLambertMaterial( {
 
-		color: 'white'
+		color: 'green',
+		map: new THREE.TextureLoader().load( './resources/grass.png' ),
+		dithering: true
 
 	} );
+	whiteMaterial.map.wrapS = whiteMaterial.map.wrapT = THREE.MirrorRepeatWrapping;
+	whiteMaterial.map.anisotropy = 4;
+
+
 
 	lineMaterial = new THREE.LineBasicMaterial( {
 
 		color: 'rgb(80, 80, 80)'
-		
-	});
+
+	} );
 
 
 	//terrainSeed!
@@ -118,15 +124,15 @@ function setup() {
 
 
 	//init chunks,
-	let loadInitialTerrain = function() {
+	let loadInitialTerrain = function () {
 
 		if ( Object.keys( chunks ).length == initialTerrainCount - 1 ) {
-	
+
 			document.getElementById( 'playButton' ).textContent = "PLAY";
 			player = new Player( { x: 0, z: 0 } );
-	
+
 		}
-	
+
 	};
 
 	for ( let x = - chunkViewDistance; x <= chunkViewDistance; x ++ ) {
@@ -152,14 +158,14 @@ function setup() {
 
 
 
-//                                      .o8                     
-//                                     "888                     
-// oooo d8b  .ooooo.  ooo. .oo.    .oooo888   .ooooo.  oooo d8b 
-// `888""8P d88' `88b `888P"Y88b  d88' `888  d88' `88b `888""8P 
-//  888     888ooo888  888   888  888   888  888ooo888  888     
-//  888     888    .o  888   888  888   888  888    .o  888     
-// d888b    `Y8bod8P' o888o o888o `Y8bod88P" `Y8bod8P' d888b    
-															 
+//                                      .o8
+//                                     "888
+// oooo d8b  .ooooo.  ooo. .oo.    .oooo888   .ooooo.  oooo d8b
+// `888""8P d88' `88b `888P"Y88b  d88' `888  d88' `88b `888""8P
+//  888     888ooo888  888   888  888   888  888ooo888  888
+//  888     888    .o  888   888  888   888  888    .o  888
+// d888b    `Y8bod8P' o888o o888o `Y8bod88P" `Y8bod8P' d888b
+
 
 function render() {
 
@@ -185,6 +191,7 @@ function render() {
 		Promise.all( promises ).then();
 
 		deltaCountUpdate = 0;
+
 	}
 
 	//create new chunks
@@ -194,17 +201,17 @@ function render() {
 		let chunkKey = Object.keys( createNewChunks )[ 0 ];
 		if ( ! chunks[ chunkKey ] ) {
 
-			let createChunk = new Promise((resolve, reject)=>{
+			let createChunk = new Promise( ( resolve, reject )=>{
 
 				chunks[ chunkKey ] = new Chunk( createNewChunks[ chunkKey ].x, createNewChunks[ chunkKey ].y, function () {} );
 				delete createNewChunks[ chunkKey ];
 
 				resolve();
 
-			})
-			
+			} );
+
 			//only load one promise
-			createChunk.then();			
+			createChunk.then();
 
 		}
 
@@ -218,7 +225,7 @@ function render() {
 	//draw text on screen and crosshair
 	drawHud();
 
-	
+
 	//render scene
 	renderer.render( scene, player.camera );
 
@@ -232,15 +239,15 @@ function render() {
 
 
 
-//  .o88o.                                       .    o8o                                 
-//  888 `"                                     .o8    `"'                                 
-// o888oo  oooo  oooo  ooo. .oo.    .ooooo.  .o888oo oooo   .ooooo.  ooo. .oo.    .oooo.o 
-//  888    `888  `888  `888P"Y88b  d88' `"Y8   888   `888  d88' `88b `888P"Y88b  d88(  "8 
-//  888     888   888   888   888  888         888    888  888   888  888   888  `"Y88b.  
-//  888     888   888   888   888  888   .o8   888 .  888  888   888  888   888  o.  )88b 
-// o888o    `V88V"V8P' o888o o888o `Y8bod8P'   "888" o888o `Y8bod8P' o888o o888o 8""888P' 
-                                                                                       
-                                                                                       
+//  .o88o.                                       .    o8o
+//  888 `"                                     .o8    `"'
+// o888oo  oooo  oooo  ooo. .oo.    .ooooo.  .o888oo oooo   .ooooo.  ooo. .oo.    .oooo.o
+//  888    `888  `888  `888P"Y88b  d88' `"Y8   888   `888  d88' `88b `888P"Y88b  d88(  "8
+//  888     888   888   888   888  888         888    888  888   888  888   888  `"Y88b.
+//  888     888   888   888   888  888   .o8   888 .  888  888   888  888   888  o.  )88b
+// o888o    `V88V"V8P' o888o o888o `Y8bod8P'   "888" o888o `Y8bod8P' o888o o888o 8""888P'
+
+
 
 function windowResized() {
 
@@ -284,7 +291,7 @@ function drawHud() {
 	text( "SPACE          -  Jump / Fly.", width * 0.01, height * 0.14 );
 	text( "MOUSE L/R  -  Remove/add terrain.", width * 0.01, height * 0.16 );
 	text( "F                    -  Fly mode: " + player.flyModes[ player.selectedFlyMode ], width * 0.01, height * 0.18 );
-	
+
 	text( "SCROLL       -  Brush radius: " + player.brushRadius, width * 0.01, height * 0.20 );
 
 
@@ -311,26 +318,26 @@ function getChunkKey( coord ) {
 
 
 
-                                                 
-                                                 
-// oooo  oooo   .oooo.o  .ooooo.  oooo d8b          
-// `888  `888  d88(  "8 d88' `88b `888""8P          
-//  888   888  `"Y88b.  888ooo888  888              
-//  888   888  o.  )88b 888    .o  888              
-//  `V88V"V8P' 8""888P' `Y8bod8P' d888b             
-                                                 
-                                                 
-                                                 
-//  o8o                                         .   
-//  `"'                                       .o8   
-// oooo  ooo. .oo.   oo.ooooo.  oooo  oooo  .o888oo 
-// `888  `888P"Y88b   888' `88b `888  `888    888   
-//  888   888   888   888   888  888   888    888   
-//  888   888   888   888   888  888   888    888 . 
-// o888o o888o o888o  888bod8P'  `V88V"V8P'   "888" 
-//                    888                           
-//                   o888o                          
-                                                 
+
+
+// oooo  oooo   .oooo.o  .ooooo.  oooo d8b
+// `888  `888  d88(  "8 d88' `88b `888""8P
+//  888   888  `"Y88b.  888ooo888  888
+//  888   888  o.  )88b 888    .o  888
+//  `V88V"V8P' 8""888P' `Y8bod8P' d888b
+
+
+
+//  o8o                                         .
+//  `"'                                       .o8
+// oooo  ooo. .oo.   oo.ooooo.  oooo  oooo  .o888oo
+// `888  `888P"Y88b   888' `88b `888  `888    888
+//  888   888   888   888   888  888   888    888
+//  888   888   888   888   888  888   888    888 .
+// o888o o888o o888o  888bod8P'  `V88V"V8P'   "888"
+//                    888
+//                   o888o
+
 
 function onMouseMove( e ) {
 
@@ -367,10 +374,10 @@ function keyPressed() {
 	switch ( keyCode ) {
 
 		case key.flyMode:
-			
+
 			if ( ++ player.selectedFlyMode == player.flyModes.length ) player.selectedFlyMode = 0;
 
-		break;
+			break;
 
 	}
 
