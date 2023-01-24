@@ -1,17 +1,38 @@
 <html>
 <head>
-  <meta charset="UTF-8">
-  <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.min.js"></script>  
-  <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.js"></script>
+	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.min.js"></script>
+	<!-- <script language="javascript" type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/addons/p5.sound.min.js"></script> -->
 
-  <script language="javascript" type="text/javascript" src="./libraries/THREEx.FullScreen.js"></script>
-  <script language="javascript" type="text/javascript" src="./libraries/SurfaceNets.js"></script>
-    
-  <script language="javascript" type="text/javascript" src="./playerController.js"></script>
-  <script language="javascript" type="text/javascript" src="./chunkController.js"></script>
-  <script language="javascript" type="text/javascript" src="./main.js"></script>
-  
-  <link rel="stylesheet" href="./style.css">
+	<!-- <script src="//cdn.rawgit.com/mrdoob/three.js/master/build/three.js"></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/10/Stats.min.js" integrity="sha512-OIN1SiiWL8mphcgWIWVI18KpgBbGmf+SjGv8vW2crD1CYMnoG/uq4FUehuJj0wlSFfJY/fA9bU7px5F/gVNY8g==" crossorigin="anonymous"></script>
+
+	<script language="javascript" type="text/javascript" src="./libraries/THREEx.FullScreen.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/MeshSurfaceSampler.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/lensFlare.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/ConvexHull.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/ConvexGeometry.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/BufferGeometryUtil.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/SurfaceNets.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/GLTFLoader.js"></script>
+
+	<script language="javascript" type="text/javascript" src="./libraries/composer/EffectComposer.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/composer/FXAAShader.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/composer/CopyShader.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/composer/LuminosityHighPassShader.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/composer/UnrealBloomPass.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/composer/ShaderPass.js"></script>
+	<script language="javascript" type="text/javascript" src="./libraries/composer/RenderPass.js"></script>	
+
+	<script language="javascript" type="text/javascript" src="./shaders.js"></script>
+	<script language="javascript" type="text/javascript" src="./chunk.js"></script>
+	<script language="javascript" type="text/javascript" src="./chunkController.js"></script>
+	<script language="javascript" type="text/javascript" src="./playerController.js"></script>
+
+	<script language="javascript" type="text/javascript" src="./main.js"></script>
+
+	<link rel="stylesheet" href="./style.css">
 
 </head>
 
@@ -22,5 +43,6 @@
   </div>
   <div id="threeDiv"></div>
   <div id="p5Div"></div>
+  <audio loop src="./resources/birds.mp3"></audio>
 </body>
 </html>
