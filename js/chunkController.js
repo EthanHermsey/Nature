@@ -191,7 +191,10 @@ class Chunk {
 				geo = new THREE.BufferGeometry().fromGeometry( geo );
 
 				//remove old mesh
-				if ( this.terrainMesh ) scene.remove( this.terrainMesh );
+				if ( this.terrainMesh ) {
+					this.terrainMesh.geometry.dispose();
+					scene.remove( this.terrainMesh );
+				}
 
 				//create new mesh with preloaded material
 				this.terrainMesh = new THREE.Mesh( geo, whiteMaterial );
