@@ -129,15 +129,6 @@ function setup() {
 
 	}
 
-	//fps counter
-	stats = new Stats();
-	stats.setMode( 0 );
-	stats.domElement.style.position = 'absolute';
-	stats.domElement.style.zIndex = '10';
-	stats.domElement.style.left = '0';
-	stats.domElement.style.top = '0';
-	document.body.appendChild( stats.domElement );
-
 
 
 	//lights
@@ -498,6 +489,10 @@ function setup() {
 		} );
 
 	} );
+	whiteMaterial.map.wrapS = whiteMaterial.map.wrapT = THREE.MirrorRepeatWrapping;
+	whiteMaterial.map.anisotropy = 4;
+
+
 
 
 }
