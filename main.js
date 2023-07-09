@@ -1,8 +1,3 @@
-
-// import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.module.js';
-// // import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/loaders/GLTFLoader.js';
-
-
 let running = false;
 const clock = new THREE.Clock( false );
 const scene = new THREE.Scene();
@@ -89,35 +84,6 @@ function setup() {
 	renderer.setSize( windowWidth, windowHeight );
 	document.getElementById( 'threeDiv' ).appendChild( renderer.domElement );
 
-	// const bloom_params = {
-	// 	exposure: 1.2,
-	// 	bloomStrength: 1.2,
-	// 	bloomThreshold: 0.01,
-	// 	bloomRadius: 0.5
-	// };
-
-	// const renderScene = new THREE.RenderPass( scene, camera );
-
-	// const bokehPass = new BokehPass( scene, camera, {
-	// 	focus: camera.position.length(),
-	// 	aperture: 0.0000001,
-	// 	maxblur: 0.15,
-
-	// 	width: window.innerWidth,
-	// 	height: window.innerHeight
-	// } );
-
-	// const bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
-	// bloomPass.threshold = bloom_params.bloomThreshold;
-	// bloomPass.strength = bloom_params.bloomStrength;
-	// bloomPass.radius = bloom_params.bloomRadius;
-
-	// composer = new EffectComposer( renderer );
-	// composer.addPass( renderScene );
-	// composer.addPass( bloomPass );
-	// composer.addPass( bokehPass );
-
-
 
 	//prepare pointerLock api
 	if ( 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document ) {
@@ -128,6 +94,15 @@ function setup() {
 		document.addEventListener( 'webkitpointerlockchange', pointerLockChangeCallback, false );
 
 	}
+
+	//fps counter
+	stats = new Stats();
+	stats.setMode( 0 );
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.zIndex = '10';
+	stats.domElement.style.left = '0';
+	stats.domElement.style.top = '0';
+	document.body.appendChild( stats.domElement );
 
 
 
@@ -140,359 +115,20 @@ function setup() {
 	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0003 );
 
 	//terrainSeed!
-	let rnd = 75898;
-	// let rnd = floor( random( 99999 ) );
+	// let rnd = 75898;
+	let rnd = floor( random( 99999 ) );
 	console.log( '> Seed: ' + rnd );
 	noiseSeed( rnd ); //p5 function to set the seed of the perlin noise gen
 
-	//preload tree
-	let loader = new THREE.ObjectLoader();
-	loader.load( './resources/rocks.json', model=>{
-
-		rocks = model;
-
-		loader.load( './resources/tree.json', model=>{
-
-			model.material.opacity = 1.0;
-			model.scale.setScalar( 3 );
-			model.geometry.translate( 0, - 0.05, 0 );
-			treeModel = model;
-
-			loader.load( './resources/tree2.json', model=>{
-
-				model.material.opacity = 1.0;
-				model.geometry.translate( 0, - 0.05, 0 );
-
-				model.scale.setScalar( 3.2 );
-				treeModel1 = model;
-
-				loader.load( './resources/treeHigh.json', model=>{
-
-					model.children[ 0 ].material.map.wrapT = model.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
-
-					//trunk
-					model.children[ 0 ].material.onBeforeCompile = ( shader ) => {
-
-						shader.uniforms.time = { value: 0 };
-
-						shader.vertexShader = 'uniform float time;\n' + shader.vertexShader;
-						shader.vertexShader.replace(
-							`#include <begin_vertex>`,
-							`
-							vec3 transformed = vec3( position );
-							if ( transformed.y > 0.5){
-								transformed.x += sin( time * 0.32) * 0.2;
-								transformed.z += sin( time * 0.2734 ) * 0.1;
-								transformed.y += sin( time * 0.23 ) * 0.015;
-							}
-							`
-						);
-
-						model.children[ 0 ].material.userData.shader = shader;
-
-					};
-					model.children[ 0 ].material.needsUpdate = true;
-
-					//leaves
-					model.children[ 1 ].material.onBeforeCompile = ( shader ) => {
-
-						shader.uniforms.time = { value: 0 };
-
-						shader.vertexShader = 'uniform float time;\nvarying float edge;\n' + shader.vertexShader;
-						shader.vertexShader = shader.vertexShader.replace(
-							`#include <begin_vertex>`,
-							`					
-							
-							vec3 transformed = vec3( position );
-							float r = rand( uv );
-							
-							transformed.x += sin( time * 0.62) * 0.2;
-							transformed.z += sin( time * 0.4734 ) * 0.1;
-							transformed.y += sin( time * 0.23 ) * 0.015;
-
-							transformed.x += sin( time * 0.7 ) * 0.02;
-							transformed.z += sin( time * 0.643734 * r ) * 0.02;
-							transformed.y += sin( time * 1.93 * r ) * 0.125;
-							
-							`
-						);
-						// shader.vertexShader = shader.vertexShader.replace(
-						// 	`#include <defaultnormal_vertex>`,
-						// 	`
-						// 	#include <defaultnormal_vertex>
-
-						// 	vec3 iPos = vec3(instanceMatrix * vec4( position , 1.0 )); //modelMatrix
-						// 	vec3 dir = normalize(cameraPosition - iPos);
-						// 	edge = 1.0 - ( dot( dir, transformedNormal ) );
-						// 	edge *= edge * edge;
-						// 	`
-						// );
-
-						// shader.fragmentShader = 'varying float edge;\n' + shader.fragmentShader;
-						// shader.fragmentShader = shader.fragmentShader.replace(
-						// 	'gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
-						// 	`
-						// 		// if ( edge > 0.4 ) discard;
-						// 		gl_FragColor = vec4( outgoingLight, diffuseColor.a * edge );
-						// 	`
-						// 	// 'gl_FragColor = vec4( outgoingLight, diffuseColor.a * edge );'
-						// 	// 'gl_FragColor = vec4( edge, 0.0, 0.0, 1.0 );'
-						// );
-
-						model.children[ 1 ].material.userData.shader = shader;
-
-					};
-
-					// model.children[ 1 ].material.blending = THREE.NormalBlending;
-					model.children[ 1 ].material.needsUpdate = true;
-					treeModelHigh = model;
-
-
-					loader.load( './resources/treeHigh2.json', model=>{
-
-						model.children[ 0 ].material.map.wrapT = model.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
-
-						//trunk
-						model.children[ 0 ].material.onBeforeCompile = ( shader ) => {
-
-							shader.uniforms.time = { value: 0 };
-
-							shader.vertexShader = 'uniform float time;\n' +
-							shader.vertexShader.replace(
-								`#include <begin_vertex>`,
-								`
-								vec3 transformed = vec3( position );
-								if ( transformed.y > 0.5){
-									transformed.x += sin( time * 0.32) * 0.2;
-									transformed.z += sin( time * 0.2734 ) * 0.1;
-									transformed.y += sin( time * 0.23 ) * 0.015;
-								}
-								
-								`
-							);
-
-							model.children[ 0 ].material.userData.shader = shader;
-
-						};
-						model.children[ 0 ].material.needsUpdate = true;
-
-						//leaves
-						model.children[ 1 ].material.onBeforeCompile = ( shader ) => {
-
-							shader.uniforms.time = { value: 0 };
-
-							shader.vertexShader = 'uniform float time;\n' +
-							shader.vertexShader.replace(
-								`#include <begin_vertex>`,
-								`
-								
-								
-								vec3 transformed = vec3( position );
-								float r = rand( uv );
-								
-								// transformed.x += sin( time * 0.32) * 0.06;
-								// transformed.z += sin( time * 0.2734 ) * 0.04;
-								// transformed.y += sin( time * 0.23 ) * 0.02;
-								transformed.x += sin( time * 0.32) * 0.2;
-								transformed.z += sin( time * 0.2734 ) * 0.1;
-								transformed.y += sin( time * 0.23 ) * 0.015;
-
-								transformed.x += sin( time * 0.5 ) * 0.02;
-								transformed.z += sin( time * 0.43734 * r ) * 0.02;
-								transformed.y += sin( time * 1.93 * r ) * 0.125;
-								
-								`
-							);
-
-							model.children[ 1 ].material.userData.shader = shader;
-
-						};
-
-						model.children[ 1 ].material.needsUpdate = true;
-						treeModelHigh2 = model;
-
-						loader.load( './resources/grass.json', model=>{
-
-							grassModel1 = model.clone();
-							grassModel2 = model.clone();
-
-							grassModel2.geometry = new THREE.BufferGeometry()
-								.copy( grassModel1.geometry );
-
-							grassModel1.geometry.translate( 0, - 0.051, 0 );
-							grassModel2.geometry.translate( 0, - 0.051, 0 );
-
-							grassModel2.geometry.scale( 1.5, 1.25, 1.5 );
-
-
-							//grass1
-							const mat1 = new THREE.MeshLambertMaterial( {
-								alphaTest: 0.47,
-								map: new THREE.TextureLoader().load( './resources/grassdiff2.png' ),
-								side: THREE.DoubleSide
-							} );
-							mat1.onBeforeCompile = ( shader ) => {
-
-								shader.uniforms.time = { value: 0 };
-
-								shader.vertexShader = 'uniform float time;\n' +
-									shader.vertexShader.replace(
-										`#include <begin_vertex>`,
-										`
-										vec3 transformed = vec3( position );
-										if ( transformed.y > 0.5){
-											transformed.x += sin( time ) * 0.06;
-											transformed.z += sin( time * 0.9734 ) * 0.04;
-										}
-										`
-									);
-
-								mat1.userData.shader = shader;
-
-							};
-							grassModel1.material = mat1;
-							grassModel1.material.needsUpdate = true;
-
-							//grass2
-							const mat2 = new THREE.MeshLambertMaterial( {
-								alphaTest: 0.47,
-								map: new THREE.TextureLoader().load( './resources/grassdiff1a.png' ),
-								side: THREE.DoubleSide
-							} );
-							mat2.onBeforeCompile = ( shader ) => {
-
-								shader.uniforms.time = { value: 0 };
-
-								shader.vertexShader = 'uniform float time;\n' +
-									shader.vertexShader.replace(
-										`#include <begin_vertex>`,
-										`
-										vec3 transformed = vec3( position );
-										if ( transformed.y > 0.5){
-											transformed.x += sin( time ) * 0.06;
-											transformed.z += sin( time * 0.9734 ) * 0.04;
-										}
-										`
-									);
-
-								mat2.userData.shader = shader;
-
-							};
-							grassModel2.material = mat2;
-							grassModel2.material.needsUpdate = true;
-
-
-							loader.load( './resources/grassHigh.json', model=>{
-
-								grassModelHigh = model.clone();
-								grassModelHigh.geometry.scale( 0.45, 0.85, 0.45 );
-
-								model.material.map = new THREE.TextureLoader().load( './resources/grassdiff1b.png' );
-
-								grassModelHigh.material.onBeforeCompile = ( shader ) => {
-
-									shader.uniforms.time = { value: 0 };
-
-									shader.vertexShader = 'uniform float time;\n' +
-										shader.vertexShader.replace(
-											`#include <begin_vertex>`,
-											`
-											vec3 transformed = vec3( position );
-											float r = rand( transformed.xz );
-											if ( transformed.y > 0.5){
-												transformed.x += sin( time * r ) * 0.06;
-												transformed.z += sin( time * r * 0.9734 ) * 0.04;
-											}
-											`
-										);
-
-									grassModelHigh.material.userData.shader = shader;
-
-								};
-								grassModelHigh.material.needsUpdate = true;
-
-
-								loader.load( './resources/fern.json', model=>{
-
-									model.scale.set( 0.55, 0.5, 0.55 );
-									model.geometry.translate( 0, - 0.2, 0 );
-									model.geometry.boundingSphere.radius = 128;
-
-									const mat1 = new THREE.MeshLambertMaterial().copy( model.material );
-									mat1.onBeforeCompile = ( shader ) => {
-
-										shader.uniforms.time = { value: 0 };
-
-										shader.vertexShader = 'uniform float time;\n' +
-											shader.vertexShader.replace(
-												`#include <begin_vertex>`,
-												`
-												vec3 transformed = vec3( position );
-												float r = rand( uv );
-
-												if ( transformed.y > 0.5){
-													transformed.x += sin( time * r ) * 0.04;
-													transformed.y -= sin( time * 0.23 * r) * 0.05;
-													transformed.z += sin( time * 0.9734 * r) * 0.03;
-												}
-												`
-											);
-
-										mat1.userData.shader = shader;
-
-									};
-
-									fernModel = model;
-									fernModel.material = mat1;
-									fernModel.material.needsUpdate = true;
-
-									chunkController = new ChunkController( ( controller )=>{
-
-										document.getElementById( 'playButton' ).textContent = "PLAY";
-										player = new Player( controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ] );
-
-										// //composer
-										// composer = new THREE.EffectComposer( renderer );
-										// composer.setSize( windowWidth, windowHeight );
-
-										// let renderScene = new THREE.RenderPass( scene, player.camera );
-										// composer.addPass( renderScene );
-
-										// fxaaPass = new THREE.ShaderPass( FXAAShader );
-										// fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( windowWidth * devicePixelRatio );
-										// fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( windowHeight * devicePixelRatio );
-										// composer.addPass( fxaaPass );
-
-										// let bloomPass = new THREE.UnrealBloomPass(
-										// 	new THREE.Vector2( windowWidth, windowHeight ),
-										// 	0.1, //strength
-										// 	0.35, //radius
-										// 	0.4 //threshold
-										// );
-										// composer.addPass( bloomPass );
-
-									} );
-
-								} );
-
-							} );
-
-						} );
-
-
-					} );
-
-				} );
-
-			} );
-
-		} );
-
-	} );
-	whiteMaterial.map.wrapS = whiteMaterial.map.wrapT = THREE.MirrorRepeatWrapping;
-	whiteMaterial.map.anisotropy = 4;
-
-
+	//preload models
+	preloadModels().then(()=>{
+        chunkController = new ChunkController( ( controller )=>{
+										
+            player = new Player( controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ] );
+
+
+        } );
+    })
 
 
 }
