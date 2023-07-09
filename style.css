@@ -1,27 +1,34 @@
 @font-face {
     font-family: Vitreous-Outline;
-    src: url('./resources/Vitreous-Outline.ttf'); 
-  }
-  *{
+    src: url('./resources/Vitreous-Outline.ttf');
+}
+
+* {
     font-family: 'Vitreous-Outline';
-  }
-  body, html {
+}
+
+body,
+html {
     padding: 0;
     margin: 0;
     background-color: rgb(115, 115, 115);
-  }
-  .hidden{
+}
+
+.hidden {
     display: none;
-  }
-  #p5Div, #threeDiv{
+}
+
+#p5Div,
+#threeDiv {
     position: fixed;
 
     left: 0;
     top: 0;
     width: 100vw;
     height: 100vh;
-  }
-  #mainMenu{
+}
+
+#mainMenu {
     position: fixed;
     z-index: 100;
 
@@ -30,15 +37,17 @@
     width: 100vw;
     height: 100vh;
 
-    background: rgb(10,10,10);
-  }
-  #mainMenu img{
+    background: rgb(10, 10, 10);
+}
+
+#mainMenu img {
     position: fixed;
-    
+
     top: 15vh;
-    width: 100vw;    
-  }
-  button{
+    width: 100vw;
+}
+
+button {
     position: fixed;
 
     left: 35vw;
@@ -46,16 +55,28 @@
     width: 30vw;
     height: 17vh;
 
-    background: rgb(10,10,10);
+    background: rgb(10, 10, 10);
     color: rgb(216, 216, 216);
-    
+
     font-size: 6vw;
-  }
-  button:focus{
-    outline:0;
+}
+
+button:focus {
+    outline: 0;
     border: inset;
-  }
-  button:hover{
-    color: rgb(240,240,240);
+}
+
+button:hover {
+    color: rgb(240, 240, 240);
     border: outset;
-  }
+}
+
+#loadtext {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 2em;
+    color: rgb(240, 240, 240);
+}

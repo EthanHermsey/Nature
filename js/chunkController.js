@@ -13,11 +13,8 @@ class ChunkController {
 		this.createNewChunks = {};
 		this.castChunks = [];
 		this.prevCoord = undefined;
-		this.initialTerrainCount = 197;
 		this.chunkViewDistance = 10;
 		this.farChunkEdge = 8;
-		// this.initialTerrainCount = 149;
-		// this.chunkViewDistance = 7;
 
 		this.grassViewDistance = 4;
 		this.fernViewDistance = 3;
@@ -27,21 +24,15 @@ class ChunkController {
 		this.deltaCountUpdate = 0;
 
 		//preload material
-		let rocktex = new THREE.TextureLoader().load( './resources/rock.jpg' );
-		let grasstex = new THREE.TextureLoader().load( './resources/grass1.png' );
-		// let rocktex = new THREE.TextureLoader().load( './resources/rocks/rocks_diff.png' );
-		
-		// let grasstex = new THREE.TextureLoader().load( './resources/grass/grass_diff.jpg' );
-		// let clifftex = new THREE.TextureLoader().load( './resources/cliff/cliff_diff.png' );
+		let rocktex = new THREE.TextureLoader().load( './resources/rock/rock.jpg' );
+		let grasstex = new THREE.TextureLoader().load( './resources/grass/grass.png' );
 		rocktex.anisotropy = 8;
 		grasstex.anisotropy = 8;
-		// clifftex.anisotropy = 8;
-		
-
 
 
 
 		this.terrainMaterial = new THREE.MeshLambertMaterial( {
+            color: 'rgb(100, 100, 100)',
 			dithering: true,
 			map: rocktex
 		} );
@@ -54,12 +45,13 @@ class ChunkController {
 				]
 			};
 
-			shader.vertexShader = 'varying vec3 vPos;\nvarying vec3 vNormal;\n' + shader.vertexShader.replace(
+			shader.vertexShader = 'attribute float force_stone;\nvarying float vFs;\nvarying vec3 vPos;\nvarying vec3 vNormal;\n' + shader.vertexShader.replace(
 				'#include <worldpos_vertex>',
 				`
 				#include <worldpos_vertex>
 				vPos = vec3( worldPosition );
 				vNormal = normal;
+                vFs = force_stone;
 				`
 			);
 
@@ -69,30 +61,40 @@ class ChunkController {
 				uniform sampler2D tDiff[2];
 				varying vec3 vPos;
 				varying vec3 vNormal;
+				varying float vFs;
 
 				vec3 getTriPlanarBlend(vec3 _wNorm){
-					// in wNorm is the world-space normal of the fragment
+                    vec3 blending = vec3( _wNorm );                
+                    blending = abs(blending);
 
-					vec3 blending = vec3( _wNorm );
-					if ( blending.y < 0.0 ) blending.y = 0.0;
-					blending = abs(blending);
-
-					blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-					float b = (blending.x + blending.y + blending.z);
-					blending /= vec3(b, b, b);
-					return blending * blending;
+                    blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
+                    float b = (blending.x + blending.y + blending.z);
+                    blending /= vec3(b, b, b);
+                    return blending * blending;
 				}
 
 				vec4 getTriPlanarTexture(){
-					float triRepeat = 0.016;
+					                    
+                    //mesh scaled
+                    float rockRepeat = 0.08;
+                    float grassRepeat = 0.04;
 
-					vec3 blending = getTriPlanarBlend( vNormal );
+                    vec3 blending = getTriPlanarBlend( vNormal );
+                    vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb;
+                    vec3 yaxis;
 
-					vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * triRepeat, 1.0) ).rgb;
-					vec3 yaxis = texture2D( tDiff[1], mod(vPos.xz * triRepeat * 4.0, 1.0) ).rgb;
-					vec3 zaxis = texture2D( tDiff[0], mod(vPos.xy * triRepeat, 1.0) ).rgb;
+                    if ( vNormal.y < 0.2){
+                        yaxis = texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb;
+                    } else {
+                        yaxis = mix(
+                            texture2D( tDiff[1], mod(vPos.xz * grassRepeat, 1.0) ).rgb,
+                            texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb,
+                            vFs
+                        );
+                    }
+                    vec3 zaxis = texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0) ).rgb;
 
-					return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z * 0.9, 1.0 );
+                    return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
 				}
 				`
 			)
@@ -105,78 +107,11 @@ class ChunkController {
 				vec3 norm = normalize(vNormal);
 				vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
 				float diff = 0.7 + max(dot(norm, lightDir), 0.0) * 0.3;
-				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff, opacity );
+				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.2, opacity );
 				`			
 			);
 
 		};
-
-
-
-
-
-
-		// this.cliffMaterial = new THREE.MeshLambertMaterial( {
-		// 	dithering: true,
-		// 	map: clifftex
-		// } );
-		// this.cliffMaterial.onBeforeCompile = ( shader ) => {
-
-		// 	shader.uniforms.tDiff = {
-		// 		value: [
-		// 			clifftex,
-		// 			clifftex
-		// 		]
-		// 	};
-
-		// 	shader.vertexShader = 'varying vec3 vPos;\nvarying vec3 vNormal;\n' + shader.vertexShader.replace(
-		// 		'#include <worldpos_vertex>',
-		// 		`
-		// 		#include <worldpos_vertex>
-		// 		vPos = vec3( worldPosition );
-		// 		vNormal = normal;
-		// 		`
-		// 	);
-
-		// 	shader.fragmentShader = shader.fragmentShader.replace(
-		// 		'#include <map_pars_fragment>',
-		// 		`
-		// 		uniform sampler2D tDiff[2];
-		// 		varying vec3 vPos;
-		// 		varying vec3 vNormal;
-
-		// 		vec3 getTriPlanarBlend(vec3 _wNorm){
-		// 			// in wNorm is the world-space normal of the fragment
-		// 			vec3 blending = abs( _wNorm );
-		// 			blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-		// 			float b = (blending.x + blending.y + blending.z);
-		// 			blending /= vec3(b, b, b);
-		// 			return abs(blending * blending);
-		// 		}
-
-		// 		vec4 getTriPlanarTexture(){
-		// 			float triRepeat = 0.016;
-
-		// 			vec3 blending = getTriPlanarBlend( vNormal );
-
-		// 			vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * triRepeat, 1.0) ).rgb;
-		// 			vec3 yaxis = texture2D( tDiff[1], mod(vPos.xz * triRepeat, 1.0) ).rgb;
-		// 			vec3 zaxis = texture2D( tDiff[0], mod(vPos.xy * triRepeat, 1.0) ).rgb;
-
-		// 			return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
-		// 		}
-		// 		`
-		// 	)
-
-		// 	shader.fragmentShader = shader.fragmentShader.replace( '#include <map_fragment>',`` );
-
-		// 	shader.fragmentShader = shader.fragmentShader.replace( 
-		// 		'vec4 diffuseColor = vec4( diffuse, opacity );',
-		// 		`vec4 diffuseColor = getTriPlanarTexture();`
-		// 	);
-
-		// };
-
 
 
 		this.init()
@@ -201,32 +136,53 @@ class ChunkController {
 
 		return new Promise( resolve =>{
 
-			//init chunks,
-			let loadInitialTerrain = ( chunk ) => {
+            //init chunks,
+            const loadtext = document.getElementById( 'loadtext' );
+            const button = document.getElementById( 'playButton' );
+            const initial_chunks = [];
+            let max_initial_chunks = 0;
+            let loadInitialTerrain = ( chunk ) => {
 
-				this.chunks[ chunk.chunkKey ] = chunk;
+                this.chunks[ chunk.chunkKey ] = chunk;                
 
-				if ( Object.keys( this.chunks ).length == this.initialTerrainCount ) {
+                if ( initial_chunks.length == 0 ) {
 
-					//console.log( chunks );
-					this.generateInstancedObjects();
+                    button.textContent = "PLAY";
+                    button.onclick = start;
+                    loadtext.style.display = 'none';
+                    this.generateInstancedObjects();
 					resolve();
 
-				}
+                } else {
+                    startLoading();
+                }
 
-			};
+            };
 
-			for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
+            const startLoading = () => {
+                loadtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
+                // console.log(initial_chunks);
+                const {x, z} = initial_chunks.pop();
+                setTimeout(() =>{
+                    new Chunk( x, z, this, loadInitialTerrain );
+                }, 0);
+            }
 
-				for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
 
-					// let circle = ( x * x + z * z ) <= this.chunkViewDistance * this.chunkViewDistance;
-					// if ( circle ) 
-					new Chunk( x, z, this, loadInitialTerrain );
+            setTimeout(() => {
+                for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
 
-				}
+                    for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
 
-			}
+                        initial_chunks.push({x, z});
+                        max_initial_chunks++;
+
+                    }
+
+                }                
+                startLoading();
+            }, 500);
+
 
 		} );
 
