@@ -1,3 +1,5 @@
+const modelBank = {};
+
 const preloadModels = () => {
     
     let loader = new THREE.ObjectLoader();
@@ -12,7 +14,7 @@ const preloadModels = () => {
 
         loader.load( './resources/rocks/rocks.json', model=>{
 
-            rocks = model;
+            modelBank.rocks = model;
             check();
 
         });
@@ -22,7 +24,7 @@ const preloadModels = () => {
 			model.material.opacity = 1.0;
 			model.scale.setScalar( 3 );
 			model.geometry.translate( 0, - 0.05, 0 );
-			treeModel = model;
+			modelBank.treeModel = model;
             check();
 
         });
@@ -33,7 +35,7 @@ const preloadModels = () => {
             model.geometry.translate( 0, - 0.05, 0 );
 
             model.scale.setScalar( 3.2 );
-            treeModel1 = model;
+            modelBank.treeModel1 = model;
             check();
 
         });
@@ -95,7 +97,7 @@ const preloadModels = () => {
 
             // model.children[ 1 ].material.blending = THREE.NormalBlending;
             model.children[ 1 ].material.needsUpdate = true;
-            treeModelHigh = model;
+            modelBank.treeModelHigh = model;
             check();
 
         });
@@ -162,23 +164,23 @@ const preloadModels = () => {
             };
 
             model.children[ 1 ].material.needsUpdate = true;
-            treeModelHigh2 = model;
+            modelBank.treeModelHigh2 = model;
             check();
             
         });
 
         loader.load( './resources/grass/grass.json', model=>{
 
-            grassModel1 = model.clone();
-            grassModel2 = model.clone();
+            modelBank.grassModel1 = model.clone();
+            modelBank.grassModel2 = model.clone();
 
-            grassModel2.geometry = new THREE.BufferGeometry()
-                .copy( grassModel1.geometry );
+            modelBank.grassModel2.geometry = new THREE.BufferGeometry()
+                .copy( modelBank.grassModel1.geometry );
 
-            grassModel1.geometry.translate( 0, - 0.051, 0 );
-            grassModel2.geometry.translate( 0, - 0.051, 0 );
+            modelBank.grassModel1.geometry.translate( 0, - 0.051, 0 );
+            modelBank.grassModel2.geometry.translate( 0, - 0.051, 0 );
 
-            grassModel2.geometry.scale( 1.5, 1.25, 1.5 );
+            modelBank.grassModel2.geometry.scale( 1.5, 1.25, 1.5 );
 
 
             //grass
@@ -206,8 +208,8 @@ const preloadModels = () => {
                 mat1.userData.shader = shader;
 
             };
-            grassModel1.material = mat1;
-            grassModel1.material.needsUpdate = true;
+            modelBank.grassModel1.material = mat1;
+            modelBank.grassModel1.material.needsUpdate = true;
 
             //grass2
             const mat2 = new THREE.MeshLambertMaterial( {
@@ -234,8 +236,8 @@ const preloadModels = () => {
                 mat2.userData.shader = shader;
 
             };
-            grassModel2.material = mat2;
-            grassModel2.material.needsUpdate = true;
+            modelBank.grassModel2.material = mat2;
+            modelBank.grassModel2.material.needsUpdate = true;
             check();
 
         });
@@ -243,12 +245,12 @@ const preloadModels = () => {
 
         loader.load( './resources/grass/grassHigh.json', model=>{
 
-            grassModelHigh = model.clone();
-            grassModelHigh.geometry.scale( 0.45, 0.85, 0.45 );
+            modelBank.grassModelHigh = model.clone();
+            modelBank.grassModelHigh.geometry.scale( 0.45, 0.85, 0.45 );
 
             model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiff1b.png' );
 
-            grassModelHigh.material.onBeforeCompile = ( shader ) => {
+            modelBank.grassModelHigh.material.onBeforeCompile = ( shader ) => {
 
                 shader.uniforms.time = { value: 0 };
 
@@ -265,10 +267,10 @@ const preloadModels = () => {
                         `
                     );
 
-                grassModelHigh.material.userData.shader = shader;
+                modelBank.grassModelHigh.material.userData.shader = shader;
 
             };
-            grassModelHigh.material.needsUpdate = true;
+            modelBank.grassModelHigh.material.needsUpdate = true;
             check();
 
         });
@@ -303,9 +305,9 @@ const preloadModels = () => {
 
             };
 
-            fernModel = model;
-            fernModel.material = mat1;
-            fernModel.material.needsUpdate = true;
+            modelBank.fernModel = model;
+            modelBank.fernModel.material = mat1;
+            modelBank.fernModel.material.needsUpdate = true;
 
             check();
 

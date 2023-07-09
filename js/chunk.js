@@ -303,10 +303,7 @@ class Chunk {
 				geo.computeVertexNormals();
 
 				//remove old mesh
-				if ( this.terrainMesh ) {
-                    this.terrainMesh.geometry.dispose();
-                    scene.remove( this.terrainMesh );
-                }
+				this.remove();
 
 				//create new mesh with preloaded material
 				this.terrainMesh = new THREE.Mesh( geo, this.parent.terrainMaterial );
@@ -798,9 +795,8 @@ class Chunk {
 				d.updateMatrix();
 
 				let r = Math.floor( Math.random() * 4 );
-				let rock = rocks.children[ r ].geometry.clone();
+				let rock = modelBank.rocks.children[ r ].geometry.clone();
 				rock.applyMatrix4( d.matrix );
-				// rock.materialNumber = r;
 
 				geometries.push( rock );
 
@@ -814,10 +810,10 @@ class Chunk {
 		if ( cliffGeo ) {
 
 			this.cliff = new THREE.Mesh( cliffGeo, [
-				rocks.children[ 0 ].material,
-				rocks.children[ 1 ].material,
-				rocks.children[ 2 ].material,
-				rocks.children[ 3 ].material
+				modelBank.rocks.children[ 0 ].material,
+				modelBank.rocks.children[ 1 ].material,
+				modelBank.rocks.children[ 2 ].material,
+				modelBank.rocks.children[ 3 ].material
 			] );
 			this.terrainMesh.add( this.cliff );
 
@@ -1083,7 +1079,10 @@ class Chunk {
 
 	remove() {
 
-		if ( this.terrainMesh ) scene.remove( this.terrainMesh );
+		if ( this.terrainMesh ) {
+            this.terrainMesh.geometry.dispose();
+            scene.remove( this.terrainMesh );
+        }
 
 	}
 

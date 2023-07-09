@@ -1,9 +1,9 @@
 <html>
 <head>
 	<meta charset="UTF-8">
+	<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/10/Stats.min.js"></script>
 	<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/10/Stats.min.js" integrity="sha512-OIN1SiiWL8mphcgWIWVI18KpgBbGmf+SjGv8vW2crD1CYMnoG/uq4FUehuJj0wlSFfJY/fA9bU7px5F/gVNY8g==" crossorigin="anonymous"></script>
+	<script language="javascript" type="text/javascript"  src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 	<script language="javascript" type="text/javascript" src="./libraries/THREEx.FullScreen.js"></script>
 	<script language="javascript" type="text/javascript" src="./libraries/MeshSurfaceSampler.js"></script>	
@@ -25,11 +25,11 @@
 
 <body oncontextmenu="return false;">
   <div id="mainMenu">
-    <img src="./resources/banner.png" alt="">    
+    <img id="banner" src="./resources/banner.png" alt="">    
     <button id='playButton'>LOADING</button>
-    <div id="loadingtextContainer" style="display: flex; flex-direction: row; gap: 22px;">
-        <p id="loadtext">Loading models...</p>
-        <img src="./resources/loading.gif"/>
+    <div id="loadingContainer">
+        <p id="loadingtext">Loading models...</p>
+        <img id="loadingimg" src="./resources/loading.gif"/>
     </div>
   </div>
   <div id="threeDiv"></div>

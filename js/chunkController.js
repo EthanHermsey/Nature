@@ -1,8 +1,3 @@
-//ChunkController
-
-// import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/build/three.module.js';
-// // import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/loaders/GLTFLoader.js';
-
 class ChunkController {
 
 	constructor( callback ) {
@@ -45,12 +40,12 @@ class ChunkController {
 				]
 			};
 
-			shader.vertexShader = 'attribute float force_stone;\nvarying float vFs;\nvarying vec3 vPos;\nvarying vec3 vNormal;\n' + shader.vertexShader.replace(
+			shader.vertexShader = 'attribute float force_stone;\nvarying float vFs;\nvarying vec3 vPos;\nvarying vec3 vNormal2;\n' + shader.vertexShader.replace(
 				'#include <worldpos_vertex>',
 				`
 				#include <worldpos_vertex>
 				vPos = vec3( worldPosition );
-				vNormal = normal;
+				vNormal2 = normal;
                 vFs = force_stone;
 				`
 			);
@@ -60,7 +55,7 @@ class ChunkController {
 				`
 				uniform sampler2D tDiff[2];
 				varying vec3 vPos;
-				varying vec3 vNormal;
+				varying vec3 vNormal2;
 				varying float vFs;
 
 				vec3 getTriPlanarBlend(vec3 _wNorm){
@@ -79,11 +74,11 @@ class ChunkController {
                     float rockRepeat = 0.08;
                     float grassRepeat = 0.04;
 
-                    vec3 blending = getTriPlanarBlend( vNormal );
+                    vec3 blending = getTriPlanarBlend( vNormal2 );
                     vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb;
                     vec3 yaxis;
 
-                    if ( vNormal.y < 0.2){
+                    if ( vNormal2.y < 0.2){
                         yaxis = texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb;
                     } else {
                         yaxis = mix(
@@ -104,7 +99,7 @@ class ChunkController {
 			shader.fragmentShader = shader.fragmentShader.replace( 
 				'vec4 diffuseColor = vec4( diffuse, opacity );',
 				`
-				vec3 norm = normalize(vNormal);
+				vec3 norm = normalize(vNormal2);
 				vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
 				float diff = 0.7 + max(dot(norm, lightDir), 0.0) * 0.3;
 				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.2, opacity );
@@ -137,7 +132,8 @@ class ChunkController {
 		return new Promise( resolve =>{
 
             //init chunks,
-            const loadtext = document.getElementById( 'loadtext' );
+            const loadingContainer = document.getElementById( 'loadingContainer' );
+            const loadingtext = document.getElementById( 'loadingtext' );
             const button = document.getElementById( 'playButton' );
             const initial_chunks = [];
             let max_initial_chunks = 0;
@@ -149,7 +145,7 @@ class ChunkController {
 
                     button.textContent = "PLAY";
                     button.onclick = start;
-                    loadtext.style.display = 'none';
+                    loadingContainer.style.display = 'none';
                     this.generateInstancedObjects();
 					resolve();
 
@@ -160,7 +156,7 @@ class ChunkController {
             };
 
             const startLoading = () => {
-                loadtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
+                loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
                 // console.log(initial_chunks);
                 const {x, z} = initial_chunks.pop();
                 setTimeout(() =>{
@@ -421,14 +417,12 @@ class ChunkController {
 		//new set of visible chunks
 		let newcastChunks = {};
 
-		//new chunk coordinate
-		let d = 2 //floor( this.chunkViewDistance / 4 );
+		//raycast chunk range
+        let d = 2
 
 		for ( let x = - d; x <= d; x ++ ) {
 
 			for ( let z = - d; z <= d; z ++ ) {
-
-				// if ( ( x * x + z * z ) >= d * d ) continue;
 
 				let chunkCoord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
 				let chunkKey = getChunkKey( chunkCoord );
@@ -518,18 +512,18 @@ class ChunkController {
 
 			this.grass = [
 				new THREE.InstancedMesh(
-					grassModel1.geometry,
-					grassModel1.material,
+					modelBank.grassModel1.geometry,
+					modelBank.grassModel1.material,
 					100000
 				),
 				new THREE.InstancedMesh(
-					grassModel2.geometry,
-					grassModel2.material,
+					modelBank.grassModel2.geometry,
+					modelBank.grassModel2.material,
 					15000
 				),
 				new THREE.InstancedMesh(
-					grassModelHigh.geometry,
-					grassModelHigh.material,
+					modelBank.grassModelHigh.geometry,
+					modelBank.grassModelHigh.material,
 					15000
 				)
 			];
@@ -620,13 +614,11 @@ class ChunkController {
 	// o888o        `Y8bod8P' d888b    o888o o888o 8""888P'                            
 	async generateFerns() {
 
-		// if ( this.grass ) scene.remove( this.grass );
-		
 		if ( ! this.ferns ) {
 
 			this.ferns = new THREE.InstancedMesh(
-				fernModel.geometry,
-				fernModel.material,
+				modelBank.fernModel.geometry,
+				modelBank.fernModel.material,
 				2500
 			);
 
@@ -689,6 +681,8 @@ class ChunkController {
 			
 		if ( this.fogCloud ) {
 
+            this.fogCloud.geometry.dispose();
+            this.fogCloud.material.dispose();
 			scene.remove( this.fogCloud );
 
 		}
@@ -752,40 +746,38 @@ class ChunkController {
 	//   "888" d888b    `Y8bod8P' `Y8bod8P' 8""888P'                                
 	async generateTrees() {
 
-		// if ( this.grass ) scene.remove( this.grass );
-		
 		if ( ! this.trees ) {
 
 			this.trees = [
 				new THREE.InstancedMesh(
-					treeModel.geometry,
-					treeModel.material,
-					28000
+					modelBank.treeModel.geometry,
+					modelBank.treeModel.material,
+					50000
 				),
 				new THREE.InstancedMesh(
-					treeModel1.geometry,
-					treeModel1.material,
-					15000
+					modelBank.treeModel1.geometry,
+					modelBank.treeModel1.material,
+					25000
 				),
 				new THREE.InstancedMesh( //high trunk
-					treeModelHigh.children[0].geometry,
-					treeModelHigh.children[0].material,
-					1000
+					modelBank.treeModelHigh.children[0].geometry,
+					modelBank.treeModelHigh.children[0].material,
+					1200
 				),
 				new THREE.InstancedMesh( //high leaves
-					treeModelHigh.children[1].geometry,
-					treeModelHigh.children[1].material,
-					1000
+					modelBank.treeModelHigh.children[1].geometry,
+					modelBank.treeModelHigh.children[1].material,
+					1200
 				),
 				new THREE.InstancedMesh( //high trunk2
-					treeModelHigh2.children[0].geometry,
-					treeModelHigh2.children[0].material,
-					1000
+					modelBank.treeModelHigh2.children[0].geometry,
+					modelBank.treeModelHigh2.children[0].material,
+					1200
 				),
 				new THREE.InstancedMesh( //high leaves2
-					treeModelHigh2.children[1].geometry,
-					treeModelHigh2.children[1].material,
-					1000
+					modelBank.treeModelHigh2.children[1].geometry,
+					modelBank.treeModelHigh2.children[1].material,
+					1200
 				)
 			];
 
@@ -858,12 +850,12 @@ class ChunkController {
 
 		}
 		
-		this.trees[0].count = Math.min( count[0], 28000 );
-		this.trees[1].count = Math.min( count[1], 15000 );
-		this.trees[2].count = Math.min( count[2], 1000 );
-		this.trees[3].count = Math.min( count[2], 1000 );
-		this.trees[4].count = Math.min( count[3], 1000 );
-		this.trees[5].count = Math.min( count[3], 1000 );
+		this.trees[0].count = Math.min( count[0], 50000 );
+		this.trees[1].count = Math.min( count[1], 25000 );
+		this.trees[2].count = Math.min( count[2], 1200 );
+		this.trees[3].count = Math.min( count[2], 1200 );
+		this.trees[4].count = Math.min( count[3], 1200 );
+		this.trees[5].count = Math.min( count[3], 1200 );
 
 		this.trees[0].instanceMatrix.needsUpdate = true;		
 		this.trees[1].instanceMatrix.needsUpdate = true;

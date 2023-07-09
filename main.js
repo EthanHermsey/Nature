@@ -250,40 +250,40 @@ function animateVegetation( delta ) {
 
 	//update grass animation
 	let r = 1.0 + ( Math.random() * 0.5 );
-	if ( grassModel1.material.userData.shader ) grassModel1.material.userData.shader.uniforms.time.value += delta * r;
-	if ( grassModel2.material.userData.shader ) grassModel2.material.userData.shader.uniforms.time.value += delta * r;
+	if ( modelBank.grassModel1.material.userData.shader ) modelBank.grassModel1.material.userData.shader.uniforms.time.value += delta * r;
+	if ( modelBank.grassModel2.material.userData.shader ) modelBank.grassModel2.material.userData.shader.uniforms.time.value += delta * r;
 	//update tree1 animation
-	if ( treeModelHigh.children[ 1 ].material.userData.shader ) {
+	if ( modelBank.treeModelHigh.children[ 1 ].material.userData.shader ) {
 
-		treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
+		modelBank.treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
 
 	}
-	if ( treeModelHigh.children[ 0 ].material.userData.shader ) {
+	if ( modelBank.treeModelHigh.children[ 0 ].material.userData.shader ) {
 
-		treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
+		modelBank.treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
 
 	}
 	//update tree2 aimation
-	if ( treeModelHigh2.children[ 1 ].material.userData.shader ) {
+	if ( modelBank.treeModelHigh2.children[ 1 ].material.userData.shader ) {
 
-		treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
+		modelBank.treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
 
 	}
-	if ( treeModelHigh2.children[ 0 ].material.userData.shader ) {
+	if ( modelBank.treeModelHigh2.children[ 0 ].material.userData.shader ) {
 
-		treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
+		modelBank.treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
 
 	}
 	//update grasHigh
-	if ( grassModelHigh.material.userData.shader ) {
+	if ( modelBank.grassModelHigh.material.userData.shader ) {
 
-		grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
+		modelBank.grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
 
 	}
 	//update fern
-	if ( fernModel.material.userData.shader ) {
+	if ( modelBank.fernModel.material.userData.shader ) {
 
-		fernModel.material.userData.shader.uniforms.time.value += delta * r;
+		modelBank.fernModel.material.userData.shader.uniforms.time.value += delta * r;
 
 	}
 

@@ -96,7 +96,7 @@ class Player {
 
 		//add a skybox. This position is
 		this.skyBox = new THREE.Mesh(
-			new THREE.SphereBufferGeometry(
+			new THREE.SphereGeometry(
 				startChunk.chunkSize * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
 				64,
 				64
@@ -117,7 +117,7 @@ class Player {
 		this.intersectPoint = null;
 
 		//chunk coord and list of visible chunks
-		this.currentChunkCoord = this.getChunkCoord( this.position, startChunk.chunkSize );
+		this.currentChunkCoord = this.getChunkCoord( this.position, ( startChunk.gridSize.x - 2 ) * startChunk.gridScale.x );
 
 		//brush vars
 		this.terrainAdjustStrength = 0.15;
@@ -355,7 +355,7 @@ class Player {
 
 		} else {
 
-			console.log( 'no down', this.currentChunkCoord, this.getChunkCoord( nPos, 32 * 6 ) );
+			console.log( 'no down', this.currentChunkCoord, this.getChunkCoord( nPos, startChunk ) );
 			nPos.copy( this.position );
 
 		}
