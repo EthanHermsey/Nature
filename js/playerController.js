@@ -8,18 +8,22 @@ class Player {
 		this.object.rotation.order = "YXZ";
 		this.object.frustumCulled = false;
 
+        this.cameraRigPosition = new THREE.Vector3(0, 4.5, 0);
 		this.cameraRig = new THREE.Object3D();
 		this.cameraRig.rotation.order = "YXZ";
 		this.camera = new THREE.PerspectiveCamera(
 			70,
 			windowWidth / windowHeight,
-			0.01,
-			5000
+			0.001,
+			10000
 		);
 		this.camera.position.x += 1;
 		this.camera.position.y += 4.5;
 		this.camera.position.z += 5.5;
 		this.camera.lookAt( new THREE.Vector3( 1.5, 1.5, - 4 ) );
+
+        this.cameraMaxDistance = this.camera.position.length();
+        this.cameradistance = this.cameraMaxDistance;
 
 		this.cameraRig.add( this.camera );
 		this.object.add( this.cameraRig );
@@ -27,7 +31,7 @@ class Player {
 		let x = ( startChunk.offset.x * startChunk.chunkSize ) + startChunk.chunkSize / 2;
 		let z = ( startChunk.offset.z * startChunk.chunkSize ) + startChunk.chunkSize / 2;
 		let m = Math.floor( startChunk.gridSize.x / 2 );
-		let y = startChunk.terrainHeights[ m ][ m ] * startChunk.gridScale.y + 2;
+		let y = startChunk.terrainHeights[ m ][ m ] * startChunk.gridScale.y * 1.2;
 		this.position.set( x, y, z );
 
 		scene.add( this.object );
@@ -97,12 +101,12 @@ class Player {
 		//add a skybox. This position is
 		this.skyBox = new THREE.Mesh(
 			new THREE.SphereGeometry(
-				startChunk.chunkSize * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
+				startChunk.chunkSize * 2 * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
 				64,
 				64
 			),
 			new THREE.MeshBasicMaterial( {
-				map: new THREE.TextureLoader().load( './resources/background.jpg' ),
+				map: new THREE.TextureLoader().load( './resources/background2.jpg' ),
 				side: THREE.BackSide
 			} )
 		);
@@ -120,8 +124,8 @@ class Player {
 		this.currentChunkCoord = this.getChunkCoord( this.position, ( startChunk.gridSize.x - 2 ) * startChunk.gridScale.x );
 
 		//brush vars
-		this.terrainAdjustStrength = 0.15;
-		this.brushRadius = 5;
+		this.terrainAdjustStrength = 0.06;
+		this.brushRadius = 3;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.21;
 		this.maxBuildDistance = 250;
@@ -355,8 +359,9 @@ class Player {
 
 		} else {
 
-			console.log( 'no down', this.currentChunkCoord, this.getChunkCoord( nPos, startChunk ) );
+			console.log( 'no down', this.currentChunkCoord );
 			nPos.copy( this.position );
+            nPos.y ++;
 
 		}
 
@@ -600,8 +605,7 @@ class Player {
 	//  888   888   888  888   888  888   888  o.  )88b 888    .o
 	// o888o o888o o888o `Y8bod8P'  `V88V"V8P' 8""888P' `Y8bod8P'
 
-
-	mouseMoved( e ) {
+    mouseMoved( e ) {
 
 		//rotate object on Y
 		this.cameraRig.rotateY( e.movementX * - this.mouseSensitivity );
@@ -609,9 +613,32 @@ class Player {
 		//rotate cameraRig on X
 		this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
 
-		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 0.85 );
-		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, - 0.55 );
+		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 0.95 );
+		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -0.85 );
 		this.cameraRig.rotation.z = 0;
+
+        let v = new THREE.Vector3();
+        this.camera.getWorldDirection(v);
+        v.multiplyScalar(-1);
+
+        const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
+        
+		raycaster.set( rigPosition, v );
+		let intersectdir = raycaster.intersectObjects( chunkController.castChunks );
+
+		if ( intersectdir.length > 0 ) {
+
+			const distance = rigPosition.distanceTo( intersectdir[0].point ) * 0.5;
+			if ( distance < this.cameraDistance ) {
+                this.cameraDistance = distance;
+            } else {
+                this.cameraDistance = min(distance, this.cameraMaxDistance);
+            }
+
+            this.camera.position.setLength(this.cameraDistance)
+
+		} 
+
 
 	}
 
@@ -658,7 +685,7 @@ class Player {
 				.sub( this.intersectPoint.object.position )
 				.divide( this.intersectPoint.object.chunk.gridScale )
 				.round();
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
+			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * 2 : this.terrainAdjustStrength;
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( gridPosition, this.brushRadius, val, true );

@@ -115,8 +115,8 @@ function setup() {
 	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0003 );
 
 	//terrainSeed!
-	// let rnd = 75898;
-	let rnd = floor( random( 99999 ) );
+	let rnd = 32921;
+	// let rnd = floor( random( 99999 ) );
 	console.log( '> Seed: ' + rnd );
 	noiseSeed( rnd ); //p5 function to set the seed of the perlin noise gen
 
@@ -125,7 +125,6 @@ function setup() {
         chunkController = new ChunkController( ( controller )=>{
 										
             player = new Player( controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ] );
-
 
         } );
     })

@@ -1,3 +1,91 @@
+const continenal_spline = [
+    [
+        [0, 0.15],
+        [0.1, 0.2],
+    ],
+    [
+        [0.1, 0.2],
+        [0.2, 0.3],
+    ],
+    [
+        [0.2, 0.3],
+        [0.3, 0.35],
+    ],
+    [
+        [0.3, 0.35],
+        [0.5, 0.39],
+    ],
+    [
+        [0.5, 0.39],
+        [0.6, 0.45],
+    ],
+    [
+        [0.6, 0.45],
+        [0.85, 0.65],
+    ],
+    [
+        [0.85, 0.65],
+        [0.90, 0.75],
+    ],
+    [
+        [0.90, 0.75],
+        [1, 0.85],
+    ]
+];        
+
+
+const bump_spline = [
+    [
+        [0, 0],
+        [0.1, 0.002],
+    ],
+    [
+        [0.1, 0.002],
+        [0.3, 0.01],
+    ],
+    [
+        [0.3, 0.01],
+        [0.4, 0.025],
+    ],
+    [
+        [0.4, 0.025],
+        [0.8, 0.22],
+    ],
+    [
+        [0.8, 0.22],
+        [0.9, 0.42],
+    ],
+    [
+        [0.9, 0.42],
+        [1, 0.36],
+    ]
+];
+
+const noise_3d_spline = [
+    [
+        [0, 0.7],
+        [0.1, 0.6],
+    ],
+    [
+        [0.1, 0.6],
+        [0.11, 0.2],
+    ],
+    [
+        [0.11, 0.2],
+        [0.15, 0.1],
+    ],
+    [
+        [0.15, 0.1],
+        [1, 0.0],
+    ]
+];
+
+
+
+
+
+
+
 class Chunk {
 
 	constructor( x, z, parent, callback ) {
@@ -14,23 +102,23 @@ class Chunk {
 
 		const playerChunk = ( player ) ? player.currentChunkCoord : { x: 0, y: 0 };
 
-		if ( x > playerChunk.x - parent.chunkViewDistance && x < playerChunk.x + parent.chunkViewDistance &&
-			z > playerChunk.y - parent.chunkViewDistance && z < playerChunk.y + parent.chunkViewDistance ) {
+		if ( x >= playerChunk.x - parent.chunkViewDistance && x <= playerChunk.x + parent.chunkViewDistance &&
+			z >= playerChunk.y - parent.chunkViewDistance && z <= playerChunk.y + parent.chunkViewDistance ) {
 
 			this.lodLevel = 1;
 
 		}
 
 		//hd
-		this.gridSize = {
-			x: 32,
-			y: 128, //200
-			z: 32
+        this.gridSize = {
+			x: 16,
+			y: 256, //200
+			z: 16
 		};
 		this.gridScale = new THREE.Vector3(
-			6,
-			8,
-			6
+			10,
+			10,
+			10
 		);
 
 		//terrain generation vars
@@ -40,66 +128,28 @@ class Chunk {
 			0,
 			this.offset.z * ( this.gridSize.z - this.chunkOverlap ) * this.gridScale.z
 		);
-		this.terrainLowPoint = this.gridSize.y * 0.1;
-		this.terrainHillRange = this.gridSize.y; //0.62
-		this.terrainRockRange = this.gridSize.y * 0.25; //0.2
 		this.upperTreeHeightLimit = this.gridSize.y * this.gridScale.y * 0.7;
 
 
-		// the 3D array with the grid of values [ -1, 1 ].
-		// initialize with -0.5, not filled. ( > 0 is solid )
+		// the 3D array with the grid of values [ -1, 1 ]. Initialize with -0.5, not filled. ( > 0 is solid )
 		this.grid = new Float32Array( this.gridSize.x * this.gridSize.y * this.gridSize.z ).fill( - 0.5 );
 		this.modelMatrices = {};
 		this.terrainHeights = [];
 		for ( let i = 0; i < this.gridSize.x; i ++ ) {
-
 			this.terrainHeights.push( [] );
-
 		}
-
 
 		//initialize the grid
-		this.initGrid();
+		this.initGrid()
+            .then( () => {
+                this.generateMesh().then( ()=>{
 
-
-
-		//the terrain mesh
-		this.terrainMesh = null;
-		this.terrainPlaneMesh = new THREE.Mesh(
-			new THREE.PlaneGeometry(
-				this.chunkSize,
-				this.chunkSize,
-				this.gridSize.x,
-				this.gridSize.z
-			),
-			new THREE.MeshLambertMaterial( { color: 'rgb(18, 44, 8)' } )
-		);
-		this.terrainPlaneMesh.geometry.rotateX( Math.PI * - 0.5 );
-
-		const arr = this.terrainPlaneMesh.geometry.attributes.position.array;
-		const count = this.terrainPlaneMesh.geometry.attributes.position.count;
-		for ( let i = 0; i < count; i ++ ) {
-
-			let x = Math.floor( ( ( arr[ i * 3 + 0 ] + this.chunkSize * 0.5 ) / this.chunkSize ) * ( this.gridSize.x - 1 ) );
-			let z = Math.floor( ( ( arr[ i * 3 + 2 ] + this.chunkSize * 0.5 ) / this.chunkSize ) * ( this.gridSize.z - 1 ) );
-
-			arr[ i * 3 + 1 ] = this.terrainHeights[ x ][ z ] * this.gridScale.y - 8;
-
-		}
-
-		this.terrainPlaneMesh.position.copy( this.chunkPosition );
-		this.terrainPlaneMesh.position.x += this.chunkSize * 0.5;
-		this.terrainPlaneMesh.position.z += this.chunkSize * 0.5;
-
-		// generate the mesh and execute the callback
-		this.generateMesh().then( ()=>{
-
-			this.generateVegetation();
-			this.generateCliffs();
-			this.showLevel( this.lodLevel );
-			callback( this );
-
-		} );
+                    this.generateVegetation();
+                    this.showLevel( this.lodLevel );
+                    callback( this );
+        
+                } );
+            });		
 
 	}
 
@@ -124,7 +174,7 @@ class Chunk {
 			// the terrain was adjusted by player.
 			this.generateMesh().then( ()=>{
 
-				this.showLevel( this.lodLevel );
+                this.showLevel( this.lodLevel );
 
 				resolve();
 
@@ -142,14 +192,12 @@ class Chunk {
 		if ( this.lodLevel == 1 ) {
 
 			if ( this.terrainMesh ) scene.add( this.terrainMesh );
-			scene.remove( this.terrainPlaneMesh );
-			if ( this.cliff ) this.terrainMesh.attach( this.cliff );
+			scene.remove( this.terrainTopMesh );
 
 		} else {
 
 			if ( this.terrainMesh ) scene.remove( this.terrainMesh );
-			scene.add( this.terrainPlaneMesh );
-			if ( this.cliff ) this.terrainPlaneMesh.attach( this.cliff );
+			if ( this.terrainTopMesh ) scene.add( this.terrainTopMesh );
 
 		}
 
@@ -178,62 +226,105 @@ class Chunk {
 	// d"     YD
 	// "Y88888P'
 
-	initGrid() {
 
-		for ( var z = 0; z < this.gridSize.z; z ++ ) {
+    initGrid() {
 
-			for ( var x = 0; x < this.gridSize.x; x ++ ) {
+        return new Promise( resolve => {
 
-				//low frequency noise
-				let lowN = noise(
-					5999754664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * this.noiseScale,
-					5999754664 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * this.noiseScale,
-				);
-				lowN *= lowN;
+            for ( var x = 0; x < this.gridSize.x; x ++ ) {             
+                 for ( var z = 0; z < this.gridSize.z; z ++ ) {
+                     
+                    const continenal_scale = 0.006;
+                    const continental_noise = noise(
+                        5999754664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * continenal_scale,
+                        5999754664 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * continenal_scale,
+                    );
+    
+                    const bump_scale = 0.042;
+                    const bump_noise = abs(noise(
+                        5999754664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * bump_scale,
+                        5999754664 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * bump_scale,
+                    ) * 2 - 1);
+    
+                    //2d noise
+                    const continenalness = this.mapSplineNoise(continental_noise, continenal_spline);
+                    const bumpness = this.mapSplineNoise(continental_noise, bump_spline);
+    
+                    //product
+                    const continentalHeight = this.gridSize.y * continenalness;
+                    const bumpHeight = this.gridSize.y * (bump_noise * bumpness);
+                    const terrainHeight = continentalHeight + bumpHeight;
+    
+                    this.terrainHeights[x][z] = terrainHeight;
+                    
+                    for ( var y = 0; y < this.gridSize.y; y ++ ) {
+                         
+                        const value = this.getValue(x, y, z, terrainHeight);
+                        this.setGridValue( x, y, z, value );
+                         
+                    }
+                        
+                }
+    
+            }
 
-				//high frequency noise
-				let highN = noise(
-					5999755664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * this.noiseScale * 5,
-					5999755664 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * this.noiseScale * 5,
-				);
-				highN *= highN;
-
-				//multiply with hill and rock range
-				let terrainHeight = this.terrainLowPoint + this.terrainHillRange * lowN +
-									this.terrainRockRange * highN * ( 0.5 + lowN );
-
-				//extra peaks on mountains
-				if ( terrainHeight > this.gridSize.y * 0.6 ) {
-
-					let v = ( terrainHeight - this.gridSize.y * 0.6 ) / this.gridSize.y * 0.4;
-					terrainHeight += v * this.terrainRockRange * 15 * ( highN * highN );
-
-				}
-
-				const smoothRange = 2;
-				for ( var y = 0; y < terrainHeight + smoothRange; y ++ ) {
-
-					//smooth the terrain, only under gridsizeY level 80%..
-					let v = ( y > terrainHeight ) ? ( y - terrainHeight ) / smoothRange : 0;
-					if ( terrainHeight > this.gridSize.y * 0.7 ) {
-
-						v = ( y - terrainHeight );
-
-					}
-					if ( y >= this.gridSize.y - 1 ) v = - 1;
-
-					
-					this.setGridValue( x, y, z, 0.5 - v );
-
-				}
-
-				this.terrainHeights[ x ][ z ] = terrainHeight + smoothRange;
-
-			}
-
-		}
+            resolve();
+        })
 
 	}
+
+    getValue(x, y, z, terrainHeight){
+
+        let terrainHeightValue = y < terrainHeight ? 1 : map(y - terrainHeight, 0, 2, 1, -1, true);
+
+        //3d noise
+        const noise_3d_scale = 0.025
+        const noise_3d = noise(
+            5999737664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * noise_3d_scale,
+            5903854664 + ( y * ( this.gridSize.y - 1 ) ) * (noise_3d_scale * 0.01),
+            5999111164 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * noise_3d_scale,
+        );
+
+        const density_3d = noise_3d + this.mapSplineNoise( (abs(y - terrainHeight) / (this.gridSize.y * 0.5)) + 0.001, noise_3d_spline);
+        const density_3d_value = map(density_3d, 0, 1, -1, 1);
+
+        //caves and tunnels
+        if ( y < terrainHeight * 0.99 && y > 5){
+            
+            // caves
+            const scale = 0.03
+            const d = noise(
+                5999737664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * scale,
+                5903854664 + ( y * ( this.gridSize.y - 1 ) ) * (scale * 0.01),
+                5999111164 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * scale,
+            );
+            if ( d < 0.33) terrainHeightValue = map(d, 0, 0.33, 1, -1, true);
+
+            //tunnels
+            const scale2 = 0.025
+            let d2 = abs(noise(
+                5999737664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * scale2,
+                5903854664 + ( y * ( this.gridSize.y - 1 ) ) * (scale2 * 0.008),
+                5999111164 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * scale2,
+            ) * 2 - 1);
+            d2 = pow( 1.0 - d2, 3);
+            if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 1, -1, true);
+        }
+
+        return constrain(terrainHeightValue + density_3d_value, -1, 1);
+
+    }
+
+    mapSplineNoise(noise, spline){
+        let range;
+        for (let i = 0; i < spline.length; i++) {
+            if ( noise > spline[i][0][0] && noise < spline[i][1][0]){
+                range = spline[i];
+                break;
+            }                        
+        }
+        return range ? map(noise, range[0][0], range[1][0], range[0][1], range[1][1]) : 0;
+    }
 
 
 
@@ -270,8 +361,14 @@ class Chunk {
                 const indices = []
                 const underground = [];
 
-                let x, y, z, terrainHeight, smoothRange = 5;
-				generatedSurface.vertices.map( v =>{
+                //top geomtery
+                const topvertmap = {};                
+                const topgeo = new THREE.BufferGeometry();
+				const topvertices = []
+                const topindices = []
+
+                let x, y, z, terrainHeight, smoothRange = 2;
+				generatedSurface.vertices.map( (v, vIndex) =>{
 
 					vertices.push( v[ 0 ], v[ 1 ], v[ 2 ] );
 
@@ -284,23 +381,47 @@ class Chunk {
                         underground.push(( y > terrainHeight - smoothRange ) ? ( terrainHeight - y ) / smoothRange : 1);                            
                     } else {
                         underground.push(0);
+                        topvertmap[ vIndex ] = true;
                     }
 
 				} );
+
+                const topverts = Object.keys(topvertmap);                
 
 				generatedSurface.faces.map( ( f )=>{
 
 					indices.push( f[ 1 ], f[ 0 ], f[ 2 ] );
 					indices.push( f[ 3 ], f[ 2 ], f[ 0 ] );
 
+                    //per face, check if any vertex is higher than terrainheight  * 0.95
+                    //add to topmesh
+                    if ( topvertmap[ f[ 0 ] ] && topvertmap[ f[ 1 ] ] && topvertmap[ f[ 2 ] ] && topvertmap[ f[ 3 ] ] ){
+
+                        const i0 = topverts.indexOf( `${f[ 0 ]}` );
+                        const i1 = topverts.indexOf( `${f[ 1 ]}` );
+                        const i2 = topverts.indexOf( `${f[ 2 ]}` );
+                        const i3 = topverts.indexOf( `${f[ 3 ]}` );
+
+                        topindices.push( i1, i0, i2 );
+                        topindices.push( i3, i2, i0 );
+
+                    }
+
 				} );
+
+                topverts.map( index => {
+                    const v = generatedSurface.vertices[ index ];
+                    topvertices.push( v[ 0 ], v[ 1 ], v[ 2 ] )
+                })
 
 				geo.setIndex( indices );
 				geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-				geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );
-
-				//update new geometry and create a buffergeometry from it
+				geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );				
 				geo.computeVertexNormals();
+
+                topgeo.setIndex( topindices );
+				topgeo.setAttribute( 'position', new THREE.Float32BufferAttribute( topvertices, 3 ) );				
+				topgeo.computeVertexNormals();
 
 				//remove old mesh
 				this.remove();
@@ -318,6 +439,16 @@ class Chunk {
 				this.terrainMesh.updateWorldMatrix();
 				this.terrainMesh.matrixAutoUpdate = false;
 				this.terrainMesh.name = "terrain";
+
+                this.terrainTopMesh = new THREE.Mesh( topgeo, this.parent.terrainMaterial );
+				this.terrainTopMesh.scale.set( this.gridScale.x, this.gridScale.y, this.gridScale.z );
+				this.terrainTopMesh.position.x = this.chunkPosition.x;
+				this.terrainTopMesh.position.z = this.chunkPosition.z;
+				this.terrainTopMesh.material.needsUpdate = true;
+
+				this.terrainTopMesh.updateWorldMatrix();
+				this.terrainTopMesh.matrixAutoUpdate = false;
+				this.terrainTopMesh.name = "terrainTop";
 
 				resolve();
 
@@ -394,15 +525,16 @@ class Chunk {
 
 		this.modelMatrices[ 'grass' ] = [[], []];
 
-		for ( let i = 0; i < 1500; i ++ ) {
+		for ( let i = 0; i < 500; i ++ ) {
 
 			let d;
+            let tries = 100;
 			do {
-
-				surfaceSampler.sample( _position, _normal );
+                surfaceSampler.sample( _position, _normal );
 				d = 1.0 - scene.up.dot( _normal );
+                tries--;
 
-			} while ( d > 0.12 );
+			} while ( tries > 0 && ( d > 0.12 || _position.y < this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ] ) );
 
 			dummy.scale.set(
 				5 + Math.random(),
@@ -461,12 +593,14 @@ class Chunk {
 		for ( let i = 0; i < 20; i ++ ) {
 
 			let d;
+            let tries = 100;
 			do {
 
 				surfaceSampler.sample( _position, _normal );
 				d = 1.0 - scene.up.dot( _normal );
+                tries--;
 
-			} while ( d > 0.13 );
+			} while ( tries > 0 && d > 0.13 || _position.y < this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ]);
 
 			dummy.scale.set(
 				3 + Math.random(),
@@ -549,7 +683,7 @@ class Chunk {
 				.add( this.chunkPosition );
 
 
-			if ( wp.y < this.upperTreeHeightLimit ) {
+			if ( wp.y < this.upperTreeHeightLimit && v.y >= this.terrainHeights[ Math.floor( v.x ) ][ Math.floor( v.z ) ] ) {
 
 				let worldNoise = noise(
 					wp.x * treeWorldNoiseScale,
@@ -557,7 +691,7 @@ class Chunk {
 					wp.z * treeWorldNoiseScale
 				);
 
-				if ( d < 0.1 && worldNoise > 0.4 ) {
+				if ( d < 0.09 && worldNoise > 0.4 ) {
 
 					let narrowNoise = noise(
 						wp.x * treeNarrowNoiseScale,
@@ -652,176 +786,7 @@ class Chunk {
 
 	}
 
-	//                                                                   .
-	//                                                                 .o8
-	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.
-	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b
-	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888
-	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o
-	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P'
-	// d"     YD
-	// "Y88888P'
-
-	//           oooo   o8o   .o88o.  .o88o.
-	//           `888   `"'   888 `"  888 `"
-	//  .ooooo.   888  oooo  o888oo  o888oo   .oooo.o
-	// d88' `"Y8  888  `888   888     888    d88(  "8
-	// 888        888   888   888     888    `"Y88b.
-	// 888   .o8  888   888   888     888    o.  )88b
-	// `Y8bod8P' o888o o888o o888o   o888o   8""888P'
-	generateCliffs() {
-
-		if ( this.cliff ) {
-
-			// this.terrainMesh.add( this.cliff );
-			return;
-
-		}
-
-		const geo = this.terrainMesh.geometry;
-		const v = new THREE.Vector3();
-		const n = new THREE.Vector3();
-		let placedVerts = [];
-
-		// check each vertex
-		for ( let i = 0; i < geo.attributes.position.array.length; i += 3 ) {
-
-			v.set(
-				geo.attributes.position.array[ i + 0 ],
-				geo.attributes.position.array[ i + 1 ],
-				geo.attributes.position.array[ i + 2 ]
-			);
-			n.set(
-				geo.attributes.normal.array[ i + 0 ],
-				geo.attributes.normal.array[ i + 1 ],
-				geo.attributes.normal.array[ i + 2 ]
-			);
-			const d = 1.0 - scene.up.dot( n );
-
-			//check to see if slope is steep enough
-			//check to see if not underground
-			if ( d > 0.20 && v.y < this.terrainHeights[ Math.floor( v.x ) ][ Math.floor( v.z ) ] ) {
-
-				placedVerts.push( { v: v.clone(), n: n.clone() } );
-
-			}
-
-		}
-
-		//first, randomize verts
-		placedVerts = placedVerts.sort( ()=> ( Math.random() > 0.5 ) ? 1 : - 1 );
-
-		//group verts
-		let chunked = [];
-
-		for ( let vert of placedVerts ) {
-
-			let found = false;
-			for ( let i = 0; i < chunked.length; i ++ ) {
-
-				let c = chunked[ i ].filter( c=>{
-
-					let v1 = vert.v.clone();
-					let v2 = c.v.clone();
-					return ( v1.distanceToSquared( v2 ) <= 3.5 );
-
-				} );
-
-				if ( c.length > 0 ) {
-
-					chunked[ i ].push( vert );
-					found = true;
-					break;
-
-				}
-
-			}
-
-			if ( ! found ) {
-
-				chunked.push( [ vert ] );
-
-			}
-
-		}
-
-		//add extra verts to make it a 3d shape
-		chunked.map( ( chunk, index ) =>{
-
-			const verts = [];
-			const c = new THREE.Vector3();
-			const n = new THREE.Vector3();
-
-			for ( let vert of chunk ) {
-
-				let revN = vert.n.clone().multiplyScalar( - 1 )
-					.add(
-						new THREE.Vector3().random().subScalar( 0.5 ).multiplyScalar( 1 + Math.random() )
-					);
-				verts.push( vert.v.clone().add( revN ) );
-
-				let rV = vert.n.clone()
-					.multiplyScalar( 0.1 + Math.random() * 0.6 )
-					.add(
-						new THREE.Vector3().random().subScalar( 0.5 ).multiplyScalar( Math.random() )
-					);
-
-				verts.push( vert.v.clone().add( rV ) );
-				c.add( vert.v );
-				n.add( vert.n );
-
-			}
-
-			c.divideScalar( chunk.length );
-			n.divideScalar( chunk.length );
-			chunked[ index ] = { verts: verts, center: c, normal: n };
-
-		} );
-
-		//convert the groups into rock meshes
-		let d = new THREE.Object3D();
-		let geometries = [];
-		chunked.map( verts => {
-
-			if ( verts.verts.length > 6 ) {
-
-				new THREE.Box3().setFromPoints( verts.verts ).getSize( d.scale );
-
-				d.quaternion.setFromUnitVectors( scene.up, verts.normal );
-				d.rotateY( Math.random() * Math.PI );
-				if ( Math.random() > 0.6 ) d.rotateX( Math.PI );
-
-				d.position.copy( verts.center );
-				d.updateMatrix();
-
-				let r = Math.floor( Math.random() * 4 );
-				let rock = modelBank.rocks.children[ r ].geometry.clone();
-				rock.applyMatrix4( d.matrix );
-
-				geometries.push( rock );
-
-
-			}
-
-		} );
-
-		//merge all cliff parts together
-		let cliffGeo = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );
-		if ( cliffGeo ) {
-
-			this.cliff = new THREE.Mesh( cliffGeo, [
-				modelBank.rocks.children[ 0 ].material,
-				modelBank.rocks.children[ 1 ].material,
-				modelBank.rocks.children[ 2 ].material,
-				modelBank.rocks.children[ 3 ].material
-			] );
-			this.terrainMesh.add( this.cliff );
-
-		}
-
-
-	}
-
+	
 
 	//                 .o8      o8o                          .
 	//                "888      `"'                        .o8
@@ -908,7 +873,7 @@ class Chunk {
 			return matrices.filter( matrix =>{
 
 				p.setFromMatrixPosition( matrix );
-				return ( p.distanceToSquared( worldCenter ) > radius * radius * 10 );
+				return ( p.distanceToSquared( worldCenter ) > radius * radius * 15 );
 
 			} );
 
@@ -948,14 +913,14 @@ class Chunk {
 	adjustNeighbors( center, radius, val ) {
 
 		//x-axis
-		if ( center.x < radius ) {
+		if ( center.x <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z } );
 			let nCenter = center.clone();
 			nCenter.x += this.gridSize.x - this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
-		} else if ( this.gridSize.x - center.x < radius ) {
+		} else if ( this.gridSize.x - center.x <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x + 1, y: this.offset.z } );
 			let nCenter = center.clone();
@@ -965,7 +930,7 @@ class Chunk {
 		}
 
 		//z-axis
-		if ( center.z < radius ) {
+		if ( center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x, y: this.offset.z - 1 } );
 			let nCenter = center.clone();
@@ -973,7 +938,7 @@ class Chunk {
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 
-		} else if ( this.gridSize.z - center.z < radius ) {
+		} else if ( this.gridSize.z - center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x, y: this.offset.z + 1 } );
 			let nCenter = center.clone();
@@ -983,7 +948,7 @@ class Chunk {
 		}
 
 		//diagonals
-		if ( center.x < radius && center.z < radius ) {
+		if ( center.x < radius && center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z - 1 } );
 			let nCenter = center.clone();
@@ -992,7 +957,7 @@ class Chunk {
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
-		if ( this.gridSize.x - center.x < radius && this.gridSize.z - center.z < radius ) {
+		if ( this.gridSize.x - center.x < radius && this.gridSize.z - center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x + 1, y: this.offset.z + 1 } );
 			let nCenter = center.clone();
@@ -1001,7 +966,7 @@ class Chunk {
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
-		if ( center.x < radius && this.gridSize.x - center.z < radius ) {
+		if ( center.x < radius && this.gridSize.x - center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z + 1 } );
 			let nCenter = center.clone();
@@ -1010,7 +975,7 @@ class Chunk {
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
-		if ( this.gridSize.x - center.x < radius && center.z < radius ) {
+		if ( this.gridSize.x - center.x < radius && center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x + 1, y: this.offset.z - 1 } );
 			let nCenter = center.clone();
@@ -1082,6 +1047,11 @@ class Chunk {
 		if ( this.terrainMesh ) {
             this.terrainMesh.geometry.dispose();
             scene.remove( this.terrainMesh );
+        }
+        if ( this.terrainTopMesh ){
+            this.terrainTopMesh.geometry.dispose();
+            this.terrainTopMesh.material.dispose();
+            scene.remove( this.terrainTopMesh );
         }
 
 	}

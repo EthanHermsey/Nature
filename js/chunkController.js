@@ -8,8 +8,8 @@ class ChunkController {
 		this.createNewChunks = {};
 		this.castChunks = [];
 		this.prevCoord = undefined;
-		this.chunkViewDistance = 10;
-		this.farChunkEdge = 8;
+		this.chunkViewDistance = 6;
+		this.farChunkEdge = 4;
 
 		this.grassViewDistance = 4;
 		this.fernViewDistance = 3;
@@ -108,8 +108,7 @@ class ChunkController {
 
 		};
 
-
-		this.init()
+        this.init()
 			.then( ()=>{
 
 				callback( this );
@@ -139,8 +138,6 @@ class ChunkController {
             let max_initial_chunks = 0;
             let loadInitialTerrain = ( chunk ) => {
 
-                this.chunks[ chunk.chunkKey ] = chunk;                
-
                 if ( initial_chunks.length == 0 ) {
 
                     button.textContent = "PLAY";
@@ -157,10 +154,10 @@ class ChunkController {
 
             const startLoading = () => {
                 loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
-                // console.log(initial_chunks);
                 const {x, z} = initial_chunks.pop();
                 setTimeout(() =>{
-                    new Chunk( x, z, this, loadInitialTerrain );
+                    const chunkKey = getChunkKey( { x: x, y: z } );
+                    this.chunks[ chunkKey ] = new Chunk( x, z, this, loadInitialTerrain );
                 }, 0);
             }
 
@@ -232,16 +229,16 @@ class ChunkController {
 		this.deltaCountCreate += delta;
 		if ( this.deltaCountCreate >= 0.02 && Object.keys( this.createNewChunks ).length > 0 ) {
 
-			let chunkKey = Object.keys( this.createNewChunks )[ 0 ];
+            let chunkKey = Object.keys( this.createNewChunks )[ 0 ];
 			if ( ! this.chunks[ chunkKey ] ) {
 
 				let createChunk = new Promise( ( resolve )=>{
 
-					this.chunks[ chunkKey ] = new Chunk(
+					new Chunk(
 						this.createNewChunks[ chunkKey ].x,
 						this.createNewChunks[ chunkKey ].y,
 						this,
-						()=>{}
+						chunk => this.chunks[ chunkKey ] = chunk
 					);
 					delete this.createNewChunks[ chunkKey ];
 
@@ -340,8 +337,8 @@ class ChunkController {
 
 			for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
 
-				let playerChunkCoord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
-				let chunkKey = getChunkKey( playerChunkCoord );
+				let coord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
+				let chunkKey = getChunkKey( coord );
 
 				
 				//if chunk does not exist, 
@@ -349,11 +346,11 @@ class ChunkController {
 				//add it to chunk generation queue
 				if ( ! this.chunks[ chunkKey ] ){
 
-					this.createNewChunks[ chunkKey ] = playerChunkCoord;
+					this.createNewChunks[ chunkKey ] = coord;
 					
 
-				} else if  ( x > -this.chunkViewDistance && x < this.chunkViewDistance &&
-							 z > -this.chunkViewDistance && z < this.chunkViewDistance ) {
+				} else if  ( x >= -this.chunkViewDistance && x <= this.chunkViewDistance &&
+							 z >= -this.chunkViewDistance && z <= this.chunkViewDistance ) {
 
 					
 					this.chunks[ chunkKey ].showLevel( 1 );
@@ -418,8 +415,7 @@ class ChunkController {
 		let newcastChunks = {};
 
 		//raycast chunk range
-        let d = 2
-
+        let d = 1
 		for ( let x = - d; x <= d; x ++ ) {
 
 			for ( let z = - d; z <= d; z ++ ) {
@@ -563,17 +559,19 @@ class ChunkController {
 	
 					} else {
 
-						for ( let i = 0; i < grassMatrices[0].length; i ++, count0 ++ ) {
-	
-							this.grass[0].setMatrixAt( count0, grassMatrices[0][ i ] );
-	
-						}
-	
-						for ( let i = 0; i < grassMatrices[1].length; i ++, count1 ++ ) {
-	
-							this.grass[1].setMatrixAt( count1, grassMatrices[1][ i ] );
-	
-						}
+                        if (grassMatrices){
+                            for ( let i = 0; i < grassMatrices[0].length; i ++, count0 ++ ) {
+        
+                                this.grass[0].setMatrixAt( count0, grassMatrices[0][ i ] );
+        
+                            }
+        
+                            for ( let i = 0; i < grassMatrices[1].length; i ++, count1 ++ ) {
+        
+                                this.grass[1].setMatrixAt( count1, grassMatrices[1][ i ] );
+        
+                            }
+                        }
 
 					}
 					
