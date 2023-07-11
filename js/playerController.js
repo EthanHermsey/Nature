@@ -197,7 +197,7 @@ class Player {
 
 		} else {
 
-			this.currentChunkCoord = this.getChunkCoord( this.position, ( chunk.gridSize.x - 2 ) * chunk.gridScale.x );
+            this.currentChunkCoord = this.getChunkCoord( this.position, ( chunk.gridSize.x - 2 ) * chunk.gridScale.x );
 
 		}
 
@@ -268,120 +268,124 @@ class Player {
 
 	movePlayer( delta ) {
 
-		//get cameraDirection (player aim direction);
-		let cd = new THREE.Vector3();
-		this.camera.getWorldDirection( cd );
-		let playerEuler = new THREE.Euler( 0, this.cameraRig.rotation.y, 0, 'YXZ' );
+        return new Promise( resolve => {
 
-		//get keyinput and rotate to camera direction (y axis rotation )
-		let walkDirection = this.getKeyInput( delta ).applyEuler( playerEuler );
+            //get cameraDirection (player aim direction);
+            let cd = new THREE.Vector3();
+            this.camera.getWorldDirection( cd );
+            let playerEuler = new THREE.Euler( 0, this.cameraRig.rotation.y, 0, 'YXZ' );
 
-
-		if ( walkDirection.length() > 0 ) {
-
-			if ( walkDirection.x != 0 && walkDirection.z != 0 ) {
-
-				let fEuler = new THREE.Euler( 0, this.model.rotation.y, 0, 'YXZ' );
-				let fDirection = new THREE.Vector3( 0, 0, 1 ).applyEuler( fEuler );
-				fDirection.lerp( walkDirection, 0.5 );
-
-				let v = this.object.position
-					.clone()
-					.add( fDirection );
-				v.y *= - 1;
-
-				this.model.lookAt( v );
-
-			}
-
-			this.model.animations.running.play();
-			this.model.animations.idle.stop();
-
-			if ( keyIsDown( 16 ) ) {
-
-				this.model.animations.running.timeScale = 1.25;
-
-			} else {
-
-				this.model.animations.running.timeScale = 1.0;
-
-			}
-
-		} else {
-
-			this.model.animations.idle.play();
-			this.model.animations.running.stop();
-
-		}
-
-		//the new position
-		let nPos = this.position.clone();
-		nPos.add( walkDirection );
-		//add gravity
-		nPos.y += this.vDown;
+            //get keyinput and rotate to camera direction (y axis rotation )
+            let walkDirection = this.getKeyInput( delta ).applyEuler( playerEuler );
 
 
-		//get the collisions for new position (down, up and in walkDirection )
-		let collisions = this.terrainCollidePoint( nPos, walkDirection );
+            if ( walkDirection.length() > 0 ) {
 
-		if ( collisions.down.normal ) {
+                if ( walkDirection.x != 0 && walkDirection.z != 0 ) {
 
-			if ( nPos.y > collisions.down.position.y + this.height &&
-                this.selectedFlyMode == 0 ) {
+                    let fEuler = new THREE.Euler( 0, this.model.rotation.y, 0, 'YXZ' );
+                    let fDirection = new THREE.Vector3( 0, 0, 1 ).applyEuler( fEuler );
+                    fDirection.lerp( walkDirection, 0.5 );
 
-				//fallingdown
-				this.vDown -= this.gravity * delta;
-				this.grounded = false;
+                    let v = this.object.position
+                        .clone()
+                        .add( fDirection );
+                    v.y *= - 1;
 
-			} else {
+                    this.model.lookAt( v );
 
-				//climbing up terrain
-				if ( this.selectedFlyMode == 0 ) {
+                }
 
-					nPos.y = collisions.down.position.y + this.height;
+                this.model.animations.running.play();
+                this.model.animations.idle.stop();
 
-				} else {
+                if ( keyIsDown( 16 ) ) {
 
-					nPos.y -= this.vDown;
-					this.vDown *= this.bouncyness;
+                    this.model.animations.running.timeScale = 1.25;
 
-					if ( abs( nPos.y - collisions.down.position.y ) < this.height * 1.5 ) {
+                } else {
 
-						nPos.y = collisions.down.position.y + this.height * 1.5;
+                    this.model.animations.running.timeScale = 1.0;
 
-					}
+                }
 
-				}
+            } else {
 
-				this.grounded = true;
+                this.model.animations.idle.play();
+                this.model.animations.running.stop();
 
-			}
+            }
 
-		} else {
+            //the new position
+            let nPos = this.position.clone();
+            nPos.add( walkDirection );
+            //add gravity
+            nPos.y += this.vDown;
 
-			console.log( 'no down', this.currentChunkCoord );
-			nPos.copy( this.position );
-            nPos.y ++;
 
-		}
+            //get the collisions for new position (down, up and in walkDirection )
+            let collisions = this.terrainCollidePoint( nPos, walkDirection );
 
-		//check pointing direction
-		if ( collisions.direction.position ) {
+            if ( collisions.down.normal ) {
 
-			let d = this.position.distanceTo( collisions.direction.position );
+                if ( nPos.y > collisions.down.position.y + this.height &&
+                    this.selectedFlyMode == 0 ) {
 
-			//if the angle is too steep, return to previous position
-			if ( d < this.walkSlopeLimit ) {
+                    //fallingdown
+                    this.vDown -= this.gravity * delta;
+                    this.grounded = false;
 
-				nPos.copy( this.position );
+                } else {
 
-			}
+                    //climbing up terrain
+                    if ( this.selectedFlyMode == 0 ) {
 
-		}
+                        nPos.y = collisions.down.position.y + this.height;
 
-		//set new position and gravity velocity
-		this.position.copy( nPos );
-		this.vDown = constrain( this.vDown, - this.vDownMax, this.vDownMax );
+                    } else {
+
+                        nPos.y -= this.vDown;
+                        this.vDown *= this.bouncyness;
+
+                        if ( abs( nPos.y - collisions.down.position.y ) < this.height * 1.5 ) {
+
+                            nPos.y = collisions.down.position.y + this.height * 1.5;
+
+                        }
+
+                    }
+
+                    this.grounded = true;
+
+                }
+
+            } else {
+
+                nPos.copy( this.position );
+                nPos.y ++;
+
+            }
+
+            //check pointing direction
+            if ( collisions.direction.position ) {
+
+                let d = this.position.distanceTo( collisions.direction.position );
+
+                //if the angle is too steep, return to previous position
+                if ( d < this.walkSlopeLimit ) {
+
+                    nPos.copy( this.position );
+
+                }
+
+            }
+
+            //set new position and gravity velocity
+            this.position.copy( nPos );
+            this.vDown = constrain( this.vDown, - this.vDownMax, this.vDownMax );
+            
+            resolve();
+        });
 
 	}
 
@@ -540,7 +544,6 @@ class Player {
 		} else {
 
 			downPos.y = point.y;
-			console.log( intersectDown );
 
 		}
 		response.down = { position: downPos, normal: downNormal };

@@ -158,7 +158,7 @@ function render() {
 
 	let delta = clock.getDelta();
 
-	chunkController.update( delta );
+	// chunkController.update( delta );
 
 	//update player controller. moving/collision/digging
 	player.update( delta );
@@ -196,14 +196,14 @@ function render() {
 
 
 function windowResized() {
-
-	resizeCanvas( windowWidth, windowHeight );
+    
+    resizeCanvas( windowWidth, windowHeight );
 	textSize( height * 0.015 );
-
+    
 	renderer.setSize( windowWidth, windowHeight );
 	player.camera.aspect = windowWidth / windowHeight;
 	player.camera.updateProjectionMatrix();
-
+    
 }
 
 function start() {
@@ -212,24 +212,25 @@ function start() {
 	THREEx.FullScreen.request();
 	running = true;
 	clock.start();
+    chunkController.toggleClock(true);
 	document.querySelector( 'audio' ).play();
 	document.getElementById( 'mainMenu' ).classList.add( 'hidden' );
 	render();
-
+    
 }
 
 function drawHud() {
-
-	clear();
+    
+    clear();
 	noFill();
 	stroke( 120, 200 );
-
+    
 	strokeWeight( 3 );
 	point( width / 2, height / 2 );
 	strokeWeight( 1 );
 	ellipse( width / 2, height / 2, min( width, height ) * 0.025 );
-
-
+    
+    
 	//make this better.... or not
 	noStroke();
 	fill( 80, 200 );
@@ -238,60 +239,60 @@ function drawHud() {
 	text( "SPACE          -  Jump / Fly.", width * 0.01, height * 0.14 );
 	text( "MOUSE L/R  -  Remove/add terrain.", width * 0.01, height * 0.16 );
 	text( "F                    -  Fly mode: " + player.flyModes[ player.selectedFlyMode ], width * 0.01, height * 0.18 );
-
+    
 	text( "SCROLL       -  Brush radius: " + player.brushRadius, width * 0.01, height * 0.20 );
-
-
-
+    
+    
+    
 }
 
 function animateVegetation( delta ) {
-
-	//update grass animation
+    
+    //update grass animation
 	let r = 1.0 + ( Math.random() * 0.5 );
 	if ( modelBank.grassModel1.material.userData.shader ) modelBank.grassModel1.material.userData.shader.uniforms.time.value += delta * r;
 	if ( modelBank.grassModel2.material.userData.shader ) modelBank.grassModel2.material.userData.shader.uniforms.time.value += delta * r;
 	//update tree1 animation
 	if ( modelBank.treeModelHigh.children[ 1 ].material.userData.shader ) {
-
-		modelBank.treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
-
+        
+        modelBank.treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
+        
 	}
 	if ( modelBank.treeModelHigh.children[ 0 ].material.userData.shader ) {
-
-		modelBank.treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
-
+        
+        modelBank.treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
+        
 	}
 	//update tree2 aimation
 	if ( modelBank.treeModelHigh2.children[ 1 ].material.userData.shader ) {
-
-		modelBank.treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
-
+        
+        modelBank.treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
+        
 	}
 	if ( modelBank.treeModelHigh2.children[ 0 ].material.userData.shader ) {
-
-		modelBank.treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
-
+        
+        modelBank.treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
+        
 	}
 	//update grasHigh
 	if ( modelBank.grassModelHigh.material.userData.shader ) {
-
-		modelBank.grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
-
+        
+        modelBank.grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
+        
 	}
 	//update fern
 	if ( modelBank.fernModel.material.userData.shader ) {
-
-		modelBank.fernModel.material.userData.shader.uniforms.time.value += delta * r;
-
+        
+        modelBank.fernModel.material.userData.shader.uniforms.time.value += delta * r;
+        
 	}
-
+    
 }
 
 function getChunkKey( coord ) {
-
-	return coord.x + ":" + coord.y;
-
+    
+    return coord.x + ":" + coord.y;
+    
 }
 
 
@@ -343,6 +344,8 @@ function pointerLockChangeCallback() {
 		document.removeEventListener( "mousemove", onMouseMove, false );
 		document.getElementById( 'mainMenu' ).classList.remove( 'hidden' );
 		running = false;
+        clock.stop();
+        chunkController.toggleClock(false);
 		document.querySelector( 'audio' ).pause();
 
 	}

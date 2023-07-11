@@ -112,7 +112,7 @@ class Chunk {
 		//hd
         this.gridSize = {
 			x: 16,
-			y: 256, //200
+			y: 256,
 			z: 16
 		};
 		this.gridScale = new THREE.Vector3(
@@ -131,14 +131,10 @@ class Chunk {
 		this.upperTreeHeightLimit = this.gridSize.y * this.gridScale.y * 0.7;
 
 
-		// the 3D array with the grid of values [ -1, 1 ]. Initialize with -0.5, not filled. ( > 0 is solid )
-		this.grid = new Float32Array( this.gridSize.x * this.gridSize.y * this.gridSize.z ).fill( - 0.5 );
 		this.modelMatrices = {};
-		this.terrainHeights = [];
-		for ( let i = 0; i < this.gridSize.x; i ++ ) {
-			this.terrainHeights.push( [] );
-		}
-
+		this.grid;
+        this.terrainHeights;
+		
 		//initialize the grid
 		this.initGrid()
             .then( () => {
@@ -231,44 +227,15 @@ class Chunk {
 
         return new Promise( resolve => {
 
-            for ( var x = 0; x < this.gridSize.x; x ++ ) {             
-                 for ( var z = 0; z < this.gridSize.z; z ++ ) {
-                     
-                    const continenal_scale = 0.006;
-                    const continental_noise = noise(
-                        5999754664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * continenal_scale,
-                        5999754664 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * continenal_scale,
-                    );
-    
-                    const bump_scale = 0.042;
-                    const bump_noise = abs(noise(
-                        5999754664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * bump_scale,
-                        5999754664 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * bump_scale,
-                    ) * 2 - 1);
-    
-                    //2d noise
-                    const continenalness = this.mapSplineNoise(continental_noise, continenal_spline);
-                    const bumpness = this.mapSplineNoise(continental_noise, bump_spline);
-    
-                    //product
-                    const continentalHeight = this.gridSize.y * continenalness;
-                    const bumpHeight = this.gridSize.y * (bump_noise * bumpness);
-                    const terrainHeight = continentalHeight + bumpHeight;
-    
-                    this.terrainHeights[x][z] = terrainHeight;
-                    
-                    for ( var y = 0; y < this.gridSize.y; y ++ ) {
-                         
-                        const value = this.getValue(x, y, z, terrainHeight);
-                        this.setGridValue( x, y, z, value );
-                         
-                    }
-                        
-                }
-    
-            }
+            chunkController.workerBank.generateGrid(this.offset, ( { data } ) => {
 
-            resolve();
+                this.grid = data.grid;
+                this.terrainHeights = data.terrainHeights;
+                resolve();
+    
+            })
+
+            
         })
 
 	}
@@ -377,7 +344,7 @@ class Chunk {
                     z = round( v[2] );
                     terrainHeight = this.terrainHeights[x][z];
 
-                    if ( y < terrainHeight ) {
+                    if ( y < terrainHeight + smoothRange) {
                         underground.push(( y > terrainHeight - smoothRange ) ? ( terrainHeight - y ) / smoothRange : 1);                            
                     } else {
                         underground.push(0);
@@ -527,30 +494,32 @@ class Chunk {
 
 		for ( let i = 0; i < 500; i ++ ) {
 
-			let d;
+			let d, terrainHeight;
             let tries = 100;
 			do {
                 surfaceSampler.sample( _position, _normal );
 				d = 1.0 - scene.up.dot( _normal );
+                terrainHeight = this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ];
                 tries--;
+			} while ( tries > 0 && ( d > 0.12 || _position.y < terrainHeight ) );
 
-			} while ( tries > 0 && ( d > 0.12 || _position.y < this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ] ) );
-
-			dummy.scale.set(
-				5 + Math.random(),
-				1 + Math.random() * 0.5,
-				5 + Math.random()
-			);
-			dummy.position
-				.copy( this.chunkPosition )
-				.add( _position.multiply( this.gridScale ) );
-			dummy.quaternion.setFromUnitVectors( scene.up, _normal );
-			dummy.rotateY( Math.random() * Math.PI );
-			dummy.updateMatrix();
-
-			const grassType = ( Math.random() < 0.875 ) ? 0 : 1;
-
-			this.modelMatrices[ 'grass' ][ grassType ].push( dummy.matrix.clone() );
+            if ( _position.y > terrainHeight ){
+                dummy.scale.set(
+                    5 + Math.random(),
+                    1 + Math.random() * 0.5,
+                    5 + Math.random()
+                );
+                dummy.position
+                    .copy( this.chunkPosition )
+                    .add( _position.multiply( this.gridScale ) );
+                dummy.quaternion.setFromUnitVectors( scene.up, _normal );
+                dummy.rotateY( Math.random() * Math.PI );
+                dummy.updateMatrix();
+    
+                const grassType = ( Math.random() < 0.875 ) ? 0 : 1;
+    
+                this.modelMatrices[ 'grass' ][ grassType ].push( dummy.matrix.clone() );
+            }
 
 		}
 
@@ -592,29 +561,34 @@ class Chunk {
 
 		for ( let i = 0; i < 20; i ++ ) {
 
-			let d;
+			let d, terrainHeight;
             let tries = 100;
 			do {
 
 				surfaceSampler.sample( _position, _normal );
 				d = 1.0 - scene.up.dot( _normal );
+                terrainHeight = this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ];
                 tries--;
 
-			} while ( tries > 0 && d > 0.13 || _position.y < this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ]);
+			} while ( tries > 0 && d > 0.13 || _position.y < terrainHeight);
 
-			dummy.scale.set(
-				3 + Math.random(),
-				2 + Math.random(),
-				3 + Math.random()
-			);
-			dummy.position
-				.copy( this.chunkPosition )
-				.add( _position.multiply( this.gridScale ) );
-			dummy.quaternion.setFromUnitVectors( scene.up, _normal );
-			dummy.rotateY( Math.random() * Math.PI );
-			dummy.updateMatrix();
+            if ( _position.y > this.terrainHeights[ Math.floor( _position.x ) ][ Math.floor( _position.z ) ]){
 
-			this.modelMatrices[ 'ferns' ].push( dummy.matrix.clone() );
+                dummy.scale.set(
+                    3 + Math.random(),
+                    2 + Math.random(),
+                    3 + Math.random()
+                );
+                dummy.position
+                    .copy( this.chunkPosition )
+                    .add( _position.multiply( this.gridScale ) );
+                dummy.quaternion.setFromUnitVectors( scene.up, _normal );
+                dummy.rotateY( Math.random() * Math.PI );
+                dummy.updateMatrix();
+    
+                this.modelMatrices[ 'ferns' ].push( dummy.matrix.clone() );
+                
+            }
 
 		}
 
@@ -1047,11 +1021,12 @@ class Chunk {
 		if ( this.terrainMesh ) {
             this.terrainMesh.geometry.dispose();
             scene.remove( this.terrainMesh );
+            this.terrainMesh = undefined;
         }
         if ( this.terrainTopMesh ){
             this.terrainTopMesh.geometry.dispose();
-            this.terrainTopMesh.material.dispose();
             scene.remove( this.terrainTopMesh );
+            this.terrainTopMesh = undefined;
         }
 
 	}

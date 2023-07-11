@@ -102,11 +102,49 @@ class ChunkController {
 				vec3 norm = normalize(vNormal2);
 				vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
 				float diff = 0.7 + max(dot(norm, lightDir), 0.0) * 0.3;
-				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.2, opacity );
+				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.1, opacity );
 				`			
 			);
 
 		};
+
+        const num_workers = 4;
+        this.workerBank = [];
+        this.workerBankQueue = [];
+        for(let i = 0; i < num_workers; i++){
+            this.workerBank[i] = {
+                index: i,
+                cb: undefined,
+                working: false,
+                worker: new Worker('./js/worker/worker.js'),
+                generateGrid: function(settings, cb){
+                    this.cb = cb;
+                    this.working = true;
+                    setTimeout(()=>{
+                        this.worker.postMessage(settings);                    
+                    }, this.index * 20);
+                }
+            };
+            this.workerBank[i].worker.onmessage = ( data ) => {
+                this.workerBank[i].working = false;
+                this.workerBank[i].cb(data);
+                if ( this.workerBankQueue.length > 0 ){
+                    const {settings, cb} = this.workerBankQueue.shift();
+                    this.workerBank.generateGrid(settings, cb);
+                }
+            };
+        }
+        this.workerBank.generateGrid = (settings, cb) => {
+            let foundWorker = false;
+            for(let i = 0; i < num_workers; i++){
+                if ( this.workerBank[i].working == false ) {
+                    foundWorker = true;
+                    this.workerBank[i].generateGrid(settings, cb);
+                    break;
+                }
+            }
+            if ( !foundWorker ) this.workerBankQueue.push({settings, cb});
+        };
 
         this.init()
 			.then( ()=>{
@@ -134,52 +172,111 @@ class ChunkController {
             const loadingContainer = document.getElementById( 'loadingContainer' );
             const loadingtext = document.getElementById( 'loadingtext' );
             const button = document.getElementById( 'playButton' );
-            const initial_chunks = [];
+            // const initial_chunks = [];
+            // let max_initial_chunks = 0;
+            // let loadInitialTerrain = () => {
+
+            //     if ( initial_chunks.length == 0 ) {
+
+            //         button.textContent = "PLAY";
+            //         button.onclick = start;
+            //         loadingContainer.style.display = 'none';
+            //         this.generateInstancedObjects();
+			// 		resolve();
+
+            //     } else {
+
+            //         startLoading();
+
+            //     }
+
+            // };
+
+            // const startLoading = () => {
+            //     loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
+            //     const {x, z} = initial_chunks.pop();
+            //     setTimeout(() =>{
+            //         const chunkKey = getChunkKey( { x: x, y: z } );
+            //         this.chunks[ chunkKey ] = new Chunk( x, z, this, loadInitialTerrain );
+            //     }, 0);
+            // }
+
+            // setTimeout(() => {
+            //     for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
+
+            //         for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
+
+            //             initial_chunks.push({x, z});
+            //             max_initial_chunks++;
+
+            //         }
+
+            //     }                
+            //     startLoading();
+            // }, 500);
+
             let max_initial_chunks = 0;
+            let num_initial_chunks = 0;
             let loadInitialTerrain = ( chunk ) => {
 
-                if ( initial_chunks.length == 0 ) {
+                this.chunks[ chunk.chunkKey ] = chunk;
+                num_initial_chunks--;
+                loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - num_initial_chunks + 1} / ${max_initial_chunks}`;
+
+                if ( num_initial_chunks == 0 ) {
 
                     button.textContent = "PLAY";
                     button.onclick = start;
                     loadingContainer.style.display = 'none';
                     this.generateInstancedObjects();
-					resolve();
+                    resolve();
 
-                } else {
-                    startLoading();
                 }
 
             };
 
-            const startLoading = () => {
-                loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
-                const {x, z} = initial_chunks.pop();
-                setTimeout(() =>{
-                    const chunkKey = getChunkKey( { x: x, y: z } );
-                    this.chunks[ chunkKey ] = new Chunk( x, z, this, loadInitialTerrain );
-                }, 0);
-            }
-
+            // let promises = [];
 
             setTimeout(() => {
                 for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
 
                     for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
 
-                        initial_chunks.push({x, z});
+                        // promises.push(new Promise( ( resolve )=>{                           
+                            new Chunk(
+                                x,
+                                z,
+                                this,
+                                (chunk) => loadInitialTerrain( chunk )
+                            );
+                            
+                        // } ) );
+                        num_initial_chunks++;
                         max_initial_chunks++;
-
                     }
 
                 }                
-                startLoading();
             }, 500);
+
+            // Promise.all( promises );
 
 
 		} );
 
 	}
+
+
+    toggleClock( start ){
+
+        if ( start ){            
+            this.clock = setInterval(() => {
+                this.update();
+            }, 300 );
+        } else {
+            clearInterval(this.clock);
+        }
+
+    }
 
 
 
@@ -192,79 +289,59 @@ class ChunkController {
 	//  `V88V"V8P'  888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P' 
 	//              888                                              
 	//             o888o                                          
-	update( delta ) {
+	update() {
 
-		//update chunks after digging
-		this.deltaCountUpdate += delta;
-		if ( this.deltaCountUpdate >= 0.1 && Object.keys( this.updateChunks ).length > 0 ) {
+        //create array of promises
+        const promises = [];
 
-			//create array of promises
-			let promises = [];
+        //update chunks after digging        
+        if ( Object.keys( this.updateChunks ).length > 0 ) {
 
-			Object.keys( this.updateChunks ).forEach( chunk => {
+            Object.keys( this.updateChunks ).forEach( chunkKey => {
 
-				promises.push( this.chunks[ chunk ].update() );
-				delete this.updateChunks[ chunk ];
+                promises.push( this.chunks[ chunkKey ].update() );
+                delete this.updateChunks[ chunkKey ];
 
-			} );
-
-			//run promises
-			Promise.all( promises ).then( ()=>{
-
-				this.updateCastChunkTerrainArray();
-				if ( Object.keys( this.updateChunks ).length == 0 ){
-
-					this.generateInstancedObjects();
-
-				}
-				
-
-			} );
-
-			this.deltaCountUpdate = 0;
-
-		}
+            } );
+            
+        }
 
 		//create new chunks
-		this.deltaCountCreate += delta;
-		if ( this.deltaCountCreate >= 0.02 && Object.keys( this.createNewChunks ).length > 0 ) {
+		if ( Object.keys( this.createNewChunks ).length > 0 ) {
 
-            let chunkKey = Object.keys( this.createNewChunks )[ 0 ];
-			if ( ! this.chunks[ chunkKey ] ) {
+            Object.keys( this.createNewChunks ).forEach( chunkKey => {
+                
+                if ( ! this.chunks[ chunkKey ] ) {
+    
+                    promises.push(new Promise( ( resolve )=>{
+    
+                        new Chunk(
+                            this.createNewChunks[ chunkKey ].x,
+                            this.createNewChunks[ chunkKey ].y,
+                            this,
+                            chunk => {
+                                this.chunks[ chunkKey ] = chunk;
+                                resolve();
+                            }
+                        );
+                        
+                    } ) );
+                }
 
-				let createChunk = new Promise( ( resolve )=>{
+                delete this.createNewChunks[ chunkKey ];
 
-					new Chunk(
-						this.createNewChunks[ chunkKey ].x,
-						this.createNewChunks[ chunkKey ].y,
-						this,
-						chunk => this.chunks[ chunkKey ] = chunk
-					);
-					delete this.createNewChunks[ chunkKey ];
-
-					resolve();
-
-				} );
-
-				//only load one promise
-				createChunk.then( ()=>{
-
-					this.updateCastChunkTerrainArray();
-					if ( Object.keys( this.createNewChunks ).length == 0 ) {
-						
-						this.generateInstancedObjects();
-
-					}
-
-				} );
-
-			}
-
-			this.deltaCountCreate = 0;
-
-
+            });
 
 		}
+
+
+        Promise.all( promises ).then( ()=>{
+
+            this.updateCastChunkTerrainArray();
+            this.generateInstancedObjects();
+            
+        } );
+
 
 		if ( ! this.prevCoord ||
 			this.prevCoord.x != player.currentChunkCoord.x ||
@@ -284,7 +361,7 @@ class ChunkController {
 
 		//update fake-fog
 		if ( this.fogCloud && this.fogCloud.material.userData.shader){
-			this.fogCloud.material.userData.shader.uniforms.time.value += delta;			
+			this.fogCloud.material.userData.shader.uniforms.time.value += 0.1;			
 		}
 
 	}
@@ -373,7 +450,7 @@ class ChunkController {
 		Object.keys( this.chunks ).forEach( key=>{
 
 			//if this chunk is not needed in new visible chunks, hide it.
-			if ( ! newVisibleChunks[ this.chunks[ key ].chunkKey ]) {
+			if ( ! newVisibleChunks[ key ]) {
 
 				this.chunks[ key ].remove();
 				delete this.chunks[ key ];
