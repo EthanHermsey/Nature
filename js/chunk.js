@@ -102,12 +102,12 @@ class Chunk {
 
 		const playerChunk = ( player ) ? player.currentChunkCoord : { x: 0, y: 0 };
 
-		if ( x >= playerChunk.x - parent.chunkViewDistance && x <= playerChunk.x + parent.chunkViewDistance &&
-			z >= playerChunk.y - parent.chunkViewDistance && z <= playerChunk.y + parent.chunkViewDistance ) {
+		// if ( x >= playerChunk.x - parent.chunkViewDistance && x <= playerChunk.x + parent.chunkViewDistance &&
+		// 	z >= playerChunk.y - parent.chunkViewDistance && z <= playerChunk.y + parent.chunkViewDistance ) {
 
-			this.lodLevel = 1;
+			this.lodLevel = 0;
 
-		}
+		// }
 
 		//hd
         this.gridSize = {
@@ -344,7 +344,7 @@ class Chunk {
                     z = round( v[2] );
                     terrainHeight = this.terrainHeights[x][z];
 
-                    if ( y < terrainHeight + smoothRange) {
+                    if ( y < terrainHeight ) {
                         underground.push(( y > terrainHeight - smoothRange ) ? ( terrainHeight - y ) / smoothRange : 1);                            
                     } else {
                         underground.push(0);
@@ -385,6 +385,10 @@ class Chunk {
 				geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
 				geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );				
 				geo.computeVertexNormals();
+                geo.computeBoundsTree = computeBoundsTree;
+                geo.disposeBoundsTree = disposeBoundsTree;
+                geo.computeBoundsTree();
+
 
                 topgeo.setIndex( topindices );
 				topgeo.setAttribute( 'position', new THREE.Float32BufferAttribute( topvertices, 3 ) );				
@@ -396,6 +400,7 @@ class Chunk {
 				//create new mesh with preloaded material
 				this.terrainMesh = new THREE.Mesh( geo, this.parent.terrainMaterial );
 				this.terrainMesh.scale.set( this.gridScale.x, this.gridScale.y, this.gridScale.z );
+                this.terrainMesh.raycast = acceleratedRaycast;
 				this.terrainMesh.chunk = this;
 				this.terrainMesh.position.x = this.chunkPosition.x;
 				this.terrainMesh.position.z = this.chunkPosition.z;
@@ -411,7 +416,6 @@ class Chunk {
 				this.terrainTopMesh.scale.set( this.gridScale.x, this.gridScale.y, this.gridScale.z );
 				this.terrainTopMesh.position.x = this.chunkPosition.x;
 				this.terrainTopMesh.position.z = this.chunkPosition.z;
-				this.terrainTopMesh.material.needsUpdate = true;
 
 				this.terrainTopMesh.updateWorldMatrix();
 				this.terrainTopMesh.matrixAutoUpdate = false;
@@ -790,7 +794,7 @@ class Chunk {
 		return new Promise( resolve=>{
 
 			//square loop around a sphere brush
-			let loopRadius = floor( radius * PI );
+			let loopRadius = floor( radius * 2 );
 
 			for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
@@ -802,13 +806,15 @@ class Chunk {
 						let d = x * x + y * y + z * z;
 						if ( d < radius ) {
 
+                            let p = map(d, 0, radius * 0.8, 1, 0, true);
+
 							//grid position in sphere around center (x y and z go from -looprad to +looprad)
 							let newPosition = new THREE.Vector3( x, y, z ).add( center );
 
 							if ( this.isInsideGrid( newPosition ) ) {
 
 								//if not lower that 0 or height that gridsize, add value
-								this.addValueToGrid( newPosition.x, newPosition.y, newPosition.z, val );
+								this.addValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
 
 							}
 
@@ -847,7 +853,7 @@ class Chunk {
 			return matrices.filter( matrix =>{
 
 				p.setFromMatrixPosition( matrix );
-				return ( p.distanceToSquared( worldCenter ) > radius * radius * 15 );
+				return ( p.distanceToSquared( worldCenter ) > radius * radius * 25 );
 
 			} );
 
@@ -887,7 +893,7 @@ class Chunk {
 	adjustNeighbors( center, radius, val ) {
 
 		//x-axis
-		if ( center.x <= radius ) {
+		if ( center.x <= radius) {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z } );
 			let nCenter = center.clone();
@@ -1023,6 +1029,7 @@ class Chunk {
             scene.remove( this.terrainMesh );
             this.terrainMesh = undefined;
         }
+        
         if ( this.terrainTopMesh ){
             this.terrainTopMesh.geometry.dispose();
             scene.remove( this.terrainTopMesh );

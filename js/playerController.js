@@ -1,12 +1,13 @@
 
 class Player {
 
-	constructor( startChunk ) {
+	constructor() {
 
 		//create camera
 		this.object = new THREE.Object3D();
 		this.object.rotation.order = "YXZ";
 		this.object.frustumCulled = false;
+        scene.add( this.object );
 
         this.cameraRigPosition = new THREE.Vector3(0, 4.5, 0);
 		this.cameraRig = new THREE.Object3D();
@@ -28,108 +29,16 @@ class Player {
 		this.cameraRig.add( this.camera );
 		this.object.add( this.cameraRig );
 
-		let x = ( startChunk.offset.x * startChunk.chunkSize ) + startChunk.chunkSize / 2;
-		let z = ( startChunk.offset.z * startChunk.chunkSize ) + startChunk.chunkSize / 2;
-		let m = Math.floor( startChunk.gridSize.x / 2 );
-		let y = startChunk.terrainHeights[ m ][ m ] * startChunk.gridScale.y * 1.2;
-		this.position.set( x, y, z );
-
-		scene.add( this.object );
-
-
-		let loader = new THREE.GLTFLoader();
-
-		loader.load( './resources/model/knight.gltf', ( model ) => {
-
-			this.model = model.scene.children[ 0 ];
-			this.model.mixer = new THREE.AnimationMixer( this.model );
-			this.model.animations = {
-				idle: this.model.mixer.clipAction( model.animations[ 0 ] ),
-				running: this.model.mixer.clipAction( model.animations[ 1 ] )
-			};
-			this.model.animations.idle.play();
-
-			this.model.children.map( child=>{
-
-				child.frustumCulled = false;
-
-			} );
-			this.model.children[ 1 ].material.metalness = 0.0;
-			this.model.children[ 1 ].material.roughness = 0.75;
-			this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
-				.load( './resources/model/n.png' );
-			this.model.scale.multiplyScalar( 1.8 );
-			this.model.position.y -= 2;
-			this.model.rotation.order = "YXZ";
-			this.model.rotation.y = Math.PI;
-			this.model.children.map( c=>{
-
-				if ( c.type != 'Bone' ) {
-
-					c.castShadow = true;
-					c.receiveShadow = true;
-
-				}
-
-			} );
-			this.object.add( this.model );
-
-		} );
-
-
-		//add shadowlight
-		this.shadowLightOffset = new THREE.Vector3( 30, 50, 0 );
-		this.shadowLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-		this.shadowLight.target = new THREE.Object3D();
-		scene.add( this.shadowLight.target );
-		this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-		this.shadowLight.target.position.copy( this.position );
-
-		this.shadowLight.castShadow = true;
-		this.shadowLight.shadow.mapSize.width = 512; // default
-		this.shadowLight.shadow.mapSize.height = 512; // default
-		this.shadowLight.shadow.camera.near = 0.5; // default
-		this.shadowLight.shadow.camera.far = 300; // default
-		this.shadowLight.shadow.camera.top = - 500;
-		this.shadowLight.shadow.camera.bottom = 500;
-		this.shadowLight.shadow.camera.left = - 500;
-		this.shadowLight.shadow.camera.right = 500;
-		scene.add( this.shadowLight );
-		this.cameraTimer = 0;
-
-
-		//add a skybox. This position is
-		this.skyBox = new THREE.Mesh(
-			new THREE.SphereGeometry(
-				startChunk.chunkSize * 2 * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
-				64,
-				64
-			),
-			new THREE.MeshBasicMaterial( {
-				map: new THREE.TextureLoader().load( './resources/background2.jpg' ),
-				side: THREE.BackSide
-			} )
-		);
-		this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
-
-		scene.add( this.skyBox );
-
-
-
-
 		//raycast point
 		this.intersectPoint = null;
 
-		//chunk coord and list of visible chunks
-		this.currentChunkCoord = this.getChunkCoord( this.position, ( startChunk.gridSize.x - 2 ) * startChunk.gridScale.x );
-
 		//brush vars
-		this.terrainAdjustStrength = 0.06;
+		this.terrainAdjustStrength = 0.19;
 		this.brushRadius = 3;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.21;
 		this.maxBuildDistance = 250;
-		this.minDigDistance = this.brushRadius * ( startChunk.gridScale.x / 2 + 0.5 );
+		
 
 		//player height/movement vars
 		this.height = 2;
@@ -148,7 +57,6 @@ class Player {
 		this.flyModes = [ 'walk', 'fly' ];
 		this.selectedFlyMode = 0;
 
-
 	}
 
 	get position() {
@@ -158,6 +66,109 @@ class Player {
 	}
 
 
+//    o8o               o8o      .   
+//    `"'               `"'    .o8   
+//   oooo  ooo. .oo.   oooo  .o888oo 
+//   `888  `888P"Y88b  `888    888   
+//    888   888   888   888    888   
+//    888   888   888   888    888 . 
+//   o888o o888o o888o o888o   "888" 
+                                
+   init( startChunk, resolve ){
+
+        //set chunkcoord and position
+		this.currentChunkCoord = this.getChunkCoord( this.position, ( startChunk.gridSize.x - 2 ) * startChunk.gridScale.x );
+
+        let x = ( startChunk.offset.x * startChunk.chunkSize ) + startChunk.chunkSize / 2;
+        let z = ( startChunk.offset.z * startChunk.chunkSize ) + startChunk.chunkSize / 2;
+        let m = Math.floor( startChunk.gridSize.x / 2 );
+        let y = startChunk.terrainHeights[ m ][ m ] * startChunk.gridScale.y * 1.2;
+        this.position.set( x, y, z );
+
+        this.minDigDistance = this.brushRadius * ( startChunk.gridScale.x / 2 + 0.5 );
+        
+            
+        let loader = new THREE.GLTFLoader();
+
+        loader.load( './resources/model/knight.gltf', ( model ) => {
+
+            this.model = model.scene.children[ 0 ];
+            this.model.mixer = new THREE.AnimationMixer( this.model );
+            this.model.animations = {
+                idle: this.model.mixer.clipAction( model.animations[ 0 ] ),
+                running: this.model.mixer.clipAction( model.animations[ 1 ] )
+            };
+            this.model.animations.idle.play();
+
+            this.model.children.map( child=>{
+
+                child.frustumCulled = false;
+
+            } );
+            this.model.children[ 1 ].material.metalness = 0.0;
+            this.model.children[ 1 ].material.roughness = 0.75;
+            this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
+                .load( './resources/model/n.png' );
+            this.model.scale.multiplyScalar( 1.8 );
+            this.model.position.y -= 2;
+            this.model.rotation.order = "YXZ";
+            this.model.rotation.y = Math.PI;
+            this.model.children.map( c=>{
+
+                if ( c.type != 'Bone' ) {
+
+                    c.castShadow = true;
+                    c.receiveShadow = true;
+
+                }
+
+            } );
+            this.object.add( this.model );
+            resolve();
+
+        } );
+
+
+        //add shadowlight
+        this.shadowLightOffset = new THREE.Vector3( 30, 50, 0 );
+        this.shadowLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+        this.shadowLight.target = new THREE.Object3D();
+        scene.add( this.shadowLight.target );
+        this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
+        this.shadowLight.target.position.copy( this.position );
+
+        this.shadowLight.castShadow = true;
+        this.shadowLight.shadow.mapSize.width = 512; // default
+        this.shadowLight.shadow.mapSize.height = 512; // default
+        this.shadowLight.shadow.camera.near = 0.5; // default
+        this.shadowLight.shadow.camera.far = 300; // default
+        this.shadowLight.shadow.camera.top = - 500;
+        this.shadowLight.shadow.camera.bottom = 500;
+        this.shadowLight.shadow.camera.left = - 500;
+        this.shadowLight.shadow.camera.right = 500;
+        scene.add( this.shadowLight );
+        this.cameraTimer = 0;
+
+
+        //add a skybox. This position is
+        this.skyBox = new THREE.Mesh(
+            new THREE.SphereGeometry(
+                startChunk.chunkSize * 2 * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
+                64,
+                64
+            ),
+            new THREE.MeshBasicMaterial( {
+                map: new THREE.TextureLoader().load( './resources/background2.jpg' ),
+                side: THREE.BackSide
+            } )
+        );
+        this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
+
+        scene.add( this.skyBox );    
+
+   }                                  
+                                     
+                                     
 
 	//                              .o8                .
 	//                             "888              .o8
@@ -174,32 +185,7 @@ class Player {
 
 		const chunkKey = getChunkKey( this.currentChunkCoord );
 		const chunk = chunkController.getChunk( chunkKey );
-
-		//get the current chunk coordinates
-		raycaster.set( this.position, scene.down );
-		let intersectDown = raycaster.intersectObjects( chunkController.castChunks, true );
-
-		if ( intersectDown[ 0 ] ) {
-
-			if ( intersectDown.length > 1 ) {
-
-				intersectDown = intersectDown.filter( intersect =>{
-
-					return intersect.object.chunk != undefined;
-
-				} );
-
-			}
-			this.currentChunkCoord = new THREE.Vector2(
-				intersectDown[ 0 ].object.chunk.offset.x,
-				intersectDown[ 0 ].object.chunk.offset.z
-			);
-
-		} else {
-
-            this.currentChunkCoord = this.getChunkCoord( this.position, ( chunk.gridSize.x - 2 ) * chunk.gridScale.x );
-
-		}
+        this.currentChunkCoord = this.getChunkCoord( this.position, ( chunk.gridSize.x - 2 ) * chunk.gridScale.x );
 
 		this.movePlayer( delta );
 
@@ -232,7 +218,6 @@ class Player {
 
 			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
 			this.shadowLight.target.position.copy( this.position );
-			// this.helper.update();
 			this.cameraTimer = 0;
 
 		}
@@ -616,7 +601,7 @@ class Player {
 		//rotate cameraRig on X
 		this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
 
-		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 0.95 );
+		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.2 );
 		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -0.85 );
 		this.cameraRig.rotation.z = 0;
 
@@ -638,18 +623,14 @@ class Player {
                 this.cameraDistance = min(distance, this.cameraMaxDistance);
             }
 
-            this.camera.position.setLength(this.cameraDistance)
+            this.camera.position.setLength(this.cameraDistance);
+            this.model.visible = this.cameraDistance > 2;
 
 		} 
 
 
 	}
 
-	mouseScrolled( e ) {
-
-		this.brushRadius = constrain( this.brushRadius -= Math.sign( e.deltaY ), 1, 4 );
-
-	}
 
 
 
@@ -688,7 +669,7 @@ class Player {
 				.sub( this.intersectPoint.object.position )
 				.divide( this.intersectPoint.object.chunk.gridScale )
 				.round();
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * 2 : this.terrainAdjustStrength;
+			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( gridPosition, this.brushRadius, val, true );

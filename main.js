@@ -7,6 +7,7 @@ const renderer = new THREE.WebGLRenderer( {
 	logarithmicDepthBuffer: true
 } );
 const raycaster = new THREE.Raycaster();
+raycaster.firstHitOnly = true;
 
 //chunks
 let chunkController;
@@ -44,8 +45,7 @@ function setup() {
 
 	//no p5 canvas
 	let cnv = createCanvas( windowWidth, windowHeight );
-	cnv.parent( 'p5Div' );
-	cnv.mouseWheel( mouseScrolled );
+	cnv.parent( 'p5-div' );
 	noLoop();
 	textSize( height * 0.015 );
 	const birdSound = document.querySelector( 'audio' );
@@ -82,7 +82,7 @@ function setup() {
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize( windowWidth, windowHeight );
-	document.getElementById( 'threeDiv' ).appendChild( renderer.domElement );
+	document.getElementById( 'three-div' ).appendChild( renderer.domElement );
 
 
 	//prepare pointerLock api
@@ -114,24 +114,15 @@ function setup() {
 	// scene.fog = new THREE.FogExp2( 'lightgrey', 0.0008 );
 	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0003 );
 
-	//terrainSeed!
-	let rnd = 32921;
+	//terrainSeed
+	let rnd = 32921; //is very nice
 	// let rnd = floor( random( 99999 ) );
 	console.log( '> Seed: ' + rnd );
 	noiseSeed( rnd ); //p5 function to set the seed of the perlin noise gen
 
-	//preload models
-	preloadModels().then(()=>{
-        chunkController = new ChunkController( ( controller )=>{
-										
-            player = new Player( controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ] );
-
-        } );
-    })
-
-
+    //player!
+    player = new Player();
 }
-
 
 
 
@@ -206,17 +197,61 @@ function windowResized() {
     
 }
 
-function start() {
+function startLoading(){
 
-	renderer.domElement.requestPointerLock();
+    document.getElementById( 'menu-content' ).classList.add( 'hidden' );
+    document.getElementById( 'loading-container' ).classList.remove( 'hidden' );
+    
+    renderer.domElement.requestPointerLock();
 	THREEx.FullScreen.request();
+
+	preloadModels().then(() => {
+
+        document.getElementById( 'loading-img' ).classList.add( 'hidden' );
+        chunkController = new ChunkController( ( controller ) => {										
+        
+            player.init(
+                controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ],
+                () => {
+
+                    controller.updateVisibleChunkTerrainArray();
+                    controller.updateCastChunkTerrainArray();
+                    start()
+
+                }
+            );
+        } );
+    })
+}
+
+function start( userEvent ) {
+
+    document.addEventListener( "mousemove", onMouseMove, false );
+    if ( userEvent ){
+        renderer.domElement.requestPointerLock();
+        THREEx.FullScreen.request();
+    }
+
 	running = true;
 	clock.start();
     chunkController.toggleClock(true);
 	document.querySelector( 'audio' ).play();
-	document.getElementById( 'mainMenu' ).classList.add( 'hidden' );
+	document.getElementById( 'main-menu' ).classList.add( 'hidden' );
 	render();
     
+}
+
+function stop(){
+
+    document.removeEventListener( "mousemove", onMouseMove, false );
+    document.getElementById( 'main-menu' ).classList.remove( 'hidden' );
+    document.getElementById( 'menu-content' ).classList.remove( 'hidden' );
+    document.getElementById( 'loading-container' ).classList.add( 'hidden' );
+    running = false;
+    clock.stop();
+    chunkController.toggleClock(false);
+    document.querySelector( 'audio' ).pause();
+
 }
 
 function drawHud() {
@@ -234,13 +269,14 @@ function drawHud() {
 	//make this better.... or not
 	noStroke();
 	fill( 80, 200 );
-	text( "WASD           -  Move around.", width * 0.01, height * 0.1 );
-	text( "SHIFT           -  Sprint.", width * 0.01, height * 0.12 );
-	text( "SPACE          -  Jump / Fly.", width * 0.01, height * 0.14 );
+	text( "WASD", width * 0.01, height * 0.1 );
+	text( "- Move around", width * 0.1, height * 0.1 );
+
+	text( "SHIFT           -  Sprint", width * 0.01, height * 0.12 );
+
+	text( "SPACE          -  Jump", width * 0.01, height * 0.14 );
+
 	text( "MOUSE L/R  -  Remove/add terrain.", width * 0.01, height * 0.16 );
-	text( "F                    -  Fly mode: " + player.flyModes[ player.selectedFlyMode ], width * 0.01, height * 0.18 );
-    
-	text( "SCROLL       -  Brush radius: " + player.brushRadius, width * 0.01, height * 0.20 );
     
     
     
@@ -333,63 +369,12 @@ function onMouseMove( e ) {
 
 function pointerLockChangeCallback() {
 
-	if ( document.pointerLockElement === renderer.domElement ||
-  		document.mozPointerLockElement === renderer.domElement ||
-  		document.webkitPointerLockElement === renderer.domElement ) {
+	if ( document.pointerLockElement !== renderer.domElement &&
+  		document.mozPointerLockElement !== renderer.domElement &&
+  		document.webkitPointerLockElement !== renderer.domElement ) {
 
-		document.addEventListener( "mousemove", onMouseMove, false );
-
-	} else {
-
-		document.removeEventListener( "mousemove", onMouseMove, false );
-		document.getElementById( 'mainMenu' ).classList.remove( 'hidden' );
-		running = false;
-        clock.stop();
-        chunkController.toggleClock(false);
-		document.querySelector( 'audio' ).pause();
+        stop();
 
 	}
 
 }
-
-function mouseScrolled( e ) {
-
-	player.mouseScrolled( e );
-
-}
-
-function keyPressed() {
-
-	switch ( keyCode ) {
-
-		case key.flyMode:
-
-			if ( ++ player.selectedFlyMode == player.flyModes.length ) player.selectedFlyMode = 0;
-
-			break;
-
-	}
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

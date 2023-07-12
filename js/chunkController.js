@@ -8,8 +8,9 @@ class ChunkController {
 		this.createNewChunks = {};
 		this.castChunks = [];
 		this.prevCoord = undefined;
-		this.chunkViewDistance = 6;
-		this.farChunkEdge = 4;
+		this.chunkViewDistance = 4;
+		this.farChunkEdge = 2;
+        this.totalViewDistance =  this.chunkViewDistance + this.farChunkEdge;
 
 		this.grassViewDistance = 4;
 		this.fernViewDistance = 3;
@@ -102,7 +103,7 @@ class ChunkController {
 				vec3 norm = normalize(vNormal2);
 				vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
 				float diff = 0.7 + max(dot(norm, lightDir), 0.0) * 0.3;
-				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.1, opacity );
+				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.2, opacity );
 				`			
 			);
 
@@ -169,97 +170,76 @@ class ChunkController {
 		return new Promise( resolve =>{
 
             //init chunks,
-            const loadingContainer = document.getElementById( 'loadingContainer' );
-            const loadingtext = document.getElementById( 'loadingtext' );
-            const button = document.getElementById( 'playButton' );
-            // const initial_chunks = [];
-            // let max_initial_chunks = 0;
-            // let loadInitialTerrain = () => {
-
-            //     if ( initial_chunks.length == 0 ) {
-
-            //         button.textContent = "PLAY";
-            //         button.onclick = start;
-            //         loadingContainer.style.display = 'none';
-            //         this.generateInstancedObjects();
-			// 		resolve();
-
-            //     } else {
-
-            //         startLoading();
-
-            //     }
-
-            // };
-
-            // const startLoading = () => {
-            //     loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - initial_chunks.length + 1} / ${max_initial_chunks}`;
-            //     const {x, z} = initial_chunks.pop();
-            //     setTimeout(() =>{
-            //         const chunkKey = getChunkKey( { x: x, y: z } );
-            //         this.chunks[ chunkKey ] = new Chunk( x, z, this, loadInitialTerrain );
-            //     }, 0);
-            // }
-
-            // setTimeout(() => {
-            //     for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
-
-            //         for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
-
-            //             initial_chunks.push({x, z});
-            //             max_initial_chunks++;
-
-            //         }
-
-            //     }                
-            //     startLoading();
-            // }, 500);
-
+            const grid = document.getElementById('loading-grid');
+            const loadingtext = document.getElementById( 'loading-text' );
+            const button = document.getElementById( 'play-button' );
+            
             let max_initial_chunks = 0;
             let num_initial_chunks = 0;
             let loadInitialTerrain = ( chunk ) => {
 
+
                 this.chunks[ chunk.chunkKey ] = chunk;
                 num_initial_chunks--;
-                loadingtext.textContent = `Loading initial chunks: ${max_initial_chunks - num_initial_chunks + 1} / ${max_initial_chunks}`;
-
+                document.getElementById( chunk.chunkKey ).classList.add('active');
+                
                 if ( num_initial_chunks == 0 ) {
 
-                    button.textContent = "PLAY";
-                    button.onclick = start;
-                    loadingContainer.style.display = 'none';
+                    loadingtext.textContent = `Loading player`;
+                    button.onclick = start; //so next time there is no loading screen                    
                     this.generateInstancedObjects();
                     resolve();
 
                 }
 
+                loadingtext.textContent = `loading chunks: ${max_initial_chunks - num_initial_chunks + 1} / ${max_initial_chunks}`;
+                
+
             };
 
-            // let promises = [];
+            const gridAmount = this.totalViewDistance * 2 + 1;
+            grid.style.gridTemplateRows = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
+            grid.style.gridTemplateColumns = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
 
+            
             setTimeout(() => {
-                for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
 
-                    for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
+                const addChunks = [];
+                for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
 
-                        // promises.push(new Promise( ( resolve )=>{                           
-                            new Chunk(
-                                x,
-                                z,
-                                this,
-                                (chunk) => loadInitialTerrain( chunk )
-                            );
-                            
-                        // } ) );
+                    for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
+
+                        addChunks.push({
+                            dist: x * x + z * z,
+                            add: () =>{
+                                new Chunk(
+                                    x,
+                                    z,
+                                    this,
+                                    (chunk) => loadInitialTerrain( chunk )
+                                );
+                            }
+                        })
+                        
                         num_initial_chunks++;
                         max_initial_chunks++;
+
+                        const d = document.createElement('div');
+                        d.id = `${x}:${z}`;
+                        d.className = 'loading-grid-item';
+                        grid.appendChild(d);
+
                     }
 
-                }                
-            }, 500);
+                }
 
-            // Promise.all( promises );
+                const tvd = this.totalViewDistance * this.totalViewDistance;
+                addChunks
+                    .sort( ( a, b ) => a.dist - b.dist )
+                    .map( chunk => chunk.add() );
 
+            }, 10);
+            
 
 		} );
 
@@ -292,6 +272,7 @@ class ChunkController {
 	update() {
 
         //create array of promises
+        let updatedChunk = false;
         const promises = [];
 
         //update chunks after digging        
@@ -301,6 +282,7 @@ class ChunkController {
 
                 promises.push( this.chunks[ chunkKey ].update() );
                 delete this.updateChunks[ chunkKey ];
+                updatedChunk = true;
 
             } );
             
@@ -337,31 +319,35 @@ class ChunkController {
 
         Promise.all( promises ).then( ()=>{
 
-            this.updateCastChunkTerrainArray();
-            this.generateInstancedObjects();
+            if ( ! this.prevCoord ||
+                   updatedChunk === true ||
+                   this.prevCoord.x != player.currentChunkCoord.x ||
+                   this.prevCoord.y != player.currentChunkCoord.y ) {
+    
+
+                this.generateInstancedObjects();
+                this.updateCastChunkTerrainArray();			
+
+                if ( !updatedChunk ){
+                    
+                    this.updateVisibleChunkTerrainArray();
+                    this.prevCoord = player.currentChunkCoord.clone();
+
+                }
+
+                //set birdsound volume
+                let chunk = chunkController.chunks[ getChunkKey( this.prevCoord ) ];
+                let treeAmount = chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length;
+                document.querySelector( 'audio' ).setVolume( map( treeAmount, 10, 35, 0.0, 0.3, true ), 2.5 );
+    
+            }
             
         } );
 
 
-		if ( ! this.prevCoord ||
-			this.prevCoord.x != player.currentChunkCoord.x ||
-			this.prevCoord.y != player.currentChunkCoord.y ) {
-
-			this.updateVisibleChunkTerrainArray();
-			this.updateCastChunkTerrainArray();			
-			this.prevCoord = player.currentChunkCoord.clone();
-			this.generateInstancedObjects();
-
-			//set birdsound volume
-			let chunk = chunkController.chunks[ getChunkKey( this.prevCoord ) ];
-			let treeAmount = chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length;
-			document.querySelector( 'audio' ).setVolume( map( treeAmount, 30, 110, 0.0, 0.3, true ), 2.5 );
-
-		}
-
 		//update fake-fog
 		if ( this.fogCloud && this.fogCloud.material.userData.shader){
-			this.fogCloud.material.userData.shader.uniforms.time.value += 0.1;			
+			this.fogCloud.material.userData.shader.uniforms.time.value += 0.05;
 		}
 
 	}
@@ -410,9 +396,9 @@ class ChunkController {
 		let newVisibleChunks = {};
 
 		//new chunk coordinate
-		for ( let x = - this.chunkViewDistance - this.farChunkEdge; x <= this.chunkViewDistance + this.farChunkEdge; x ++ ) {
+		for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
 
-			for ( let z = - this.chunkViewDistance - this.farChunkEdge; z <= this.chunkViewDistance + this.farChunkEdge; z ++ ) {
+			for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
 
 				let coord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
 				let chunkKey = getChunkKey( coord );
