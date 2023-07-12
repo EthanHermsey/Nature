@@ -173,6 +173,7 @@ class ChunkController {
             const grid = document.getElementById('loading-grid');
             const loadingtext = document.getElementById( 'loading-text' );
             const button = document.getElementById( 'play-button' );
+            loadingtext.textContent = `loading chunks`;
             
             let max_initial_chunks = 0;
             let num_initial_chunks = 0;
@@ -185,15 +186,12 @@ class ChunkController {
                 
                 if ( num_initial_chunks == 0 ) {
 
-                    loadingtext.textContent = `Loading player`;
+                    loadingtext.textContent = `loading player`;
                     button.onclick = start; //so next time there is no loading screen                    
                     this.generateInstancedObjects();
                     resolve();
 
-                }
-
-                loadingtext.textContent = `loading chunks: ${max_initial_chunks - num_initial_chunks + 1} / ${max_initial_chunks}`;
-                
+                }                
 
             };
 
