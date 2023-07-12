@@ -8,8 +8,8 @@ class ChunkController {
 		this.createNewChunks = {};
 		this.castChunks = [];
 		this.prevCoord = undefined;
-		this.chunkViewDistance = 4;
-		this.farChunkEdge = 2;
+		this.chunkViewDistance = 6;
+		this.farChunkEdge = 4;
         this.totalViewDistance =  this.chunkViewDistance + this.farChunkEdge;
 
 		this.grassViewDistance = 4;
