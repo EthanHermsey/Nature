@@ -210,7 +210,9 @@ function startLoading(){
 
         document.getElementById( 'loading-img' ).classList.add( 'hidden' );
         chunkController = new ChunkController( ( controller ) => {										
-        
+            
+            document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
+
             player.init(
                 controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ],
                 () => {

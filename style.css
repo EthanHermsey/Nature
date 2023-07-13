@@ -40,7 +40,7 @@ html {
 
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-evenly;
     align-items: center;
 }
 
@@ -64,21 +64,19 @@ html {
     width: 100%;
     text-align: center;
     font-weight: bold;
-    font-size: 9em;
+    font-size: 10em;
     color: white;
 }
 
 #play-button {
 
-    padding: 50px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding: 8px;
     top: 70vh;
-    max-width: 300px;
+    width: 300px;
 
     font-size: 2em;
 
-    background: rgb(100, 100, 100);
+    background: #fff3;
     color: rgb(216, 216, 216);
 
     border-radius: 4px;
@@ -88,11 +86,13 @@ html {
 #play-button:hover {
     color: rgb(245, 245, 245);
     border: outset 3px rgb(245, 245, 245);
+    background: #fff4;
 }
 
 #play-button:active {
     color: rgb(216, 216, 216);
     border: inset 3px rgb(216, 216, 216);
+    background: #fff3;
 }
 
 
