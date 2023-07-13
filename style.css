@@ -116,10 +116,6 @@ html {
     margin-top: 10vh;
     width: 60vh;
     height: 60vh;
-    padding: 25px;
-
-    border-radius: 4vh;
-    border: 5px solid rgb(216, 216, 216);
 
     display: grid;
     grid-template-columns: repeat(10, calc(10%));
@@ -127,9 +123,9 @@ html {
 }
 
 .loading-grid-item {
-    margin: 1px;
-    width: calc(100% - 2px);
-    height: calc(100% - 2px);
+    margin: 2px;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
     border-radius: 4px;
     background-color: rgba(240, 240, 240, 0.5);
     transition: background-color 0.1s ease;

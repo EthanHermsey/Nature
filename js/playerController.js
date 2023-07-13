@@ -33,7 +33,7 @@ class Player {
 		this.intersectPoint = null;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.19;
+		this.terrainAdjustStrength = 0.15;
 		this.brushRadius = 3;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.21;
@@ -44,7 +44,7 @@ class Player {
 		this.height = 2;
 		this.walkSpeed = 10;
 		this.sprintSpeedMultiplier = 2.2; //4
-		this.walkSlopeLimit = 2.22;
+		this.walkSlopeLimit = 2.75;
 		this.vDown = 0.0;
 		this.vDownMax = 99;
 		this.gravity = 2.5;
@@ -56,6 +56,7 @@ class Player {
 		//flymode selector
 		this.flyModes = [ 'walk', 'fly' ];
 		this.selectedFlyMode = 0;
+        this.godMode = 0;
 
 	}
 
@@ -308,62 +309,67 @@ class Player {
             nPos.y += this.vDown;
 
 
-            //get the collisions for new position (down, up and in walkDirection )
-            let collisions = this.terrainCollidePoint( nPos, walkDirection );
+            if ( this.godMode === 0 ){
 
-            if ( collisions.down.normal ) {
-
-                if ( nPos.y > collisions.down.position.y + this.height &&
-                    this.selectedFlyMode == 0 ) {
-
-                    //fallingdown
-                    this.vDown -= this.gravity * delta;
-                    this.grounded = false;
-
-                } else {
-
-                    //climbing up terrain
-                    if ( this.selectedFlyMode == 0 ) {
-
-                        nPos.y = collisions.down.position.y + this.height;
-
+                //get the collisions for new position (down, up and in walkDirection )
+                let collisions = this.terrainCollidePoint( nPos, walkDirection );
+    
+                if ( collisions.down.normal ) {
+    
+                    if ( nPos.y > collisions.down.position.y + this.height &&
+                        this.selectedFlyMode == 0 ) {
+    
+                        //fallingdown
+                        this.vDown -= this.gravity * delta;
+                        this.grounded = false;
+    
                     } else {
-
-                        nPos.y -= this.vDown;
-                        this.vDown *= this.bouncyness;
-
-                        if ( abs( nPos.y - collisions.down.position.y ) < this.height * 1.5 ) {
-
-                            nPos.y = collisions.down.position.y + this.height * 1.5;
-
+    
+                        //climbing up terrain
+                        if ( this.selectedFlyMode == 0 ) {
+    
+                            nPos.y = collisions.down.position.y + this.height;
+    
+                        } else {
+    
+                            nPos.y -= this.vDown;
+                            this.vDown *= this.bouncyness;
+    
+                            if ( abs( nPos.y - collisions.down.position.y ) < this.height * 1.5 ) {
+    
+                                nPos.y = collisions.down.position.y + this.height * 1.5;
+    
+                            }
+    
                         }
-
+    
+                        this.grounded = true;
+    
                     }
-
-                    this.grounded = true;
-
-                }
-
-            } else {
-
-                nPos.copy( this.position );
-                nPos.y ++;
-
-            }
-
-            //check pointing direction
-            if ( collisions.direction.position ) {
-
-                let d = this.position.distanceTo( collisions.direction.position );
-
-                //if the angle is too steep, return to previous position
-                if ( d < this.walkSlopeLimit ) {
-
+    
+                } else {
+    
                     nPos.copy( this.position );
-
+                    nPos.y ++;
+    
+                }
+    
+                //check pointing direction
+                if ( collisions.direction.position ) {
+    
+                    let d = this.position.distanceTo( collisions.direction.position );
+    
+                    //if the angle is too steep, return to previous position
+                    if ( d < this.walkSlopeLimit ) {
+    
+                        nPos.copy( this.position );
+    
+                    }
+    
                 }
 
             }
+
 
             //set new position and gravity velocity
             this.position.copy( nPos );

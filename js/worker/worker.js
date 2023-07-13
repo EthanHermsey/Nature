@@ -167,7 +167,7 @@ function initGrid( offset ) {
 
 function getValue(x, y, z, offset, terrainHeight){
 
-    let terrainHeightValue = y < terrainHeight ? 1 : map(y - terrainHeight, 0, 2, 1, -1, true);
+    let terrainHeightValue = y < terrainHeight ? 0.5 : map(y - terrainHeight, 0, 2, 0.5, -0.5, true);
 
     //3d noise
     const noise_3d_scale = 0.025
@@ -178,7 +178,7 @@ function getValue(x, y, z, offset, terrainHeight){
     );
 
     const density_3d = noise_3d + mapSplineNoise( (Math.abs(y - terrainHeight) / (gridSize.y * 0.5)) + 0.001, noise_3d_spline);
-    const density_3d_value = map(density_3d, 0, 1, -1, 1);
+    const density_3d_value = map(density_3d, 1, 0, 0.5, -0.5);
 
     //caves and tunnels
     if ( y < terrainHeight * 0.99 && y > 5){
@@ -190,7 +190,7 @@ function getValue(x, y, z, offset, terrainHeight){
             5903854664 + ( y * ( gridSize.y - 1 ) ) * (scale * 0.01),
             5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale,
         );
-        if ( d < 0.33) terrainHeightValue = map(d, 0, 0.33, 1, -1, true);
+        if ( d < 0.33) terrainHeightValue = map(d, 0, 0.33, 0.5, -0.5, true);
 
         //tunnels
         const scale2 = 0.025
@@ -200,10 +200,10 @@ function getValue(x, y, z, offset, terrainHeight){
             5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale2,
         ) * 2 - 1);
         d2 = Math.pow( 1.0 - d2, 3);
-        if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 1, -1, true);
+        if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 0.5, -0.5, true);
     }
 
-    return constrain(terrainHeightValue + density_3d_value, -1, 1);
+    return constrain(terrainHeightValue + density_3d_value, -0.5, 0.5);
 
 }
 

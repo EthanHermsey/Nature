@@ -100,15 +100,6 @@ class Chunk {
 		this.noiseScale = 0.0045;
 		this.lodLevel = 0;
 
-		const playerChunk = ( player ) ? player.currentChunkCoord : { x: 0, y: 0 };
-
-		// if ( x >= playerChunk.x - parent.chunkViewDistance && x <= playerChunk.x + parent.chunkViewDistance &&
-		// 	z >= playerChunk.y - parent.chunkViewDistance && z <= playerChunk.y + parent.chunkViewDistance ) {
-
-			this.lodLevel = 0;
-
-		// }
-
 		//hd
         this.gridSize = {
 			x: 16,
@@ -458,6 +449,7 @@ class Chunk {
 		this.generateFernMatrices( surfaceSampler );
 		this.generateTreeMatrices( );
 		this.generateFogMatrices( );
+        this.generateCliffs();
 
 	}
 
@@ -764,6 +756,177 @@ class Chunk {
 
 	}
 
+
+    	//                                                                   .
+	//                                                                 .o8
+	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.
+	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b
+	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888
+	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o
+	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P'
+	// d"     YD
+	// "Y88888P'
+
+	//           oooo   o8o   .o88o.  .o88o.
+	//           `888   `"'   888 `"  888 `"
+	//  .ooooo.   888  oooo  o888oo  o888oo   .oooo.o
+	// d88' `"Y8  888  `888   888     888    d88(  "8
+	// 888        888   888   888     888    `"Y88b.
+	// 888   .o8  888   888   888     888    o.  )88b
+	// `Y8bod8P' o888o o888o o888o   o888o   8""888P'
+	generateCliffs() {
+
+		if ( this.boulders ) {
+			// this.terrainMesh.add( this.boulders );
+			return;
+
+		}
+
+		const geo = this.terrainMesh.geometry;
+		const v = new THREE.Vector3();
+		const n = new THREE.Vector3();
+		let placedVerts = [];
+
+		// check each vertex
+		for ( let i = 0; i < geo.attributes.position.array.length; i += 3 ) {
+
+			v.set(
+				geo.attributes.position.array[ i + 0 ],
+				geo.attributes.position.array[ i + 1 ],
+				geo.attributes.position.array[ i + 2 ]
+			);
+			n.set(
+				geo.attributes.normal.array[ i + 0 ],
+				geo.attributes.normal.array[ i + 1 ],
+				geo.attributes.normal.array[ i + 2 ]
+			);
+			const d = scene.up.dot( n );
+
+			//check to see if slope is steep enough
+			//check to see if not underground
+			if ( d > 0.5 && d < 0.7 && abs(v.y - this.terrainHeights[ Math.floor( v.x ) ][ Math.floor( v.z ) ]) < 15 ) {
+
+				placedVerts.push( { v: v.clone(), n: n.clone() } );
+
+			}
+
+		}
+
+		//first, randomize verts
+		placedVerts = placedVerts.sort( ()=> ( Math.random() > 0.5 ) ? 1 : - 1 );
+
+		//group verts
+		let chunked = [];
+
+		for ( let vert of placedVerts ) {
+
+			let found = false;
+			for ( let i = 0; i < chunked.length; i ++ ) {
+
+				let c = chunked[ i ].filter( c=>{
+
+					let v1 = vert.v.clone();
+					let v2 = c.v.clone();
+					return ( v1.distanceToSquared( v2 ) <= 3.5 );
+
+				} );
+
+				if ( c.length > 0 ) {
+
+					chunked[ i ].push( vert );
+					found = true;
+					break;
+
+				}
+
+			}
+
+			if ( ! found ) {
+
+				chunked.push( [ vert ] );
+
+			}
+
+		}
+
+		//add extra verts to make it a 3d shape
+		chunked.map( ( chunk, index ) =>{
+
+			const verts = [];
+			const c = new THREE.Vector3();
+			const n = new THREE.Vector3();
+
+			for ( let vert of chunk ) {
+
+				let revN = vert.n.clone().multiplyScalar( - 1 )
+					.add(
+						new THREE.Vector3().random().subScalar( 0.5 ).multiplyScalar( 1 + Math.random() )
+					);
+				verts.push( vert.v.clone().add( revN ) );
+
+				let rV = vert.n.clone()
+					.multiplyScalar( 0.1 + Math.random() * 0.6 )
+					.add(
+						new THREE.Vector3().random().subScalar( 0.5 ).multiplyScalar( Math.random() )
+					);
+
+				verts.push( vert.v.clone().add( rV ) );
+				c.add( vert.v );
+				n.add( vert.n );
+
+			}
+
+			c.divideScalar( chunk.length );
+			n.divideScalar( chunk.length );
+			chunked[ index ] = { verts: verts, center: c, normal: n };
+
+		} );
+
+		//convert the groups into rock meshes
+		let d = new THREE.Object3D();
+		let geometries = [];
+		chunked.map( verts => {
+
+			if ( verts.verts.length > 6 ) {
+
+				new THREE.Box3().setFromPoints( verts.verts ).getSize( d.scale );
+
+				d.quaternion.setFromUnitVectors( scene.up, verts.normal );
+				d.rotateY( Math.random() * Math.PI );
+				if ( Math.random() > 0.6 ) d.rotateX( Math.PI );
+
+				d.position.copy( verts.center );
+				d.updateMatrix();
+
+				let r = Math.floor( Math.random() * 4 );
+				let rock = modelBank.rocks.children[ r ].geometry.clone();
+				rock.applyMatrix4( d.matrix );
+
+				geometries.push( rock );
+
+
+			}
+
+		} );
+
+		//merge all cliff parts together
+		let boulderGeo = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );
+		if ( boulderGeo ) {
+
+			this.boulders = new THREE.Mesh( 
+                boulderGeo, 
+				modelBank.rocks.children[ 0 ].material
+            );
+			this.terrainMesh.add( this.boulders );
+
+		}
+
+        //dispose temp geo's
+        geometries.map(geo => geo.dispose());
+
+
+	}
+
 	
 
 	//                 .o8      o8o                          .
@@ -794,7 +957,7 @@ class Chunk {
 		return new Promise( resolve=>{
 
 			//square loop around a sphere brush
-			let loopRadius = floor( radius * 2 );
+			let loopRadius = radius;
 
 			for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
