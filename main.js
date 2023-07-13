@@ -266,8 +266,6 @@ function drawHud() {
 	strokeWeight( 1 );
 	ellipse( width / 2, height / 2, min( width, height ) * 0.025 );
     
-    
-	//make this better.... or not
 	noStroke();
 	fill( 80, 200 );
 	text( "WASD", width * 0.01, height * 0.08 );
