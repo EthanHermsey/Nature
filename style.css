@@ -119,7 +119,7 @@ html {
     padding: 25px;
 
     border-radius: 4vh;
-    border: 6px solid rgb(216, 216, 216);
+    border: 5px solid rgb(216, 216, 216);
 
     display: grid;
     grid-template-columns: repeat(10, calc(10%));

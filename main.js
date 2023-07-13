@@ -47,6 +47,7 @@ function setup() {
 	let cnv = createCanvas( windowWidth, windowHeight );
 	cnv.parent( 'p5-div' );
 	noLoop();
+    textFont("'Fira Sans', sans-serif");
 	textSize( height * 0.015 );
 	const birdSound = document.querySelector( 'audio' );
 	birdSound.volume = 0.2;
@@ -269,14 +270,18 @@ function drawHud() {
 	//make this better.... or not
 	noStroke();
 	fill( 80, 200 );
-	text( "WASD", width * 0.01, height * 0.1 );
-	text( "- Move around", width * 0.1, height * 0.1 );
+	text( "WASD", width * 0.01, height * 0.08 );
+	text( "- move", width * 0.065, height * 0.08 );
 
-	text( "SHIFT           -  Sprint", width * 0.01, height * 0.12 );
+	text( "SHIFT", width * 0.01, height * 0.1 );
+    text( "- sprint", width * 0.065, height * 0.1 );	
 
-	text( "SPACE          -  Jump", width * 0.01, height * 0.14 );
+	text( "SPACE", width * 0.01, height * 0.12 );
+	text( "- jump", width * 0.065, height * 0.12 );
 
-	text( "MOUSE L/R  -  Remove/add terrain.", width * 0.01, height * 0.16 );
+	text( "MOUSE L/R", width * 0.01, height * 0.14 );
+    text( "-  remove/add terrain", width * 0.065, height * 0.14 );
+	
     
     
     

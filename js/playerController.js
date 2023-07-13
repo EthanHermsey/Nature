@@ -158,7 +158,7 @@ class Player {
                 64
             ),
             new THREE.MeshBasicMaterial( {
-                map: new THREE.TextureLoader().load( './resources/background2.jpg' ),
+                map: new THREE.TextureLoader().load( './resources/background.jpg' ),
                 side: THREE.BackSide
             } )
         );
