@@ -214,7 +214,7 @@ const preloadModels = () => {
             //grass2
             const mat2 = new THREE.MeshLambertMaterial( {
                 alphaTest: 0.47,
-                map: new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' ),
+                map: new THREE.TextureLoader().load( './resources/grass/grassdiff2.png' ),
                 side: THREE.DoubleSide
             } );
             mat2.onBeforeCompile = ( shader ) => {
@@ -248,7 +248,7 @@ const preloadModels = () => {
             modelBank.grassModelHigh = model.clone();
             modelBank.grassModelHigh.geometry.scale( 0.45, 0.85, 0.45 );
 
-            model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiff1b.png' );
+            model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' );
 
             modelBank.grassModelHigh.material.onBeforeCompile = ( shader ) => {
 
