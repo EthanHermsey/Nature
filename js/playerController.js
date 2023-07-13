@@ -305,11 +305,12 @@ class Player {
             //the new position
             let nPos = this.position.clone();
             nPos.add( walkDirection );
-            //add gravity
-            nPos.y += this.vDown;
-
+            
 
             if ( this.godMode === 0 ){
+
+                //add gravity
+                nPos.y += this.vDown;
 
                 //get the collisions for new position (down, up and in walkDirection )
                 let collisions = this.terrainCollidePoint( nPos, walkDirection );
@@ -450,7 +451,7 @@ class Player {
 		}
 
 		//y axis down
-		if ( this.selectedFlyMode == 1 ) {
+		if ( this.selectedFlyMode == 1 || this.godMode == 1) {
 
 			if ( keyIsDown( key.shift ) ) {
 
