@@ -235,7 +235,7 @@ class ChunkController {
                 const tvd = this.totalViewDistance * this.totalViewDistance;
                 addChunks
                     .sort( ( a, b ) => a.dist - b.dist )
-                    .map( chunk => chunk.add() );
+                    .forEach( chunk => chunk.add() );
 
             }, 10);
             
@@ -747,11 +747,7 @@ class ChunkController {
 
 		}
 
-		let points = [];
-		Object.keys( this.chunks ).map( key=>{
-			points = [ ...points, ...this.chunks[ key ].getFogMatrices() ];
-		})
-
+		let points = Object.keys( this.chunks ).map( key => this.chunks[ key ].getFogMatrices() ).flat();
 		let fogGeo = new THREE.BufferGeometry().setFromPoints( points );
 		let fogMat = new THREE.PointsMaterial({
 			map: new THREE.TextureLoader().load('./resources/fog.png'),

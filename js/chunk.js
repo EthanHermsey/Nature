@@ -175,7 +175,7 @@ class Chunk {
                 const topindices = []
 
                 let x, y, z, terrainHeight, smoothRange = 2;
-				generatedSurface.vertices.map( (v, vIndex) =>{
+				generatedSurface.vertices.forEach( (v, vIndex) =>{
 
 					vertices.push( v[ 0 ], v[ 1 ], v[ 2 ] );
 
@@ -195,7 +195,7 @@ class Chunk {
 
                 const topverts = Object.keys(topvertmap);                
 
-				generatedSurface.faces.map( ( f )=>{
+				generatedSurface.faces.forEach( ( f )=>{
 
 					indices.push( f[ 1 ], f[ 0 ], f[ 2 ] );
 					indices.push( f[ 3 ], f[ 2 ], f[ 0 ] );
@@ -216,7 +216,7 @@ class Chunk {
 
 				} );
 
-                topverts.map( index => {
+                topverts.forEach( index => {
                     const v = generatedSurface.vertices[ index ];
                     topvertices.push( v[ 0 ], v[ 1 ], v[ 2 ] )
                 })
@@ -699,7 +699,7 @@ class Chunk {
 		}
 
 		//add extra verts to make it a 3d shape
-		chunked.map( ( chunk, index ) =>{
+		chunked.forEach( ( chunk, index ) =>{
 
 			const verts = [];
 			const c = new THREE.Vector3();
@@ -734,7 +734,7 @@ class Chunk {
 		//convert the groups into rock meshes
 		let d = new THREE.Object3D();
 		let geometries = [];
-		chunked.map( verts => {
+		chunked.forEach( verts => {
 
 			if ( verts.verts.length > 6 ) {
 
@@ -753,7 +753,6 @@ class Chunk {
 
 				geometries.push( rock );
 
-
 			}
 
 		} );
@@ -771,7 +770,7 @@ class Chunk {
 		}
 
         //dispose temp geo's
-        geometries.map(geo => geo.dispose());
+        geometries.forEach(geo => geo.dispose());
 
 
 	}

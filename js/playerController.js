@@ -103,7 +103,7 @@ class Player {
                 };
                 this.model.animations.idle.play();
     
-                this.model.children.map( child=>{
+                this.model.children.forEach( child=>{
     
                     child.frustumCulled = false;
     
@@ -116,7 +116,7 @@ class Player {
                 this.model.position.y -= 2;
                 this.model.rotation.order = "YXZ";
                 this.model.rotation.y = Math.PI;
-                this.model.children.map( c=>{
+                this.model.children.forEach( c=>{
     
                     if ( c.type != 'Bone' ) {
     
