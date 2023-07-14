@@ -8,13 +8,15 @@ class ChunkController {
 		this.createNewChunks = {};
 		this.castChunks = [];
 		this.prevCoord = undefined;
-		this.chunkViewDistance = 6;
-		this.farChunkEdge = 4;
+		this.chunkViewDistance = 4;
+		this.farChunkEdge = 0;
         this.totalViewDistance =  this.chunkViewDistance + this.farChunkEdge;
 
 		this.grassViewDistance = 4;
+        this.grassHighViewDistance = 2;
 		this.fernViewDistance = 3;
 		this.treeViewDistance = 16;
+        this.treeHighViewDistance = 3;
 
 		this.deltaCountCreate = 0;
 		this.deltaCountUpdate = 0;
@@ -172,7 +174,6 @@ class ChunkController {
             //init chunks,
             const grid = document.getElementById('loading-grid');
             const loadingtext = document.getElementById( 'loading-text' );
-            const button = document.getElementById( 'play-button' );
             loadingtext.textContent = `loading chunks`;
             
             let max_initial_chunks = 0;
@@ -186,8 +187,7 @@ class ChunkController {
                 
                 if ( num_initial_chunks == 0 ) {
 
-                    loadingtext.textContent = `loading player`;
-                    button.onclick = start; //so next time there is no loading screen                    
+                    loadingtext.textContent = `loading player`;                  
                     this.generateInstancedObjects();
                     resolve();
 
@@ -198,6 +198,7 @@ class ChunkController {
             const gridAmount = this.totalViewDistance * 2 + 1;
             grid.style.gridTemplateRows = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
             grid.style.gridTemplateColumns = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
+            grid.innerHTML = '';
 
             
             setTimeout(() => {
@@ -609,7 +610,7 @@ class ChunkController {
 
 					let grassMatrices = this.chunks[ chunkKey ].getGrassMatrices();
 
-					if ( Math.abs(x) <= 1 && Math.abs(z) <= 1){
+					if ( Math.abs(x) <= 1 && Math.abs(z) <= this.grassHighViewDistance){
 
 						//high quality grass
 						for ( let i = 0; i < grassMatrices[0].length; i ++, count2 ++ ) {
@@ -620,7 +621,7 @@ class ChunkController {
 	
 					} else {
 
-                        if (grassMatrices){
+                        if ( grassMatrices ){
                             for ( let i = 0; i < grassMatrices[0].length; i ++, count0 ++ ) {
         
                                 this.grass[0].setMatrixAt( count0, grassMatrices[0][ i ] );
@@ -840,10 +841,14 @@ class ChunkController {
 				)
 			];
 
-			this.trees[0].material.alphaTest = 0.65;
+			this.trees[0].material.alphaTest = 0.45;
+			this.trees[0].material.needsUpdate = true;
+            this.trees[0].material.blending = THREE.NoBlending;
 			this.trees[0].material.needsUpdate = true;
 
-			this.trees[1].material.alphaTest = 0.65;
+			this.trees[1].material.alphaTest = 0.45;
+			this.trees[1].material.needsUpdate = true;
+            this.trees[1].material.blending = THREE.NoBlending;
 			this.trees[1].material.needsUpdate = true;
 
 			this.trees[3].material.alphaTest = 0.075;			
@@ -877,7 +882,7 @@ class ChunkController {
 					y: ( player?.currentChunkCoord ) ? player.currentChunkCoord.y + z : z, 
 				};
 				let chunkKey = getChunkKey( chunkCoord );
-				let playerPosition = ( x <= 1 && x >= -1) && ( z <= 1 && z >= -1 );
+				let playerPosition = ( x <= this.treeHighViewDistance && x >= -this.treeHighViewDistance) && ( z <= this.treeHighViewDistance && z >= -this.treeHighViewDistance );
 
 				if ( this.chunks[ chunkKey ] ) {
 
@@ -888,8 +893,8 @@ class ChunkController {
 
 							if ( playerPosition ){
 
-								t.copy( treeMatrices[ m ][ i ] );
-								t.scale( new THREE.Vector3( 0.06, 0.07, 0.06 ) );
+								t.copy( treeMatrices[ m ][ i ] );                                
+								t.scale( new THREE.Vector3( 0.056, 0.085, 0.065 ) );
 								
 								let nM = ( m==0 ) ? 2 : 4;
 								this.trees[ nM ].setMatrixAt( count[m + 2], t );
@@ -898,7 +903,9 @@ class ChunkController {
 								continue;
 							}
 
-							this.trees[ m ].setMatrixAt( count[m], treeMatrices[ m ][ i ] );
+                            t.copy( treeMatrices[ m ][ i ] );                                
+							t.scale( new THREE.Vector3( 1.4, 1.4, 1.4 ) );
+							this.trees[ m ].setMatrixAt( count[m], t );
 
 						}
 					}

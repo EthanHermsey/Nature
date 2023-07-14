@@ -1,88 +1,3 @@
-const continenal_spline = [
-    [
-        [0, 0.15],
-        [0.1, 0.2],
-    ],
-    [
-        [0.1, 0.2],
-        [0.2, 0.3],
-    ],
-    [
-        [0.2, 0.3],
-        [0.3, 0.35],
-    ],
-    [
-        [0.3, 0.35],
-        [0.5, 0.39],
-    ],
-    [
-        [0.5, 0.39],
-        [0.6, 0.45],
-    ],
-    [
-        [0.6, 0.45],
-        [0.85, 0.65],
-    ],
-    [
-        [0.85, 0.65],
-        [0.90, 0.75],
-    ],
-    [
-        [0.90, 0.75],
-        [1, 0.85],
-    ]
-];        
-
-
-const bump_spline = [
-    [
-        [0, 0],
-        [0.1, 0.002],
-    ],
-    [
-        [0.1, 0.002],
-        [0.3, 0.01],
-    ],
-    [
-        [0.3, 0.01],
-        [0.4, 0.025],
-    ],
-    [
-        [0.4, 0.025],
-        [0.8, 0.22],
-    ],
-    [
-        [0.8, 0.22],
-        [0.9, 0.42],
-    ],
-    [
-        [0.9, 0.42],
-        [1, 0.36],
-    ]
-];
-
-const noise_3d_spline = [
-    [
-        [0, 0.7],
-        [0.1, 0.6],
-    ],
-    [
-        [0.1, 0.6],
-        [0.11, 0.2],
-    ],
-    [
-        [0.11, 0.2],
-        [0.15, 0.1],
-    ],
-    [
-        [0.15, 0.1],
-        [1, 0.0],
-    ]
-];
-
-
-
-
 
 
 
@@ -100,26 +15,14 @@ class Chunk {
 		this.noiseScale = 0.0045;
 		this.lodLevel = 0;
 
-		//hd
-        this.gridSize = {
-			x: 16,
-			y: 256,
-			z: 16
-		};
-		this.gridScale = new THREE.Vector3(
-			10,
-			10,
-			10
-		);
-
 		//terrain generation vars
-		this.chunkSize = this.gridSize.x * this.gridScale.x;
+		this.chunkSize = gridSize.x * gridScale.x;
 		this.chunkPosition = new THREE.Vector3(
-			this.offset.x * ( this.gridSize.x - this.chunkOverlap ) * this.gridScale.x,
+			this.offset.x * ( gridSize.x - this.chunkOverlap ) * gridScale.x,
 			0,
-			this.offset.z * ( this.gridSize.z - this.chunkOverlap ) * this.gridScale.z
+			this.offset.z * ( gridSize.z - this.chunkOverlap ) * gridScale.z
 		);
-		this.upperTreeHeightLimit = this.gridSize.y * this.gridScale.y * 0.7;
+		this.upperTreeHeightLimit = gridSize.y * gridScale.y * 0.7;
 
 
 		this.modelMatrices = {};
@@ -231,60 +134,6 @@ class Chunk {
 
 	}
 
-    getValue(x, y, z, terrainHeight){
-
-        let terrainHeightValue = y < terrainHeight ? 1 : map(y - terrainHeight, 0, 2, 1, -1, true);
-
-        //3d noise
-        const noise_3d_scale = 0.025
-        const noise_3d = noise(
-            5999737664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * noise_3d_scale,
-            5903854664 + ( y * ( this.gridSize.y - 1 ) ) * (noise_3d_scale * 0.01),
-            5999111164 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * noise_3d_scale,
-        );
-
-        const density_3d = noise_3d + this.mapSplineNoise( (abs(y - terrainHeight) / (this.gridSize.y * 0.5)) + 0.001, noise_3d_spline);
-        const density_3d_value = map(density_3d, 0, 1, -1, 1);
-
-        //caves and tunnels
-        if ( y < terrainHeight * 0.99 && y > 5){
-            
-            // caves
-            const scale = 0.03
-            const d = noise(
-                5999737664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * scale,
-                5903854664 + ( y * ( this.gridSize.y - 1 ) ) * (scale * 0.01),
-                5999111164 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * scale,
-            );
-            if ( d < 0.33) terrainHeightValue = map(d, 0, 0.33, 1, -1, true);
-
-            //tunnels
-            const scale2 = 0.025
-            let d2 = abs(noise(
-                5999737664 + ( x + this.offset.x * ( this.gridSize.x - 1 ) - this.offset.x ) * scale2,
-                5903854664 + ( y * ( this.gridSize.y - 1 ) ) * (scale2 * 0.008),
-                5999111164 + ( z + this.offset.z * ( this.gridSize.z - 1 ) - this.offset.z ) * scale2,
-            ) * 2 - 1);
-            d2 = pow( 1.0 - d2, 3);
-            if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 1, -1, true);
-        }
-
-        return constrain(terrainHeightValue + density_3d_value, -1, 1);
-
-    }
-
-    mapSplineNoise(noise, spline){
-        let range;
-        for (let i = 0; i < spline.length; i++) {
-            if ( noise > spline[i][0][0] && noise < spline[i][1][0]){
-                range = spline[i];
-                break;
-            }                        
-        }
-        return range ? map(noise, range[0][0], range[1][0], range[0][1], range[1][1]) : 0;
-    }
-
-
 
 
 
@@ -311,7 +160,7 @@ class Chunk {
 		return new Promise( resolve =>{
 
 			//pass in the 3D grid and the dimensions (x, y, z).
-			this.parent.surfaceNetEngine.createSurface( this.grid, [ this.gridSize.x, this.gridSize.y, this.gridSize.z ] ).then( generatedSurface =>{
+			this.parent.surfaceNetEngine.createSurface( this.grid, [ gridSize.x, gridSize.y, gridSize.z ] ).then( generatedSurface =>{
 
 				//create new geometry
 				const geo = new THREE.BufferGeometry();
@@ -390,7 +239,7 @@ class Chunk {
 
 				//create new mesh with preloaded material
 				this.terrainMesh = new THREE.Mesh( geo, this.parent.terrainMaterial );
-				this.terrainMesh.scale.set( this.gridScale.x, this.gridScale.y, this.gridScale.z );
+				this.terrainMesh.scale.set( gridScale.x, gridScale.y, gridScale.z );
                 this.terrainMesh.raycast = acceleratedRaycast;
 				this.terrainMesh.chunk = this;
 				this.terrainMesh.position.x = this.chunkPosition.x;
@@ -404,7 +253,7 @@ class Chunk {
 				this.terrainMesh.name = "terrain";
 
                 this.terrainTopMesh = new THREE.Mesh( topgeo, this.parent.terrainMaterial );
-				this.terrainTopMesh.scale.set( this.gridScale.x, this.gridScale.y, this.gridScale.z );
+				this.terrainTopMesh.scale.set( gridScale.x, gridScale.y, gridScale.z );
 				this.terrainTopMesh.position.x = this.chunkPosition.x;
 				this.terrainTopMesh.position.z = this.chunkPosition.z;
 
@@ -507,7 +356,7 @@ class Chunk {
                 );
                 dummy.position
                     .copy( this.chunkPosition )
-                    .add( _position.multiply( this.gridScale ) );
+                    .add( _position.multiply( gridScale ) );
                 dummy.quaternion.setFromUnitVectors( scene.up, _normal );
                 dummy.rotateY( Math.random() * Math.PI );
                 dummy.updateMatrix();
@@ -577,7 +426,7 @@ class Chunk {
                 );
                 dummy.position
                     .copy( this.chunkPosition )
-                    .add( _position.multiply( this.gridScale ) );
+                    .add( _position.multiply( gridScale ) );
                 dummy.quaternion.setFromUnitVectors( scene.up, _normal );
                 dummy.rotateY( Math.random() * Math.PI );
                 dummy.updateMatrix();
@@ -649,7 +498,7 @@ class Chunk {
 			const d = 1.0 - scene.up.dot( n );
 
 			let wp = v.clone()
-				.multiply( this.gridScale )
+				.multiply( gridScale )
 				.add( this.chunkPosition );
 
 
@@ -747,7 +596,7 @@ class Chunk {
 				geo.array[ r + 1 ] + 20,
 				geo.array[ r + 2 ],
 			);
-			dummy.multiply( this.gridScale );
+			dummy.multiply( gridScale );
 			dummy.add( this.chunkPosition );
 
 			this.modelMatrices[ 'fog' ].push( dummy.clone() );
@@ -954,7 +803,7 @@ class Chunk {
 
 	adjust( center, radius, val, checkNeighbors ) {
 
-		return new Promise( resolve=>{
+		return new Promise( resolve => {
 
 			//square loop around a sphere brush
 			let loopRadius = radius;
@@ -1008,7 +857,7 @@ class Chunk {
 
 	adjustVegetation( center, radius ) {
 
-		const worldCenter = this.chunkPosition.clone().add( center.clone().multiply( this.gridScale ) );
+		const worldCenter = this.chunkPosition.clone().add( center.clone().multiply( gridScale ) );
 		const p = new THREE.Vector3();
 
 		function checkMatrices( matrices ) {
@@ -1060,14 +909,14 @@ class Chunk {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z } );
 			let nCenter = center.clone();
-			nCenter.x += this.gridSize.x - this.chunkOverlap;
+			nCenter.x += gridSize.x - this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
-		} else if ( this.gridSize.x - center.x <= radius ) {
+		} else if ( gridSize.x - center.x <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x + 1, y: this.offset.z } );
 			let nCenter = center.clone();
-			nCenter.x = nCenter.x - this.gridSize.x + this.chunkOverlap;
+			nCenter.x = nCenter.x - gridSize.x + this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
@@ -1077,15 +926,15 @@ class Chunk {
 
 			let nChunk = getChunkKey( { x: this.offset.x, y: this.offset.z - 1 } );
 			let nCenter = center.clone();
-			nCenter.z += this.gridSize.z - this.chunkOverlap;
+			nCenter.z += gridSize.z - this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 
-		} else if ( this.gridSize.z - center.z <= radius ) {
+		} else if ( gridSize.z - center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x, y: this.offset.z + 1 } );
 			let nCenter = center.clone();
-			nCenter.z = nCenter.z - this.gridSize.z + this.chunkOverlap;
+			nCenter.z = nCenter.z - gridSize.z + this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
@@ -1095,35 +944,35 @@ class Chunk {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z - 1 } );
 			let nCenter = center.clone();
-			nCenter.x += this.gridSize.x - this.chunkOverlap;
-			nCenter.z += this.gridSize.z - this.chunkOverlap;
+			nCenter.x += gridSize.x - this.chunkOverlap;
+			nCenter.z += gridSize.z - this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
-		if ( this.gridSize.x - center.x < radius && this.gridSize.z - center.z <= radius ) {
+		if ( gridSize.x - center.x < radius && gridSize.z - center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x + 1, y: this.offset.z + 1 } );
 			let nCenter = center.clone();
-			nCenter.x = nCenter.x - this.gridSize.x + this.chunkOverlap;
-			nCenter.z = nCenter.z - this.gridSize.z + this.chunkOverlap;
+			nCenter.x = nCenter.x - gridSize.x + this.chunkOverlap;
+			nCenter.z = nCenter.z - gridSize.z + this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
-		if ( center.x < radius && this.gridSize.x - center.z <= radius ) {
+		if ( center.x < radius && gridSize.x - center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x - 1, y: this.offset.z + 1 } );
 			let nCenter = center.clone();
-			nCenter.x += this.gridSize.x - this.chunkOverlap;
-			nCenter.z = nCenter.z - this.gridSize.z + this.chunkOverlap;
+			nCenter.x += gridSize.x - this.chunkOverlap;
+			nCenter.z = nCenter.z - gridSize.z + this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
-		if ( this.gridSize.x - center.x < radius && center.z <= radius ) {
+		if ( gridSize.x - center.x < radius && center.z <= radius ) {
 
 			let nChunk = getChunkKey( { x: this.offset.x + 1, y: this.offset.z - 1 } );
 			let nCenter = center.clone();
-			nCenter.x = nCenter.x - this.gridSize.x + this.chunkOverlap;
-			nCenter.z += this.gridSize.z - this.chunkOverlap;
+			nCenter.x = nCenter.x - gridSize.x + this.chunkOverlap;
+			nCenter.z += gridSize.z - this.chunkOverlap;
 			this.parent.chunks[ nChunk ].adjust( nCenter, radius, val );
 
 		}
@@ -1172,16 +1021,16 @@ class Chunk {
 	//convert 3d coordinate into 1D index.
 	gridIndex( x, y, z ) {
 
-		return ( ( z * ( this.gridSize.x * this.gridSize.y ) ) + ( y * this.gridSize.z ) + x );
+		return ( ( z * ( gridSize.x * gridSize.y ) ) + ( y * gridSize.z ) + x );
 
 	}
 
 	//check if coordinate is inside grid
 	isInsideGrid( coord ) {
 
-		return ( coord.x >= 0 && coord.x < this.gridSize.x &&
-			coord.y > 0 && coord.y < this.gridSize.y - 1 &&
-			coord.z >= 0 && coord.z < this.gridSize.z );
+		return ( coord.x >= 0 && coord.x < gridSize.x &&
+			coord.y > 0 && coord.y < gridSize.y - 1 &&
+			coord.z >= 0 && coord.z < gridSize.z );
 
 	}
 

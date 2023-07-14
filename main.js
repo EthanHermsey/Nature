@@ -1,4 +1,5 @@
 let running = false;
+let loaded = false;
 const clock = new THREE.Clock( false );
 const scene = new THREE.Scene();
 scene.down = new THREE.Vector3( 0, - 1, 0 );
@@ -26,6 +27,16 @@ const key = {
 	flyMode: 70
 };
 
+gridSize = {
+    x: 16,
+    y: 256,
+    z: 16
+};
+gridScale = new THREE.Vector3(
+    10,
+    10,
+    10
+);
 
 
 
@@ -49,6 +60,7 @@ function setup() {
 	noLoop();
     textFont("'Fira Sans', sans-serif");
 	textSize( height * 0.015 );
+
 	const birdSound = document.querySelector( 'audio' );
 	birdSound.volume = 0.2;
 	birdSound.desiredVolume = 0.2;
@@ -77,6 +89,11 @@ function setup() {
 
 	};
 
+    const position = localStorage.getItem('position');
+    if ( position ){
+        document.getElementById( 'load-button' ).classList.remove( 'hidden' );
+        document.getElementById( 'start-button' ).textContent = 'new';
+    };
 
 
 	//THREE Renderer
@@ -198,33 +215,68 @@ function windowResized() {
     
 }
 
-function startLoading(){
+function loadFromStorage(){
 
-    document.getElementById( 'menu-content' ).classList.add( 'hidden' );
-    document.getElementById( 'loading-container' ).classList.remove( 'hidden' );
+    if ( loaded ){
+                    
+        start( true );
+
+    } else {
+
+        const {position, offset} = JSON.parse(localStorage.getItem('position'));
+        startLoading( true, offset )
+            .then(() => {
+                player.position.fromArray( position );
+            });
+
+    }
+
+}
+
+function startLoading( _, offset ){
+
+    return new Promise( async ( resolve ) => {
+
+        document.getElementById( 'menu-content' ).classList.add( 'hidden' );
+        document.getElementById( 'loading-container' ).classList.remove( 'hidden' );
+        
+        renderer.domElement.requestPointerLock();
+        THREEx.FullScreen.request();
     
-    renderer.domElement.requestPointerLock();
-	THREEx.FullScreen.request();
-
-	preloadModels().then(() => {
-
+        if (!loaded){
+            await preloadModels();
+        }
+        
         document.getElementById( 'loading-img' ).classList.add( 'hidden' );
-        chunkController = new ChunkController( ( controller ) => {										
+        
+        if ( !chunkController ) {
             
-            document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
+            await new Promise((resolve) => {
+                chunkController = new ChunkController( (controller) => {
+                    chunkController = controller;
+                    resolve();
+                } ) 
+            })
+            
+        }
+            
+        document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
 
-            player.init(
-                controller.chunks[ getChunkKey( { x: 0, y: 0 } ) ],
-                () => {
+        player.init(
+            chunkController.chunks[ getChunkKey( offset || { x: 0, y: 0 } ) ],
+            () => {
 
-                    controller.updateVisibleChunkTerrainArray();
-                    controller.updateCastChunkTerrainArray();
-                    start()
+                loaded = true;
+                chunkController.updateVisibleChunkTerrainArray();
+                chunkController.updateCastChunkTerrainArray();
+                start();
+                resolve();
 
-                }
-            );
-        } );
+            }
+        );
+
     })
+
 }
 
 function start( userEvent ) {
@@ -234,7 +286,6 @@ function start( userEvent ) {
         renderer.domElement.requestPointerLock();
         THREEx.FullScreen.request();
     }
-
 	running = true;
 	clock.start();
     chunkController.toggleClock(true);
@@ -247,9 +298,15 @@ function start( userEvent ) {
 function stop(){
 
     document.removeEventListener( "mousemove", onMouseMove, false );
+
     document.getElementById( 'main-menu' ).classList.remove( 'hidden' );
     document.getElementById( 'menu-content' ).classList.remove( 'hidden' );
     document.getElementById( 'loading-container' ).classList.add( 'hidden' );
+    document.getElementById( 'load-button' ).classList.remove( 'hidden' );
+    document.getElementById( 'start-button' ).textContent = 'new';
+
+    if ( player.currentChunkCoord ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: player.currentChunkCoord } ) );
+    
     running = false;
     clock.stop();
     chunkController.toggleClock(false);
@@ -270,19 +327,21 @@ function drawHud() {
     
 	noStroke();
 	fill( 80, 200 );
-	text( "WASD", width * 0.01, height * 0.08 );
+	text( "WASD", width * 0.02, height * 0.08 );
 	text( "- move", width * 0.065, height * 0.08 );
 
-	text( "SHIFT", width * 0.01, height * 0.1 );
+	text( "SHIFT", width * 0.02, height * 0.1 );
     text( "- sprint", width * 0.065, height * 0.1 );	
 
-	text( "SPACE", width * 0.01, height * 0.12 );
+	text( "SPACE", width * 0.02, height * 0.12 );
 	text( "- jump", width * 0.065, height * 0.12 );
 
-	text( "MOUSE L/R", width * 0.01, height * 0.14 );
+	text( "MOUSE L/R", width * 0.02, height * 0.14 );
     text( "-  remove/add terrain", width * 0.065, height * 0.14 );
-	
-    
+
+    textAlign(RIGHT);
+    text( `chunk X: ${player.currentChunkCoord.x}  Z: ${player.currentChunkCoord.y}`, width * 0.99, height * 0.08 );
+    text( `position x: ${floor(player.position.x)}  z: ${floor(player.position.z)}`, width * 0.99, height * 0.1 );
     
     
 }
