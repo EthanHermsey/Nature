@@ -59,7 +59,7 @@ function setup() {
 	cnv.parent( 'p5-div' );
 	noLoop();
     textFont("'Fira Sans', sans-serif");
-	textSize( height * 0.015 );
+	textSize( height * 0.018 );
 
 	const birdSound = document.querySelector( 'audio' );
 	birdSound.volume = 0.2;
@@ -95,6 +95,8 @@ function setup() {
         document.getElementById( 'start-button' ).textContent = 'new';
     };
 
+    document.getElementById( 'load-button' ).addEventListener('click', setFullscreen, true);
+    document.getElementById( 'start-button' ).addEventListener('click', setFullscreen, true);
 
 	//THREE Renderer
 	renderer.shadowMap.enabled = true;
@@ -102,16 +104,6 @@ function setup() {
 	renderer.setSize( windowWidth, windowHeight );
 	document.getElementById( 'three-div' ).appendChild( renderer.domElement );
 
-
-	//prepare pointerLock api
-	if ( 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document ) {
-
-		renderer.domElement.requestPointerLock = renderer.domElement.requestPointerLock || renderer.domElement.mozRequestPointerLock || renderer.domElement.webkitRequestPointerLock;
-		document.addEventListener( 'pointerlockchange', pointerLockChangeCallback, false );
-		document.addEventListener( 'mozpointerlockchange', pointerLockChangeCallback, false );
-		document.addEventListener( 'webkitpointerlockchange', pointerLockChangeCallback, false );
-
-	}
 
 	//fps counter
 	stats = new Stats();
@@ -207,12 +199,23 @@ function render() {
 function windowResized() {
     
     resizeCanvas( windowWidth, windowHeight );
-	textSize( height * 0.015 );
     
 	renderer.setSize( windowWidth, windowHeight );
 	player.camera.aspect = windowWidth / windowHeight;
 	player.camera.updateProjectionMatrix();
     
+}
+
+function setFullscreen( e ){
+
+    THREEx.FullScreen.request();
+    setTimeout(()=>{
+        ((e) => {
+            renderer.domElement.requestPointerLock();
+            if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', pointerLockChangeCallback, false );
+        })(e)
+    }, 400);
+
 }
 
 function loadFromStorage(){
@@ -233,6 +236,11 @@ function loadFromStorage(){
 
 }
 
+function loadNew(){
+    startLoading();
+}
+
+
 function startLoading( _, offset ){
 
     return new Promise( async ( resolve ) => {
@@ -240,9 +248,6 @@ function startLoading( _, offset ){
         document.getElementById( 'menu-content' ).classList.add( 'hidden' );
         document.getElementById( 'loading-container' ).classList.remove( 'hidden' );
         
-        renderer.domElement.requestPointerLock();
-        THREEx.FullScreen.request();
-    
         if (!loaded){
             await preloadModels();
         }
@@ -283,9 +288,12 @@ function start( userEvent ) {
 
     document.addEventListener( "mousemove", onMouseMove, false );
     if ( userEvent ){
-        renderer.domElement.requestPointerLock();
         THREEx.FullScreen.request();
+        renderer.domElement.requestPointerLock();
     }
+
+    if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', pointerLockChangeCallback, false );
+
 	running = true;
 	clock.start();
     chunkController.toggleClock(true);
@@ -306,6 +314,8 @@ function stop(){
     document.getElementById( 'start-button' ).textContent = 'new';
 
     if ( player.currentChunkCoord ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: player.currentChunkCoord } ) );
+
+    if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', pointerLockChangeCallback, false );		
     
     running = false;
     clock.stop();
@@ -326,23 +336,44 @@ function drawHud() {
 	ellipse( width / 2, height / 2, min( width, height ) * 0.025 );
     
 	noStroke();
-	fill( 80, 200 );
-	text( "WASD", width * 0.02, height * 0.08 );
-	text( "- move", width * 0.065, height * 0.08 );
+	fill( 180, 200 );
+    textAlign(LEFT);
+	text( "WASD", width * 0.01, height * 0.92 );
+	text( "- move", width * 0.05, height * 0.92 );
 
-	text( "SHIFT", width * 0.02, height * 0.1 );
-    text( "- sprint", width * 0.065, height * 0.1 );	
+	text( "SHIFT", width * 0.01, height * 0.94 );
+    text( "- sprint", width * 0.05, height * 0.94 );	
 
-	text( "SPACE", width * 0.02, height * 0.12 );
-	text( "- jump", width * 0.065, height * 0.12 );
+	text( "SPACE", width * 0.01, height * 0.96 );
+	text( "- jump", width * 0.05, height * 0.96 );
 
-	text( "MOUSE L/R", width * 0.02, height * 0.14 );
-    text( "-  remove/add terrain", width * 0.065, height * 0.14 );
+	text( "MOUSE", width * 0.01, height * 0.98 );
+    text( "- remove/add terrain", width * 0.05, height * 0.98 );
 
     textAlign(RIGHT);
-    text( `chunk X: ${player.currentChunkCoord.x}  Z: ${player.currentChunkCoord.y}`, width * 0.99, height * 0.08 );
-    text( `position x: ${floor(player.position.x)}  z: ${floor(player.position.z)}`, width * 0.99, height * 0.1 );
+    text( `chunk:`, width * 0.99, height * 0.92 );
+    text( `x: ${player.currentChunkCoord.x} z: ${player.currentChunkCoord.y}`, width * 0.99, height * 0.94 );
+    text( `position:`, width * 0.99, height * 0.96 );
+    text( `x: ${floor(player.position.x)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
     
+    if ( player ){
+        const compass = ['╷', '╷', 'SW', '╷', '╷', 'W', '╷', '╷', 'NW', '╷', '╷', 'N', '╷', '╷', 'NE', '╷', '╷', 'E', '╷', '╷', 'SE', '╷', '╷', 'S'];
+        const rotation = (player.cameraRig.rotation.y + PI) * 0.5;
+        const index = floor(map(rotation, 0, PI, compass.length, 0, true ));
+
+        const str = [];
+        for( let i = index - 3; i <= index + 3; i++){
+            let c = i;
+            if (c < 0) c += compass.length;
+            if (c >= compass.length) c = c % compass.length;
+            str.push( compass[ c ] );
+        }
+
+        textAlign(CENTER);
+        text( str.join('        '), width * 0.57, height * 0.05 );
+
+    }
+        
     
 }
 
@@ -433,9 +464,7 @@ function onMouseMove( e ) {
 
 function pointerLockChangeCallback() {
 
-	if ( document.pointerLockElement !== renderer.domElement &&
-  		document.mozPointerLockElement !== renderer.domElement &&
-  		document.webkitPointerLockElement !== renderer.domElement ) {
+	if ( !document.pointerLockElement ) {
 
         stop();
 

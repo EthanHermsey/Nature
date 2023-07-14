@@ -30,19 +30,6 @@ html {
     z-index: 100;
 }
 
-#compass {
-    position: fixed;
-    left: calc(50vw - 60px);
-    top: 20px;
-    width: 200px;
-    height: 64px;
-    background-image: url('resources/compass.png');
-    background-size: 800px 64px;
-    background-position: 0px 0px;
-    background-repeat: repeat-x;
-    z-index: 5;
-}
-
 
 
 

@@ -428,7 +428,6 @@ class Player {
 	// o888o o888o `Y8bod8P'     .8'
 	//                       .o..P'
 	//                       `Y8P'
-
 	//  o8o                                         .
 	//  `"'                                       .o8
 	// oooo  ooo. .oo.   oo.ooooo.  oooo  oooo  .o888oo
@@ -508,6 +507,41 @@ class Player {
 		}
 
 		return d;
+
+	}
+
+
+    
+
+	// ooo. .oo.  .oo.    .ooooo.  oooo  oooo   .oooo.o  .ooooo.
+	// `888P"Y88bP"Y88b  d88' `88b `888  `888  d88(  "8 d88' `88b
+	//  888   888   888  888   888  888   888  `"Y88b.  888ooo888
+	//  888   888   888  888   888  888   888  o.  )88b 888    .o
+	// o888o o888o o888o `Y8bod8P'  `V88V"V8P' 8""888P' `Y8bod8P'
+    
+    //  o8o                                         .
+	//  `"'                                       .o8
+	// oooo  ooo. .oo.   oo.ooooo.  oooo  oooo  .o888oo
+	// `888  `888P"Y88b   888' `88b `888  `888    888
+	//  888   888   888   888   888  888   888    888
+	//  888   888   888   888   888  888   888    888 .
+	// o888o o888o o888o  888bod8P'  `V88V"V8P'   "888"
+	//                    888
+	//                   o888o
+
+    mouseMoved( e ) {
+
+		//rotate object on Y
+		this.cameraRig.rotateY( e.movementX * - this.mouseSensitivity );
+
+		//rotate cameraRig on X
+		this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
+
+		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.2 );
+		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -0.85 );
+		this.cameraRig.rotation.z = 0;
+
+        this.updateCameraCollision();
 
 	}
 
@@ -626,35 +660,6 @@ class Player {
 
 
 
-
-
-	// ooo. .oo.  .oo.    .ooooo.  oooo  oooo   .oooo.o  .ooooo.
-	// `888P"Y88bP"Y88b  d88' `88b `888  `888  d88(  "8 d88' `88b
-	//  888   888   888  888   888  888   888  `"Y88b.  888ooo888
-	//  888   888   888  888   888  888   888  o.  )88b 888    .o
-	// o888o o888o o888o `Y8bod8P'  `V88V"V8P' 8""888P' `Y8bod8P'
-
-    mouseMoved( e ) {
-
-		//rotate object on Y
-		this.cameraRig.rotateY( e.movementX * - this.mouseSensitivity );
-
-		//rotate cameraRig on X
-		this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
-
-		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.2 );
-		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -0.85 );
-		this.cameraRig.rotation.z = 0;
-
-        this.updateCameraCollision();
-
-        const rot = this.cameraRig.rotation.y;
-        if ( rot > 0 ) document.getElementById('compass').style.backgroundPositionX = map(this.cameraRig.rotation.y, 0, TWO_PI, 0, -200) + '%';
-        if ( rot < 0 ) document.getElementById('compass').style.backgroundPositionX = map(this.cameraRig.rotation.y, 0, -TWO_PI, 0, 200) + '%';
-        
-
-
-	}
 
 
 

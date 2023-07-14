@@ -45,30 +45,18 @@ THREEx.FullScreen.activated	= function()
  * Request fullscreen on a given element
  * @param {DomElement} element to make fullscreen. optional. default to document.body
 */
-THREEx.FullScreen.request	= function(element)
+THREEx.FullScreen.request = function(element)
 {
 	element	= element	|| document.body;
-	if( this._hasWebkitFullScreen ){
-		element.webkitRequestFullScreen();
-	}else if( this._hasMozFullScreen ){
-		element.mozRequestFullScreen();
-	}else{
-		console.assert(false);
-	}
+	element.requestFullscreen();
 }
 
 /**
  * Cancel fullscreen
 */
-THREEx.FullScreen.cancel	= function()
+THREEx.FullScreen.cancel = function()
 {
-	if( this._hasWebkitFullScreen ){
-		document.webkitCancelFullScreen();
-	}else if( this._hasMozFullScreen ){
-		document.mozCancelFullScreen();
-	}else{
-		console.assert(false);
-	}
+    document.exitFullscreen();
 }
 
 // internal functions to know which fullscreen API implementation is available
