@@ -22,8 +22,8 @@ const preloadModels = () => {
 		loader.load( './resources/trees/tree.json', model=>{
 
 			model.material.opacity = 1.0;
-			model.scale.setScalar( 3 );
-			model.geometry.translate( 0, - 0.05, 0 );
+            model.material.alphaTest = 0.2;
+			model.geometry.translate( 0, -0.1, 0 );
 			modelBank.treeModel = model;
             check();
 
@@ -32,9 +32,8 @@ const preloadModels = () => {
         loader.load( './resources/trees/tree2.json', model=>{
 
             model.material.opacity = 1.0;
-            model.geometry.translate( 0, - 0.05, 0 );
-
-            model.scale.setScalar( 3.2 );
+            model.material.alphaTest = 0.2;
+            model.geometry.translate( 0, -0.1, 0 );
             modelBank.treeModel1 = model;
             check();
 

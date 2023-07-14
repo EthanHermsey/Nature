@@ -78,94 +78,102 @@ class Player {
    init( startChunk, resolve ){
 
         //set chunkcoord and position
-		this.currentChunkCoord = this.getChunkCoord( this.position, ( startChunk.gridSize.x - 2 ) * startChunk.gridScale.x );
+		this.currentChunkCoord = this.getChunkCoord( this.position, ( gridSize.x - 2 ) * gridScale.x );
 
         let x = ( startChunk.offset.x * startChunk.chunkSize ) + startChunk.chunkSize / 2;
         let z = ( startChunk.offset.z * startChunk.chunkSize ) + startChunk.chunkSize / 2;
-        let m = Math.floor( startChunk.gridSize.x / 2 );
-        let y = startChunk.terrainHeights[ m ][ m ] * startChunk.gridScale.y * 1.2;
+        let m = Math.floor( gridSize.x / 2 );
+        let y = startChunk.terrainHeights[ m ][ m ] * gridScale.y * 1.2;
         this.position.set( x, y, z );
 
-        this.minDigDistance = this.brushRadius * ( startChunk.gridScale.x / 2 + 0.5 );
+        this.minDigDistance = this.brushRadius * ( gridScale.x / 2 + 0.5 );
         
-            
-        let loader = new THREE.GLTFLoader();
 
-        loader.load( './resources/model/knight.gltf', ( model ) => {
+        if ( !this.model){
 
-            this.model = model.scene.children[ 0 ];
-            this.model.mixer = new THREE.AnimationMixer( this.model );
-            this.model.animations = {
-                idle: this.model.mixer.clipAction( model.animations[ 0 ] ),
-                running: this.model.mixer.clipAction( model.animations[ 1 ] )
-            };
-            this.model.animations.idle.play();
-
-            this.model.children.map( child=>{
-
-                child.frustumCulled = false;
-
+            let loader = new THREE.GLTFLoader();
+    
+            loader.load( './resources/model/knight.gltf', ( model ) => {
+    
+                this.model = model.scene.children[ 0 ];
+                this.model.mixer = new THREE.AnimationMixer( this.model );
+                this.model.animations = {
+                    idle: this.model.mixer.clipAction( model.animations[ 0 ] ),
+                    running: this.model.mixer.clipAction( model.animations[ 1 ] )
+                };
+                this.model.animations.idle.play();
+    
+                this.model.children.map( child=>{
+    
+                    child.frustumCulled = false;
+    
+                } );
+                this.model.children[ 1 ].material.metalness = 0.0;
+                this.model.children[ 1 ].material.roughness = 0.75;
+                this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
+                    .load( './resources/model/n.png' );
+                this.model.scale.multiplyScalar( 1.8 );
+                this.model.position.y -= 2;
+                this.model.rotation.order = "YXZ";
+                this.model.rotation.y = Math.PI;
+                this.model.children.map( c=>{
+    
+                    if ( c.type != 'Bone' ) {
+    
+                        c.castShadow = true;
+                        c.receiveShadow = true;
+    
+                    }
+    
+                } );
+                this.object.add( this.model );
+                resolve();
+    
             } );
-            this.model.children[ 1 ].material.metalness = 0.0;
-            this.model.children[ 1 ].material.roughness = 0.75;
-            this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
-                .load( './resources/model/n.png' );
-            this.model.scale.multiplyScalar( 1.8 );
-            this.model.position.y -= 2;
-            this.model.rotation.order = "YXZ";
-            this.model.rotation.y = Math.PI;
-            this.model.children.map( c=>{
+    
+    
+            //add shadowlight
+            this.shadowLightOffset = new THREE.Vector3( 30, 50, 0 );
+            this.shadowLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+            this.shadowLight.target = new THREE.Object3D();
+            scene.add( this.shadowLight.target );
+            this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
+            this.shadowLight.target.position.copy( this.position );
+    
+            this.shadowLight.castShadow = true;
+            this.shadowLight.shadow.mapSize.width = 512; // default
+            this.shadowLight.shadow.mapSize.height = 512; // default
+            this.shadowLight.shadow.camera.near = 0.5; // default
+            this.shadowLight.shadow.camera.far = 300; // default
+            this.shadowLight.shadow.camera.top = - 500;
+            this.shadowLight.shadow.camera.bottom = 500;
+            this.shadowLight.shadow.camera.left = - 500;
+            this.shadowLight.shadow.camera.right = 500;
+            scene.add( this.shadowLight );
+            this.cameraTimer = 0;
+    
+    
+            //add a skybox. This position is
+            this.skyBox = new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    startChunk.chunkSize * 2 * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
+                    64,
+                    64
+                ),
+                new THREE.MeshBasicMaterial( {
+                    map: new THREE.TextureLoader().load( './resources/background.jpg' ),
+                    side: THREE.BackSide
+                } )
+            );
+            this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
+    
+            scene.add( this.skyBox );    
 
-                if ( c.type != 'Bone' ) {
+        } else {
 
-                    c.castShadow = true;
-                    c.receiveShadow = true;
-
-                }
-
-            } );
-            this.object.add( this.model );
             resolve();
 
-        } );
-
-
-        //add shadowlight
-        this.shadowLightOffset = new THREE.Vector3( 30, 50, 0 );
-        this.shadowLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-        this.shadowLight.target = new THREE.Object3D();
-        scene.add( this.shadowLight.target );
-        this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-        this.shadowLight.target.position.copy( this.position );
-
-        this.shadowLight.castShadow = true;
-        this.shadowLight.shadow.mapSize.width = 512; // default
-        this.shadowLight.shadow.mapSize.height = 512; // default
-        this.shadowLight.shadow.camera.near = 0.5; // default
-        this.shadowLight.shadow.camera.far = 300; // default
-        this.shadowLight.shadow.camera.top = - 500;
-        this.shadowLight.shadow.camera.bottom = 500;
-        this.shadowLight.shadow.camera.left = - 500;
-        this.shadowLight.shadow.camera.right = 500;
-        scene.add( this.shadowLight );
-        this.cameraTimer = 0;
-
-
-        //add a skybox. This position is
-        this.skyBox = new THREE.Mesh(
-            new THREE.SphereGeometry(
-                startChunk.chunkSize * 2 * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
-                64,
-                64
-            ),
-            new THREE.MeshBasicMaterial( {
-                map: new THREE.TextureLoader().load( './resources/background.jpg' ),
-                side: THREE.BackSide
-            } )
-        );
-        this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
-
-        scene.add( this.skyBox );    
+        }
 
    }                                  
                                      
@@ -184,9 +192,7 @@ class Player {
 
 	update( delta ) {
 
-		const chunkKey = getChunkKey( this.currentChunkCoord );
-		const chunk = chunkController.getChunk( chunkKey );
-        this.currentChunkCoord = this.getChunkCoord( this.position, ( chunk.gridSize.x - 2 ) * chunk.gridScale.x );
+		this.currentChunkCoord = this.getChunkCoord( this.position, ( gridSize.x - 2 ) * gridScale.x );
 
 		this.movePlayer( delta );
 
@@ -224,6 +230,33 @@ class Player {
 		}
 
 	}
+
+    updateCameraCollision(){
+
+        let v = new THREE.Vector3();
+        this.camera.getWorldDirection(v);
+        v.multiplyScalar(-1);
+
+        const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
+        
+		raycaster.set( rigPosition, v );
+		let intersectdir = raycaster.intersectObjects( chunkController.castChunks );
+
+		if ( intersectdir.length > 0 ) {
+
+			const distance = rigPosition.distanceTo( intersectdir[0].point ) * 0.5;
+			if ( distance < this.cameraDistance ) {
+                this.cameraDistance = distance;
+            } else {
+                this.cameraDistance = min(distance, this.cameraMaxDistance);
+            }
+
+            this.camera.position.setLength(this.cameraDistance);
+            this.model.visible = this.cameraDistance > 2;
+
+		} 
+
+    }
 
 
 
@@ -264,7 +297,6 @@ class Player {
             //get keyinput and rotate to camera direction (y axis rotation )
             let walkDirection = this.getKeyInput( delta ).applyEuler( playerEuler );
 
-
             if ( walkDirection.length() > 0 ) {
 
                 if ( walkDirection.x != 0 && walkDirection.z != 0 ) {
@@ -294,6 +326,8 @@ class Player {
                     this.model.animations.running.timeScale = 1.0;
 
                 }
+
+                this.updateCameraCollision();
 
             } else {
 
@@ -612,28 +646,12 @@ class Player {
 		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -0.85 );
 		this.cameraRig.rotation.z = 0;
 
-        let v = new THREE.Vector3();
-        this.camera.getWorldDirection(v);
-        v.multiplyScalar(-1);
+        this.updateCameraCollision();
 
-        const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
+        const rot = this.cameraRig.rotation.y;
+        if ( rot > 0 ) document.getElementById('compass').style.backgroundPositionX = map(this.cameraRig.rotation.y, 0, TWO_PI, 0, -200) + '%';
+        if ( rot < 0 ) document.getElementById('compass').style.backgroundPositionX = map(this.cameraRig.rotation.y, 0, -TWO_PI, 0, 200) + '%';
         
-		raycaster.set( rigPosition, v );
-		let intersectdir = raycaster.intersectObjects( chunkController.castChunks );
-
-		if ( intersectdir.length > 0 ) {
-
-			const distance = rigPosition.distanceTo( intersectdir[0].point ) * 0.5;
-			if ( distance < this.cameraDistance ) {
-                this.cameraDistance = distance;
-            } else {
-                this.cameraDistance = min(distance, this.cameraMaxDistance);
-            }
-
-            this.camera.position.setLength(this.cameraDistance);
-            this.model.visible = this.cameraDistance > 2;
-
-		} 
 
 
 	}
@@ -674,7 +692,7 @@ class Player {
 			//get the gridposition of the cameraIntersect.point and adjust value.
 			let gridPosition = this.intersectPoint.point.clone()
 				.sub( this.intersectPoint.object.position )
-				.divide( this.intersectPoint.object.chunk.gridScale )
+				.divide( gridScale )
 				.round();
 			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
 
@@ -684,5 +702,12 @@ class Player {
 		}
 
 	}
+
+
+
+    remove(){
+        this.model.geometry.dispose();
+        this.model.material.dispose();
+    }
 
 }

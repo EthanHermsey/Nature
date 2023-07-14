@@ -30,6 +30,19 @@ html {
     z-index: 100;
 }
 
+#compass {
+    position: fixed;
+    left: calc(50vw - 60px);
+    top: 20px;
+    width: 200px;
+    height: 64px;
+    background-image: url('resources/compass.png');
+    background-size: 800px 64px;
+    background-position: 0px 0px;
+    background-repeat: repeat-x;
+    z-index: 5;
+}
+
 
 
 
@@ -68,12 +81,17 @@ html {
     color: white;
 }
 
-#play-button {
+#button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
 
+#load-button,
+#start-button {
     padding: 8px;
-    top: 70vh;
     width: 300px;
-
     font-size: 2em;
 
     background: #fff3;
@@ -83,13 +101,15 @@ html {
     border: outset 3px rgb(216, 216, 216);
 }
 
-#play-button:hover {
+#load-button:hover,
+#start-button:hover {
     color: rgb(245, 245, 245);
     border: outset 3px rgb(245, 245, 245);
     background: #fff4;
 }
 
-#play-button:active {
+#load-button:active,
+#start-button:active {
     color: rgb(216, 216, 216);
     border: inset 3px rgb(216, 216, 216);
     background: #fff3;
