@@ -121,7 +121,7 @@ class Chunk {
 
         return new Promise( resolve => {
 
-            chunkController.workerBank.generateGrid(this.offset, ( { data } ) => {
+            chunkController.workerBank.work(this.offset, ( { data } ) => {
 
                 this.grid = data.grid;
                 this.terrainHeights = data.terrainHeights;
@@ -175,8 +175,9 @@ class Chunk {
                 const topindices = []
 
                 let x, y, z, terrainHeight, smoothRange = 2;
-				generatedSurface.vertices.forEach( (v, vIndex) =>{
+                for(let vIndex = 0; vIndex < generatedSurface.vertices.length; vIndex++){
 
+                    const v = generatedSurface.vertices[vIndex];
 					vertices.push( v[ 0 ], v[ 1 ], v[ 2 ] );
 
                     x = round( v[0] );
@@ -185,17 +186,19 @@ class Chunk {
                     terrainHeight = this.terrainHeights[x][z];
 
                     if ( y < terrainHeight ) {
-                        underground.push(( y > terrainHeight - smoothRange ) ? ( terrainHeight - y ) / smoothRange : 1);                            
+                        underground.push(( y > terrainHeight - smoothRange ) ? ( terrainHeight - y ) / smoothRange : 1);
                     } else {
                         underground.push(0);
                         topvertmap[ vIndex ] = true;
                     }
 
-				} );
+				};
 
                 const topverts = Object.keys(topvertmap);                
 
-				generatedSurface.faces.forEach( ( f )=>{
+				for(let i = 0; i < generatedSurface.faces.length; i++){
+
+                    const f = generatedSurface.faces[i];
 
 					indices.push( f[ 1 ], f[ 0 ], f[ 2 ] );
 					indices.push( f[ 3 ], f[ 2 ], f[ 0 ] );
@@ -214,12 +217,12 @@ class Chunk {
 
                     }
 
-				} );
+				};
 
-                topverts.forEach( index => {
-                    const v = generatedSurface.vertices[ index ];
+                for(let i = 0; i < topverts.length; i++){
+                    const v = generatedSurface.vertices[ i ];
                     topvertices.push( v[ 0 ], v[ 1 ], v[ 2 ] )
-                })
+                }
 
 				geo.setIndex( indices );
 				geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
@@ -699,8 +702,11 @@ class Chunk {
 		}
 
 		//add extra verts to make it a 3d shape
-		chunked.forEach( ( chunk, index ) =>{
-
+        let d = new THREE.Object3D();
+        let geometries = [];
+        for(let i = 0; i < chunked.length; i++){
+            
+            const chunk = chunked[i];
 			const verts = [];
 			const c = new THREE.Vector3();
 			const n = new THREE.Vector3();
@@ -727,24 +733,17 @@ class Chunk {
 
 			c.divideScalar( chunk.length );
 			n.divideScalar( chunk.length );
-			chunked[ index ] = { verts: verts, center: c, normal: n };
+			chunked[ i ] = { verts: verts, center: c, normal: n };
 
-		} );
+            if ( verts.length > 6 ) {
 
-		//convert the groups into rock meshes
-		let d = new THREE.Object3D();
-		let geometries = [];
-		chunked.forEach( verts => {
+				new THREE.Box3().setFromPoints( verts ).getSize( d.scale );
 
-			if ( verts.verts.length > 6 ) {
-
-				new THREE.Box3().setFromPoints( verts.verts ).getSize( d.scale );
-
-				d.quaternion.setFromUnitVectors( scene.up, verts.normal );
+				d.quaternion.setFromUnitVectors( scene.up, n );
 				d.rotateY( Math.random() * Math.PI );
 				if ( Math.random() > 0.6 ) d.rotateX( Math.PI );
 
-				d.position.copy( verts.center );
+				d.position.copy( c );
 				d.updateMatrix();
 
 				let r = Math.floor( Math.random() * 4 );
@@ -755,7 +754,7 @@ class Chunk {
 
 			}
 
-		} );
+		};
 
 		//merge all cliff parts together
 		let boulderGeo = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );
@@ -770,7 +769,9 @@ class Chunk {
 		}
 
         //dispose temp geo's
-        geometries.forEach(geo => geo.dispose());
+        for(let geo of geometries){
+            geo.dispose();
+        }
 
 
 	}

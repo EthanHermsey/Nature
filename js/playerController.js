@@ -33,7 +33,7 @@ class Player {
 		this.intersectPoint = null;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.15;
+		this.terrainAdjustStrength = 0.25;
 		this.brushRadius = 3;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.21;
@@ -41,7 +41,7 @@ class Player {
 		
 
 		//player height/movement vars
-		this.height = 2;
+		this.height = 1.9;
 		this.walkSpeed = 10;
 		this.sprintSpeedMultiplier = 2.2; //4
 		this.walkSlopeLimit = 2.75;
@@ -103,29 +103,28 @@ class Player {
                 };
                 this.model.animations.idle.play();
     
-                this.model.children.forEach( child=>{
-    
-                    child.frustumCulled = false;
-    
-                } );
+                for( let child of this.model.children ){    
+
+                    child.frustumCulled = false;    
+                    
+                };
+
                 this.model.children[ 1 ].material.metalness = 0.0;
                 this.model.children[ 1 ].material.roughness = 0.75;
                 this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
                     .load( './resources/model/n.png' );
-                this.model.scale.multiplyScalar( 1.8 );
-                this.model.position.y -= 2;
+                this.model.scale.multiplyScalar( this.height * 0.9 );
+                this.model.position.y -= this.height;
                 this.model.rotation.order = "YXZ";
                 this.model.rotation.y = Math.PI;
-                this.model.children.forEach( c=>{
+                for( let c of this.model.children ){
     
-                    if ( c.type != 'Bone' ) {
-    
+                    if ( c.type != 'Bone' ) {    
                         c.castShadow = true;
-                        c.receiveShadow = true;
-    
+                        c.receiveShadow = true;    
                     }
     
-                } );
+                };
                 this.object.add( this.model );
                 resolve();
     

@@ -8,7 +8,7 @@ class ChunkController {
 		this.createNewChunks = {};
 		this.castChunks = [];
 		this.prevCoord = undefined;
-		this.chunkViewDistance = 4;
+		this.chunkViewDistance = 6;
 		this.farChunkEdge = 0;
         this.totalViewDistance =  this.chunkViewDistance + this.farChunkEdge;
 
@@ -27,6 +27,11 @@ class ChunkController {
 		rocktex.anisotropy = 8;
 		grasstex.anisotropy = 8;
 
+
+        // this.terrain = new VolumetricTerrain({
+        //     viewDistance: 4,
+        //     farViewDistance
+        // })
 
 
 		this.terrainMaterial = new THREE.MeshLambertMaterial( {
@@ -112,43 +117,8 @@ class ChunkController {
 		};
 
         const num_workers = 4;
-        this.workerBank = [];
-        this.workerBankQueue = [];
-        for(let i = 0; i < num_workers; i++){
-            this.workerBank[i] = {
-                index: i,
-                cb: undefined,
-                working: false,
-                worker: new Worker('./js/worker/worker.js'),
-                generateGrid: function(settings, cb){
-                    this.cb = cb;
-                    this.working = true;
-                    setTimeout(()=>{
-                        this.worker.postMessage(settings);                    
-                    }, this.index * 20);
-                }
-            };
-            this.workerBank[i].worker.onmessage = ( data ) => {
-                this.workerBank[i].working = false;
-                this.workerBank[i].cb(data);
-                if ( this.workerBankQueue.length > 0 ){
-                    const {settings, cb} = this.workerBankQueue.shift();
-                    this.workerBank.generateGrid(settings, cb);
-                }
-            };
-        }
-        this.workerBank.generateGrid = (settings, cb) => {
-            let foundWorker = false;
-            for(let i = 0; i < num_workers; i++){
-                if ( this.workerBank[i].working == false ) {
-                    foundWorker = true;
-                    this.workerBank[i].generateGrid(settings, cb);
-                    break;
-                }
-            }
-            if ( !foundWorker ) this.workerBankQueue.push({settings, cb});
-        };
-
+        this.workerBank = new WorkerBank('./js/worker/worker.js', num_workers);
+        
         this.init()
 			.then( ()=>{
 
@@ -171,7 +141,12 @@ class ChunkController {
 
 		return new Promise( resolve =>{
 
-            //init chunks,
+            //init chunks
+            for( let chunk of Object.keys( this.chunks )){
+                this.chunks[chunk].remove();
+            }
+            this.chunks = {};
+
             const grid = document.getElementById('loading-grid');
             const loadingtext = document.getElementById( 'loading-text' );
             loadingtext.textContent = `loading chunks`;
@@ -232,10 +207,9 @@ class ChunkController {
 
                 }
 
-                const tvd = this.totalViewDistance * this.totalViewDistance;
-                addChunks
-                    .sort( ( a, b ) => a.dist - b.dist )
-                    .forEach( chunk => chunk.add() );
+                for( let chunk of addChunks.sort( ( a, b ) => a.dist - b.dist ) ){
+                    chunk.add();
+                }
 
             }, 10);
             
@@ -277,20 +251,20 @@ class ChunkController {
         //update chunks after digging        
         if ( Object.keys( this.updateChunks ).length > 0 ) {
 
-            Object.keys( this.updateChunks ).forEach( chunkKey => {
+            for( let chunkKey of Object.keys( this.updateChunks ) ) {
 
                 promises.push( this.chunks[ chunkKey ].update() );
                 delete this.updateChunks[ chunkKey ];
                 updatedChunk = true;
 
-            } );
+            };
             
         }
 
 		//create new chunks
 		if ( Object.keys( this.createNewChunks ).length > 0 ) {
 
-            Object.keys( this.createNewChunks ).forEach( chunkKey => {
+            for( let chunkKey of Object.keys( this.createNewChunks )){
                 
                 if ( ! this.chunks[ chunkKey ] ) {
     
@@ -311,7 +285,7 @@ class ChunkController {
 
                 delete this.createNewChunks[ chunkKey ];
 
-            });
+            };
 
 		}
 
@@ -432,7 +406,7 @@ class ChunkController {
 		}
 
 		//check existing chunks
-		Object.keys( this.chunks ).forEach( key=>{
+		for( let key of Object.keys( this.chunks ) ){
 
 			//if this chunk is not needed in new visible chunks, hide it.
 			if ( ! newVisibleChunks[ key ]) {
@@ -442,7 +416,7 @@ class ChunkController {
 
 			}
 
-		} );
+		};
 
 	}
 

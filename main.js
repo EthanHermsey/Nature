@@ -27,16 +27,12 @@ const key = {
 	flyMode: 70
 };
 
-gridSize = {
+const gridScale = new THREE.Vector3( 10, 10, 10 );
+const gridSize = {
     x: 16,
     y: 256,
     z: 16
 };
-gridScale = new THREE.Vector3(
-    10,
-    10,
-    10
-);
 
 
 
@@ -257,12 +253,17 @@ function startLoading( _, offset ){
         if ( !chunkController ) {
             
             await new Promise((resolve) => {
+                
                 chunkController = new ChunkController( (controller) => {
                     chunkController = controller;
                     resolve();
                 } ) 
             })
             
+        } else {
+
+            await chunkController.init();
+
         }
             
         document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
