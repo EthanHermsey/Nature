@@ -357,12 +357,12 @@ function drawHud() {
     text( `x: ${floor(player.position.x)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
     
     if ( player ){
-        const compass = ['╷', '╷', 'SW', '╷', '╷', 'W', '╷', '╷', 'NW', '╷', '╷', 'N', '╷', '╷', 'NE', '╷', '╷', 'E', '╷', '╷', 'SE', '╷', '╷', 'S'];
+        const compass = ['.', '.', '╷', '.', '.', '╷', '.', '.', 'SW', '.', '.', '╷', '.', '.', '╷', '.', '.', 'W', '.', '.', '╷', '.', '.', '╷', '.', '.', 'NW', '.', '.', '╷', '.', '.', '╷', '.', '.', 'N', '.', '.', '╷', '.', '.', '╷', '.', '.', 'NE', '.', '.', '╷', '.', '.', '╷', '.', '.', 'E', '.', '.', '╷', '.', '.', '╷', '.', '.', 'SE', '.', '.', '╷', '.', '.', '╷', '.', '.', 'S'];
         const rotation = (player.cameraRig.rotation.y + PI) * 0.5;
         const index = floor(map(rotation, 0, PI, compass.length, 0, true ));
 
         const str = [];
-        for( let i = index - 3; i <= index + 3; i++){
+        for( let i = index - 12; i <= index + 12; i++){
             let c = i;
             if (c < 0) c += compass.length;
             if (c >= compass.length) c = c % compass.length;
@@ -370,7 +370,7 @@ function drawHud() {
         }
 
         textAlign(CENTER);
-        text( str.join('        '), width * 0.57, height * 0.05 );
+        text( str.join('  '), width * 0.57, height * 0.05 );
 
     }
         
