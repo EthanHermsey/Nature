@@ -89,7 +89,10 @@ function setup() {
     document.getElementById( 'start-button' ).addEventListener('click', setFullscreen, true);
 
 	//THREE Renderer
-    // renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.physicallyCorrectLights = true;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+    renderer.toneMappingExposure = 2.0;
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize( windowWidth, windowHeight );
@@ -108,7 +111,7 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 1 );
+	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.12 );
 	scene.add( amb );
 
 	//fog
