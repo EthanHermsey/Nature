@@ -89,6 +89,7 @@ function setup() {
     document.getElementById( 'start-button' ).addEventListener('click', setFullscreen, true);
 
 	//THREE Renderer
+    // renderer.outputEncoding = THREE.sRGBEncoding;
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize( windowWidth, windowHeight );
@@ -107,7 +108,7 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.6 );
+	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 1 );
 	scene.add( amb );
 
 	//fog
@@ -294,6 +295,7 @@ function start( userEvent ) {
 
 function stop(){
 
+    THREEx.FullScreen.cancel();
     document.removeEventListener( "mousemove", onMouseMove, false );
 
     document.getElementById( 'main-menu' ).classList.remove( 'hidden' );

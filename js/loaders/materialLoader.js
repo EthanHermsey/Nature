@@ -9,8 +9,8 @@ const materials = {};
 //   888   888ooo888  888      888      .oP"888   888   888   888  
 //   888 . 888    .o  888      888     d8(  888   888   888   888  
 //   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o 
-let rocktex = new THREE.TextureLoader().load( './resources/rock/rock.jpg' );
-let grasstex = new THREE.TextureLoader().load( './resources/grass/grass.png' );
+let rocktex = new THREE.TextureLoader().load( './resources/terrain/rock.jpg' );
+let grasstex = new THREE.TextureLoader().load( './resources/terrain/grass.png' );
 rocktex.anisotropy = 8;
 grasstex.anisotropy = 8;
 
@@ -59,8 +59,8 @@ materials['terrain'].onBeforeCompile = ( shader ) => {
         vec4 getTriPlanarTexture(){
                                 
             //mesh scaled
-            float rockRepeat = 0.08;
-            float grassRepeat = 0.04;
+            float rockRepeat = 0.015;
+            float grassRepeat = 0.03;
 
             vec3 blending = getTriPlanarBlend( vNormal2 );
             vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb;

@@ -15,6 +15,8 @@ const preloadModels = () => {
         loader.load( './resources/rocks/rocks.json', model=>{
 
             modelBank.rocks = model;
+            model.children[ 0 ].material.color = new THREE.Color( 'rgb(220, 220, 220)' );
+            modelBank.rocks.children[0].material.map.encoding = THREE.sRGBEncoding;
             check();
 
         });
@@ -41,7 +43,13 @@ const preloadModels = () => {
 
         loader.load( './resources/trees/treeHigh.json', model=>{
 
+            model.children[ 0 ].material.map.encoding = THREE.sRGBEncoding;            
             model.children[ 0 ].material.map.wrapT = model.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
+
+            model.children[ 1 ].material.map.encoding = THREE.sRGBEncoding;
+            model.children[ 1 ].material.blending = THREE.NoBlending;
+            model.children[ 1 ].material.alphaTest = 0.2;
+            model.children[ 1 ].material.opacity = 0.3;            
 
             //trunk
             model.children[ 0 ].material.onBeforeCompile = ( shader ) => {
@@ -94,8 +102,6 @@ const preloadModels = () => {
 
             };
 
-            // model.children[ 1 ].material.blending = THREE.NormalBlending;
-            model.children[ 1 ].material.needsUpdate = true;
             modelBank.treeModelHigh = model;
             check();
 
@@ -105,6 +111,10 @@ const preloadModels = () => {
         loader.load( './resources/trees/treeHigh2.json', model=>{
 
             model.children[ 0 ].material.map.wrapT = model.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
+
+            model.children[ 1 ].material.blending = THREE.NoBlending;
+            model.children[ 1 ].material.alphaTest = 0.3;            
+            model.children[ 1 ].material.opacity = 0.3;
 
             //trunk
             model.children[ 0 ].material.onBeforeCompile = ( shader ) => {
@@ -248,6 +258,7 @@ const preloadModels = () => {
             modelBank.grassModelHigh.geometry.scale( 0.45, 0.85, 0.45 );
 
             model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' );
+            model.material.map.alphaTest = 0.2
 
             modelBank.grassModelHigh.material.onBeforeCompile = ( shader ) => {
 
@@ -279,6 +290,7 @@ const preloadModels = () => {
             model.scale.set( 0.55, 0.5, 0.55 );
             model.geometry.translate( 0, - 0.2, 0 );
             model.geometry.boundingSphere.radius = 128;
+            model.material.map.encoding = THREE.sRGBEncoding;
 
             const mat1 = new THREE.MeshLambertMaterial().copy( model.material );
             mat1.onBeforeCompile = ( shader ) => {

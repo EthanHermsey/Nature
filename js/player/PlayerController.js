@@ -128,10 +128,12 @@ class Player {
     
     
             //add shadowlight
+            this.shadowLightIntensity = 1.1;
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
-            this.shadowLight = new THREE.DirectionalLight( 0xffffff, 1 );
+            this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
             this.shadowLight.target = new THREE.Object3D();
             scene.add( this.shadowLight.target );
+
             this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
             this.shadowLight.target.position.copy( this.position );
     
@@ -219,13 +221,7 @@ class Player {
 		if ( ++ this.cameraTimer > 200 ) {
 
 			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-            // this.shadowLight.intensity = this.shadowLight.position.y < 1200 ? 0 : 1;
-            if ( this.shadowLight.position.y < 1200) {
-                this.shadowLight.position.y = 1200;
-                this.shadowLight.intensity = 0;
-            } else {
-                this.shadowLight.intensity = 1;
-            }
+            this.shadowLight.intensity = this.shadowLight.position.y < 1200 ? 0 : this.shadowLightIntensity;
 			this.shadowLight.target.position.copy( this.position );
 			this.cameraTimer = 0;
 
