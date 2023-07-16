@@ -6,7 +6,7 @@ class WorkerBank{
         this.queue = [];
 
         for(let i = 0; i < num_workers; i++){
-            this.bank[i] = new WorkerBankWorker(script || 'defaultworker.js');
+            this.bank[i] = new WorkerBankWorker(script || './libraries/workerbank/defaultworker.js');
         }    
     }
     
@@ -24,7 +24,7 @@ class WorkerBank{
                         const {settings, cb} = this.queue.shift();
                         this.work(settings, cb);
                     }
-                }, i * 20);                
+                }, i * 20);             
 
                 break;
 
@@ -52,7 +52,7 @@ class WorkerBankWorker extends Worker{
         this.onmessage = (data) => {
 
             this.working = false;
-            cb(data);
+            cb( data );
             
         };
 

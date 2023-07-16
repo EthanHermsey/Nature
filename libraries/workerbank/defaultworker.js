@@ -8,20 +8,16 @@
 // d888b     `V88V"V8P' o888o o888o                                 
                                  
                                  
-self.onmessage = async ( data ) => {
+self.onmessage = async ( { data } ) => {
 
-    const griddata = await generateGrid( data );
-    this.postMessage( griddata );
+    await generateGrid( data );
 
 }
 
-function generateGrid( {offset, gridSize }) {
-
+async function generateGrid( { gridSize, offset } ) {
+    
     const grid = new Float32Array( gridSize.x * gridSize.y * gridSize.z ).fill( - 0.5 );
-    const terrainHeights = [];
-    for ( let i = 0; i < gridSize.x; i ++ ) {
-        terrainHeights.push( [] );
-    }
+    const terrainHeights = new Float32Array( gridSize.x * gridSize.z );
 
     const setGridValue = (x, y, z, value) => {
         const gridOffset = ( ( z * ( gridSize.x * gridSize.y ) ) + ( y * gridSize.z ) + x );
@@ -32,13 +28,15 @@ function generateGrid( {offset, gridSize }) {
 
         for ( var x = 0; x < gridSize.x; x ++ ) {             
              for ( var z = 0; z < gridSize.z; z ++ ) {
+                
+                terrainHeights[z * this.gridSize.x + x] = gridSize.y * 0.5;
 
-                const cX = ( x + offset.x * ( gridSize.x - 1 ) - offset.x );
-                const xZ = ( z + offset.z * ( gridSize.z - 1 ) - offset.z );
-                 
+                let px = ( x + offset.x * ( gridSize.x - 1 ) - offset.x );
+                let pz = ( z + offset.z * ( gridSize.z - 1 ) - offset.z );
+                
                 for ( var y = 0; y < gridSize.y; y ++ ) {
                      
-                    const value = getValue(x, y, z);
+                    const value = getValue(px, y, pz);
                     setGridValue( x, y, z, value );
                      
                 }
@@ -47,13 +45,17 @@ function generateGrid( {offset, gridSize }) {
 
         }
 
-        resolve( { grid, terrainHeights } );
+        self.postMessage( { grid, terrainHeights }, [ grid.buffer, terrainHeights.buffer ] );
     })
+    
+    function getValue(x, y, z){
 
-}
-
-function getValue(x, y, z){
-    let terrainHeightValue = y < gridSize.y * 0.5 ? 0.5 : -0.5;
-    return terrainHeightValue;
+        let xs = Math.sin( x * 0.1 ) * 5;
+        let zs = Math.sin( z * 0.1 ) * 5;
+        let terrainheight = gridSize.y * 0.5 + xs + zs;
+        
+        return y < terrainheight ? 0.5 : -0.5;
+    
+    }
 
 }

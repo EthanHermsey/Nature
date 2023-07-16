@@ -1,149 +1,68 @@
-class ChunkController {
+
+
+class TerrainController extends VolumetricTerrain{
 
 	constructor( callback ) {
+		
+        super(
+            {
+                gridSize: { x: 16, y: 256, z: 16 },
+                gridScale: { x: 10, y: 10, z: 10 },
+                viewDistance: 6,
+                farViewDistance: 4,
+                material: materials['terrain'],
+                workers: 4,
+                workerScript: './js/terrain/worker/worker.js',
+                meshFactory: Mesh,
+                chunkClass: Chunk
+            },
+            ()=>{
 
-		this.surfaceNetEngine = new SurfaceNets();
-		this.chunks = {};
-		this.updateChunks = {};
-		this.createNewChunks = {};
-		this.castChunks = [];
-		this.prevCoord = undefined;
-		this.chunkViewDistance = 6;
-		this.farChunkEdge = 0;
-        this.totalViewDistance =  this.chunkViewDistance + this.farChunkEdge;
+                this.grassViewDistance = 4;
+                this.grassHighViewDistance = 2;
+                this.fernViewDistance = 3;
+                this.treeViewDistance = 16;
+                this.treeHighViewDistance = 3;
 
-		this.grassViewDistance = 4;
-        this.grassHighViewDistance = 2;
-		this.fernViewDistance = 3;
-		this.treeViewDistance = 16;
-        this.treeHighViewDistance = 3;
+                this.deltaCountCreate = 0;
+                this.deltaCountUpdate = 0;
+                this.updateCastChunkTerrainArray( this.prevCoord );
+                this.updateLODs();
+                this.generateInstancedObjects();
+                callback( this );
 
-		this.deltaCountCreate = 0;
-		this.deltaCountUpdate = 0;
-
-		//preload material
-		let rocktex = new THREE.TextureLoader().load( './resources/rock/rock.jpg' );
-		let grasstex = new THREE.TextureLoader().load( './resources/grass/grass.png' );
-		rocktex.anisotropy = 8;
-		grasstex.anisotropy = 8;
-
-
-        // this.terrain = new VolumetricTerrain({
-        //     viewDistance: 4,
-        //     farViewDistance
-        // })
-
-
-		this.terrainMaterial = new THREE.MeshLambertMaterial( {
-            color: 'rgb(100, 100, 100)',
-			dithering: true,
-			map: rocktex
-		} );
-		this.terrainMaterial.onBeforeCompile = ( shader ) => {
-			
-			shader.uniforms.tDiff = {
-				value: [
-					rocktex,
-					grasstex
-				]
-			};
-
-			shader.vertexShader = 'attribute float force_stone;\nvarying float vFs;\nvarying vec3 vPos;\nvarying vec3 vNormal2;\n' + shader.vertexShader.replace(
-				'#include <worldpos_vertex>',
-				`
-				#include <worldpos_vertex>
-				vPos = vec3( worldPosition );
-				vNormal2 = normal;
-                vFs = force_stone;
-				`
-			);
-
-			shader.fragmentShader = shader.fragmentShader.replace(
-				'#include <map_pars_fragment>',
-				`
-				uniform sampler2D tDiff[2];
-				varying vec3 vPos;
-				varying vec3 vNormal2;
-				varying float vFs;
-
-				vec3 getTriPlanarBlend(vec3 _wNorm){
-                    vec3 blending = vec3( _wNorm );                
-                    blending = abs(blending);
-
-                    blending = normalize(max(blending, 0.00001)); // Force weights to sum to 1.0
-                    float b = (blending.x + blending.y + blending.z);
-                    blending /= vec3(b, b, b);
-                    return blending * blending;
-				}
-
-				vec4 getTriPlanarTexture(){
-					                    
-                    //mesh scaled
-                    float rockRepeat = 0.08;
-                    float grassRepeat = 0.04;
-
-                    vec3 blending = getTriPlanarBlend( vNormal2 );
-                    vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb;
-                    vec3 yaxis;
-
-                    if ( vNormal2.y < 0.2){
-                        yaxis = texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb;
-                    } else {
-                        yaxis = mix(
-                            texture2D( tDiff[1], mod(vPos.xz * grassRepeat, 1.0) ).rgb,
-                            texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb,
-                            vFs
-                        );
-                    }
-                    vec3 zaxis = texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0) ).rgb;
-
-                    return vec4( xaxis * blending.x + yaxis * blending.y + zaxis * blending.z, 1.0 );
-				}
-				`
-			)
-
-			shader.fragmentShader = shader.fragmentShader.replace( '#include <map_fragment>',`` );
-
-			shader.fragmentShader = shader.fragmentShader.replace( 
-				'vec4 diffuseColor = vec4( diffuse, opacity );',
-				`
-				vec3 norm = normalize(vNormal2);
-				vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
-				float diff = 0.7 + max(dot(norm, lightDir), 0.0) * 0.3;
-				vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.2, opacity );
-				`			
-			);
-
-		};
-
-        const num_workers = 4;
-        this.workerBank = new WorkerBank('./js/worker/worker.js', num_workers);
-        
-        this.init()
-			.then( ()=>{
-
-				callback( this );
-
-			} );
+            }
+        );
 
 	}
 
+    toggleClock( start ){
 
-	//  o8o               o8o      .   
-	//  `"'               `"'    .o8   
-	// oooo  ooo. .oo.   oooo  .o888oo 
-	// `888  `888P"Y88b  `888    888   
-	//  888   888   888   888    888   
-	//  888   888   888   888    888 . 
-	// o888o o888o o888o o888o   "888" 
-	                                
-	init() {
+        if ( start ){            
+            this.clock = setInterval(() => {
+                this.update();
+            }, 300 );
+        } else {
+            clearInterval(this.clock);
+        }
 
-		return new Promise( resolve =>{
+    }
+
+
+//   o8o               o8o      .   
+//   `"'               `"'    .o8   
+//  oooo  ooo. .oo.   oooo  .o888oo 
+//  `888  `888P"Y88b  `888    888   
+//   888   888   888   888    888   
+//   888   888   888   888    888 . 
+//  o888o o888o o888o o888o   "888" 
+    init() {
+
+        return new Promise( resolve =>{
 
             //init chunks
             for( let chunk of Object.keys( this.chunks )){
-                this.chunks[chunk].remove();
+                this.chunks[chunk].dispose();
             }
             this.chunks = {};
 
@@ -155,15 +74,13 @@ class ChunkController {
             let num_initial_chunks = 0;
             let loadInitialTerrain = ( chunk ) => {
 
-
                 this.chunks[ chunk.chunkKey ] = chunk;
                 num_initial_chunks--;
                 document.getElementById( chunk.chunkKey ).classList.add('active');
                 
                 if ( num_initial_chunks == 0 ) {
 
-                    loadingtext.textContent = `loading player`;                  
-                    this.generateInstancedObjects();
+                    loadingtext.textContent = `loading player`;
                     resolve();
 
                 }                
@@ -186,7 +103,7 @@ class ChunkController {
                         addChunks.push({
                             dist: x * x + z * z,
                             add: () =>{
-                                new Chunk(
+                                new this.chunkClass(
                                     x,
                                     z,
                                     this,
@@ -214,25 +131,10 @@ class ChunkController {
             }, 10);
             
 
-		} );
+        } );
 
-	}
-
-
-    toggleClock( start ){
-
-        if ( start ){            
-            this.clock = setInterval(() => {
-                this.update();
-            }, 300 );
-        } else {
-            clearInterval(this.clock);
-        }
-
-    }
-
-
-
+    }                                
+           
 	//                              .o8                .             
 	//                             "888              .o8             
 	// oooo  oooo  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.  
@@ -242,88 +144,53 @@ class ChunkController {
 	//  `V88V"V8P'  888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P' 
 	//              888                                              
 	//             o888o                                          
-	update() {
-
-        //create array of promises
-        let updatedChunk = false;
-        const promises = [];
-
-        //update chunks after digging        
-        if ( Object.keys( this.updateChunks ).length > 0 ) {
-
-            for( let chunkKey of Object.keys( this.updateChunks ) ) {
-
-                promises.push( this.chunks[ chunkKey ].update() );
-                delete this.updateChunks[ chunkKey ];
-                updatedChunk = true;
-
-            };
-            
-        }
-
-		//create new chunks
-		if ( Object.keys( this.createNewChunks ).length > 0 ) {
-
-            for( let chunkKey of Object.keys( this.createNewChunks )){
-                
-                if ( ! this.chunks[ chunkKey ] ) {
-    
-                    promises.push(new Promise( ( resolve )=>{
-    
-                        new Chunk(
-                            this.createNewChunks[ chunkKey ].x,
-                            this.createNewChunks[ chunkKey ].y,
-                            this,
-                            chunk => {
-                                this.chunks[ chunkKey ] = chunk;
-                                resolve();
-                            }
-                        );
-                        
-                    } ) );
-                }
-
-                delete this.createNewChunks[ chunkKey ];
-
-            };
-
-		}
-
-
-        Promise.all( promises ).then( ()=>{
-
-            if ( ! this.prevCoord ||
-                   updatedChunk === true ||
-                   this.prevCoord.x != player.currentChunkCoord.x ||
-                   this.prevCoord.y != player.currentChunkCoord.y ) {
-    
-
-                this.generateInstancedObjects();
-                this.updateCastChunkTerrainArray();			
-
-                if ( !updatedChunk ){
-                    
-                    this.updateVisibleChunkTerrainArray();
-                    this.prevCoord = player.currentChunkCoord.clone();
-
-                }
-
-                //set birdsound volume
-                let chunk = chunkController.chunks[ getChunkKey( this.prevCoord ) ];
-                let treeAmount = chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length;
-                document.querySelector( 'audio' ).setVolume( map( treeAmount, 10, 35, 0.0, 0.3, true ), 2.5 );
-    
-            }
-            
-        } );
-
-
-		//update fake-fog
+	async update() {
+		
+        // update fake-fog
 		if ( this.fogCloud && this.fogCloud.material.userData.shader){
 			this.fogCloud.material.userData.shader.uniforms.time.value += 0.05;
 		}
 
+        await super.update( player.currentChunkCoord );
+
+        // //set birdsound volume
+        let chunk = this.chunks[ this.getChunkKey( this.prevCoord ) ];
+        let treeAmount = chunk.modelMatrices[ 'tree' ] ? chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length : 0;
+        document.querySelector( 'audio' ).setVolume( map( treeAmount, 10, 35, 0.0, 0.3, true ), 2.5 );        
+
 	}
+
+    updatePrevCoord( currentCoord, newChunks ){
+     
+        super.updatePrevCoord(currentCoord, newChunks );
+        
+        if ( newChunks ) {
+            this.updateLODs();
+            this.generateInstancedObjects();
+        }
+    }
+
+    updateLODs(){
+     
+        for( let chunk in this.chunks){
+            
+            chunk = this.chunks[chunk];
+            const x = Math.abs(this.prevCoord.x - chunk.offset.x);
+            const z = Math.abs(this.prevCoord.z - chunk.offset.z);
+            
+            if  ( x >= -this.viewDistance && x <= this.viewDistance &&
+                  z >= -this.viewDistance && z <= this.viewDistance ) {
+               
+                chunk.showLevel( 1 );
+
+            } else {
+                
+                chunk.showLevel( 0 );
+
+            }
+        }
+
+    }
 	
 	//                          .     .oooooo.   oooo                                oooo        
 	//                        .o8    d8P'  `Y8b  `888                                `888        
@@ -340,142 +207,17 @@ class ChunkController {
 
 	}
 
-	//                              .o8                .                  
-	//                             "888              .o8                  
-	// oooo  oooo  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.       
-	// `888  `888   888' `88b d88' `888  `P  )88b    888   d88' `88b      
-	//  888   888   888   888 888   888   .oP"888    888   888ooo888      
-	//  888   888   888   888 888   888  d8(  888    888 . 888    .o      
-	//  `V88V"V8P'  888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P'      
-	//              888                                                   
-	//             o888o                                                  
-	//              o8o            o8o   .o8       oooo                   
-	//              `"'            `"'  "888       `888                   
-	// oooo    ooo oooo   .oooo.o oooo   888oooo.   888   .ooooo.         
-	//  `88.  .8'  `888  d88(  "8 `888   d88' `88b  888  d88' `88b        
-	//   `88..8'    888  `"Y88b.   888   888   888  888  888ooo888        
-	//    `888'     888  o.  )88b  888   888   888  888  888    .o        
-	//     `8'     o888o 8""888P' o888o  `Y8bod8P' o888o `Y8bod8P'        
-	//           oooo                                oooo                 
-	//           `888                                `888                 
-	//  .ooooo.   888 .oo.   oooo  oooo  ooo. .oo.    888  oooo   .oooo.o 
-	// d88' `"Y8  888P"Y88b  `888  `888  `888P"Y88b   888 .8P'   d88(  "8 
-	// 888        888   888   888   888   888   888   888888.    `"Y88b.  
-	// 888   .o8  888   888   888   888   888   888   888 `88b.  o.  )88b 
-	// `Y8bod8P' o888o o888o  `V88V"V8P' o888o o888o o888o o888o 8""888P' 
-	updateVisibleChunkTerrainArray() {
 
-		//new set of visible chunks
-		let newVisibleChunks = {};
 
-		//new chunk coordinate
-		for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
 
-			for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
 
-				let coord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
-				let chunkKey = getChunkKey( coord );
 
-				
-				//if chunk does not exist, 
-				//or it's low lod and if it's a farchunk:
-				//add it to chunk generation queue
-				if ( ! this.chunks[ chunkKey ] ){
 
-					this.createNewChunks[ chunkKey ] = coord;
-					
 
-				} else if  ( x >= -this.chunkViewDistance && x <= this.chunkViewDistance &&
-							 z >= -this.chunkViewDistance && z <= this.chunkViewDistance ) {
 
-					
-					this.chunks[ chunkKey ].showLevel( 1 );
-					
 
-				} else {
 
-					//store in visible chunks object
-					this.chunks[ chunkKey ].showLevel( 0 );						
 
-				}
-
-				newVisibleChunks[ chunkKey ] = true;
-
-			}
-
-		}
-
-		//check existing chunks
-		for( let key of Object.keys( this.chunks ) ){
-
-			//if this chunk is not needed in new visible chunks, hide it.
-			if ( ! newVisibleChunks[ key ]) {
-
-				this.chunks[ key ].remove();
-				delete this.chunks[ key ];
-
-			}
-
-		};
-
-	}
-
-	//                              .o8                .                   
-	//                             "888              .o8                   
-	// oooo  oooo  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.        
-	// `888  `888   888' `88b d88' `888  `P  )88b    888   d88' `88b       
-	//  888   888   888   888 888   888   .oP"888    888   888ooo888       
-	//  888   888   888   888 888   888  d8(  888    888 . 888    .o       
-	//  `V88V"V8P'  888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P'       
-	//              888                                                    
-	//             o888o                                                   
-	//                                                                 .   
-	//                                                               .o8   
-	// oooo d8b  .oooo.   oooo    ooo  .ooooo.   .oooo.    .oooo.o .o888oo 
-	// `888""8P `P  )88b   `88.  .8'  d88' `"Y8 `P  )88b  d88(  "8   888   
-	//  888      .oP"888    `88..8'   888        .oP"888  `"Y88b.    888   
-	//  888     d8(  888     `888'    888   .o8 d8(  888  o.  )88b   888 . 
-	// d888b    `Y888""8o     .8'     `Y8bod8P' `Y888""8o 8""888P'   "888" 
-	//                    .o..P'                                           
-	//                    `Y8P'                                            
-	//           oooo                                oooo                  
-	//           `888                                `888                  
-	//  .ooooo.   888 .oo.   oooo  oooo  ooo. .oo.    888  oooo   .oooo.o  
-	// d88' `"Y8  888P"Y88b  `888  `888  `888P"Y88b   888 .8P'   d88(  "8  
-	// 888        888   888   888   888   888   888   888888.    `"Y88b.   
-	// 888   .o8  888   888   888   888   888   888   888 `88b.  o.  )88b  
-	// `Y8bod8P' o888o o888o  `V88V"V8P' o888o o888o o888o o888o 8""888P'  
-	updateCastChunkTerrainArray() {
-
-		//new set of visible chunks
-		let newcastChunks = {};
-
-		//raycast chunk range
-        let d = 1
-		for ( let x = - d; x <= d; x ++ ) {
-
-			for ( let z = - d; z <= d; z ++ ) {
-
-				let chunkCoord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
-				let chunkKey = getChunkKey( chunkCoord );
-
-				newcastChunks[ chunkKey ] = true;
-
-			}
-
-		}
-
-		this.castChunks = [];
-
-		for ( let chunkKey in newcastChunks ) {
-
-			let chunk = chunkController.getChunk( chunkKey );
-			if ( chunk ) {
-				this.castChunks.push( chunk.terrainMesh );
-			}
-		}
-
-	}
 
 
 	//                                                                   .                     
@@ -574,15 +316,15 @@ class ChunkController {
 
 			for ( let z = - this.grassViewDistance; z <= this.grassViewDistance; z ++ ) {
 
-				let chunkCoord = { 
+				const chunkCoord = { 
 					x: ( player?.currentChunkCoord?.x || 0 ) + x, 
-					y: ( player?.currentChunkCoord?.y || 0 ) + z, 
+					z: ( player?.currentChunkCoord?.z || 0 ) + z, 
 				};
-				let chunkKey = getChunkKey( chunkCoord );
+                const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
-				if ( this.chunks[ chunkKey ] ) {
+				if ( chunk ) {
 
-					let grassMatrices = this.chunks[ chunkKey ].getGrassMatrices();
+					let grassMatrices = chunk.getGrassMatrices();
 
 					if ( Math.abs(x) <= 1 && Math.abs(z) <= this.grassHighViewDistance){
 
@@ -665,15 +407,15 @@ class ChunkController {
 
 			for ( let z = - this.fernViewDistance; z <= this.fernViewDistance; z ++ ) {
 
-				let chunkCoord = { 
-					x: ( player?.currentChunkCoord ) ? player.currentChunkCoord.x + x : x, 
-					y: ( player?.currentChunkCoord ) ? player.currentChunkCoord.y + z : z, 
+				const chunkCoord = { 
+					x: ( player?.currentChunkCoord?.x || 0 ) + x, 
+					z: ( player?.currentChunkCoord?.z || 0 ) + z, 
 				};
-				let chunkKey = getChunkKey( chunkCoord );
+				const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
-				if ( this.chunks[ chunkKey ] ) {
+				if ( chunk ) {
 
-					let fernMatrices = this.chunks[ chunkKey ].getFernMatrices();
+					let fernMatrices = chunk.getFernMatrices();
 					for ( let i = 0; i < fernMatrices.length; i ++, count ++ ) {
 
 						this.ferns.setMatrixAt( count, fernMatrices[ i ] );
@@ -847,16 +589,16 @@ class ChunkController {
 
 			for ( let z = - this.treeViewDistance; z <= this.treeViewDistance; z ++ ) {
 
-				let chunkCoord = { 
-					x: ( player?.currentChunkCoord ) ? player.currentChunkCoord.x + x : x, 
-					y: ( player?.currentChunkCoord ) ? player.currentChunkCoord.y + z : z, 
+				const chunkCoord = { 
+					x: ( player?.currentChunkCoord?.x || 0 ) + x, 
+					z: ( player?.currentChunkCoord?.z || 0 ) + z, 
 				};
-				let chunkKey = getChunkKey( chunkCoord );
+				const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 				let playerPosition = ( x <= this.treeHighViewDistance && x >= -this.treeHighViewDistance) && ( z <= this.treeHighViewDistance && z >= -this.treeHighViewDistance );
+                
+				if ( chunk ) {
 
-				if ( this.chunks[ chunkKey ] ) {
-
-					let treeMatrices = this.chunks[ chunkKey ].getTreeMatrices();
+					let treeMatrices = chunk.getTreeMatrices();
 					for(let m = 0; m < treeMatrices.length; m++){
 						if ( !treeMatrices[ m ] ) continue;
 						for ( let i = 0; i < treeMatrices[ m ].length; i ++, count[m] ++ ) {

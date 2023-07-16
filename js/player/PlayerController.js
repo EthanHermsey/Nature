@@ -33,8 +33,8 @@ class Player {
 		this.intersectPoint = null;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.25;
-		this.brushRadius = 3;
+		this.terrainAdjustStrength = 0.1;
+		this.brushRadius = 4;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.21;
 		this.maxBuildDistance = 250;
@@ -54,9 +54,8 @@ class Player {
 		this.grounded = true;
 
 		//flymode selector
-		this.flyModes = [ 'walk', 'fly' ];
-		this.selectedFlyMode = 0;
-        this.godMode = 0;
+		this.flyMode = false;
+        this.godMode = false;
 
 	}
 
@@ -78,15 +77,15 @@ class Player {
    init( startChunk, resolve ){
 
         //set chunkcoord and position
-		this.currentChunkCoord = this.getChunkCoord( this.position, ( gridSize.x - 2 ) * gridScale.x );
+		this.currentChunkCoord = this.getChunkCoord( this.position, ( terrainController.gridSize.x - 2 ) * terrainController.gridScale.x );
 
-        let x = ( startChunk.offset.x * startChunk.chunkSize ) + startChunk.chunkSize / 2;
-        let z = ( startChunk.offset.z * startChunk.chunkSize ) + startChunk.chunkSize / 2;
-        let m = Math.floor( gridSize.x / 2 );
-        let y = startChunk.terrainHeights[ m ][ m ] * gridScale.y * 1.2;
+        let x = ( startChunk.offset.x * startChunk.terrain.chunkSize ) + startChunk.terrain.chunkSize / 2;
+        let z = ( startChunk.offset.z * startChunk.terrain.chunkSize ) + startChunk.terrain.chunkSize / 2;
+        let m = Math.floor( terrainController.gridSize.x / 2 );
+        let y = startChunk.getTerrainHeight( m, m ) * terrainController.gridScale.y * 1.2;
         this.position.set( x, y, z );
 
-        this.minDigDistance = this.brushRadius * ( gridScale.x / 2 + 0.5 );
+        this.minDigDistance = this.brushRadius * ( terrainController.gridScale.x / 2 + 0.5 );
         
 
         if ( !this.model){
@@ -155,7 +154,7 @@ class Player {
             //add a skybox. This position is
             this.skyBox = new THREE.Mesh(
                 new THREE.SphereGeometry(
-                    startChunk.chunkSize * 2 * ( startChunk.parent.chunkViewDistance + startChunk.parent.farChunkEdge + 2 ),
+                    startChunk.terrain.chunkSize * 2 * ( startChunk.terrain.viewDistance + startChunk.terrain.farViewDistance + 2 ),
                     64,
                     64
                 ),
@@ -191,7 +190,7 @@ class Player {
 
 	update( delta ) {
 
-		this.currentChunkCoord = this.getChunkCoord( this.position, ( gridSize.x - 2 ) * gridScale.x );
+		this.currentChunkCoord = this.getChunkCoord( this.position, ( terrainController.gridSize.x - 2 ) * terrainController.gridScale.x );
 
 		this.movePlayer( delta );
 
@@ -239,7 +238,7 @@ class Player {
         const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
         
 		raycaster.set( rigPosition, v );
-		let intersectdir = raycaster.intersectObjects( chunkController.castChunks );
+		let intersectdir = raycaster.intersectObjects( terrainController.castChunks );
 
 		if ( intersectdir.length > 0 ) {
 
@@ -340,7 +339,7 @@ class Player {
             nPos.add( walkDirection );
             
 
-            if ( this.godMode === 0 ){
+            if ( this.godMode == false ){
 
                 //add gravity
                 nPos.y += this.vDown;
@@ -351,7 +350,7 @@ class Player {
                 if ( collisions.down.normal ) {
     
                     if ( nPos.y > collisions.down.position.y + this.height &&
-                        this.selectedFlyMode == 0 ) {
+                        this.flyMode == false ) {
     
                         //fallingdown
                         this.vDown -= this.gravity * delta;
@@ -360,7 +359,7 @@ class Player {
                     } else {
     
                         //climbing up terrain
-                        if ( this.selectedFlyMode == 0 ) {
+                        if ( this.flyMode == false ) {
     
                             nPos.y = collisions.down.position.y + this.height;
     
@@ -467,7 +466,7 @@ class Player {
 		//y axis up
 		if ( keyIsDown( key.space ) && this.grounded ) {
 
-			if ( this.selectedFlyMode == 0 ) {
+			if ( this.flyMode == false ) {
 
 				//add to gravity vector
 				d.y += this.jumpStrength;
@@ -483,7 +482,7 @@ class Player {
 		}
 
 		//y axis down
-		if ( this.selectedFlyMode == 1 || this.godMode == 1) {
+		if ( this.flyMode == true || this.godMode == true) {
 
 			if ( keyIsDown( key.shift ) ) {
 
@@ -570,7 +569,7 @@ class Player {
 
 		raycaster.setFromCamera( new THREE.Vector2(), this.camera );
 
-		let intersects = raycaster.intersectObjects( chunkController.castChunks, true );
+		let intersects = raycaster.intersectObjects( terrainController.castChunks, true );
 
 		this.intersectPoint = null;
 
@@ -592,7 +591,7 @@ class Player {
 		downPos.y += this.height * 0.5 - this.vDown;
 
 		raycaster.set( downPos, scene.down );
-		let intersectDown = raycaster.intersectObjects( chunkController.castChunks, true );
+		let intersectDown = raycaster.intersectObjects( terrainController.castChunks, true );
 
 
 		if ( intersectDown.length > 0 ) {
@@ -613,7 +612,7 @@ class Player {
 		let dirPos = this.position.clone();
 
 		raycaster.set( dirPos, direction.normalize() );
-		let intersectdir = raycaster.intersectObjects( chunkController.castChunks );
+		let intersectdir = raycaster.intersectObjects( terrainController.castChunks );
 
 		if ( intersectdir.length > 0 ) {
 
@@ -653,7 +652,7 @@ class Player {
 
 	getChunkCoord( pos, chunkSize ) {
         
-		return new THREE.Vector2( pos.x / chunkSize, pos.z / chunkSize ).floor();
+		return { x: Math.floor(pos.x / chunkSize), z: Math.floor(pos.z / chunkSize) };
 
 	}
 
@@ -687,7 +686,7 @@ class Player {
 
 	adjustTerrain() {
 
-		if ( this.intersectPoint && this.intersectPoint.object.name == "terrain" ) {
+		if ( this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
 
 			//exit if building too close by, or too far.
 			let d = this.intersectPoint.point.distanceTo( this.position );
@@ -696,7 +695,7 @@ class Player {
 			//get the gridposition of the cameraIntersect.point and adjust value.
 			let gridPosition = this.intersectPoint.point.clone()
 				.sub( this.intersectPoint.object.position )
-				.divide( gridScale )
+				.divide( terrainController.gridScale )
 				.round();
 			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
 
@@ -710,8 +709,10 @@ class Player {
 
 
     remove(){
+
         this.model.geometry.dispose();
         this.model.material.dispose();
+
     }
 
 }

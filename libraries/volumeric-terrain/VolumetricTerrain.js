@@ -1,37 +1,43 @@
 class VolumetricTerrain extends THREE.Object3D{
 
-    constructor(options = {}){
+    constructor(options = {}, cb){
         
         super();
 
+        this.isVolumetricTerrain = true;
 		this.surfaceNetEngine = new SurfaceNets();
 
+        this.prevCoord = {x: 0, z: 0};
 		this.chunks = {};
 		this.updateChunks = {};
 		this.createNewChunks = {};
-		this.castChunks = [];
+		this.castChunks = [];		
 		
-        this.prevCoord = undefined;
-		
-        this.chunkViewDistance = options.viewDistance || 6;
-		this.farChunkViewDistance = options.farViewDistance || 0;
-        this.totalViewDistance =  this.chunkViewDistance + this.farChunkViewDistance;
+        this.gridSize = options.gridSize || { x: 16, y: 256, z: 16 };
+        this.gridScale = options.gridScale || { x: 5, y: 5, z: 5 };
+        this.viewDistance = options.viewDistance || 6;
+		this.farViewDistance = options.farViewDistance || 0;
+        this.totalViewDistance =  this.viewDistance + this.farViewDistance;
+        this.chunkSize = this.gridScale.x * this.gridSize.x;
 
-		this.material = options.material || new THREE.MeshLambertMaterial( {} );
+		this.material = options.material || new THREE.MeshLambertMaterial( {color: 'rgb(100, 100, 100)'} );
+        this.meshFactory = options.meshFactory || undefined;
+        this.chunkClass = options.chunkClass || VolumetricChunk;
 		
         const num_workers = options.workers || 4;
-        this.workerBank = new WorkerBank(options.workerscript, num_workers);
+        this.workerBank = new WorkerBank(options.workerScript, num_workers);
 
         this.init()
 			.then( ()=>{
 
-				callback( this );
+				cb( this );
 
 			} );
 
     }
 
     
+	
 	//  o8o               o8o      .   
 	//  `"'               `"'    .o8   
 	// oooo  ooo. .oo.   oooo  .o888oo 
@@ -45,38 +51,22 @@ class VolumetricTerrain extends THREE.Object3D{
 		return new Promise( resolve =>{
 
             //init chunks
-            Object.keys( this.chunks ).forEach( chunk => this.chunks[chunk].remove() );
+            for( let chunk of Object.keys( this.chunks )){
+                this.chunks[chunk].dispose();
+            }
             this.chunks = {};
 
-            const grid = document.getElementById('loading-grid');
-            const loadingtext = document.getElementById( 'loading-text' );
-            loadingtext.textContent = `loading chunks`;
-            
             let max_initial_chunks = 0;
             let num_initial_chunks = 0;
             let loadInitialTerrain = ( chunk ) => {
 
-
                 this.chunks[ chunk.chunkKey ] = chunk;
-                num_initial_chunks--;
-                document.getElementById( chunk.chunkKey ).classList.add('active');
+                num_initial_chunks--;            
                 
-                if ( num_initial_chunks == 0 ) {
-
-                    loadingtext.textContent = `loading player`;                  
-                    this.generateInstancedObjects();
-                    resolve();
-
-                }                
+                if ( num_initial_chunks == 0 ) resolve();
 
             };
 
-            const gridAmount = this.totalViewDistance * 2 + 1;
-            grid.style.gridTemplateRows = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
-            grid.style.gridTemplateColumns = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
-            grid.innerHTML = '';
-
-            
             setTimeout(() => {
 
                 const addChunks = [];
@@ -87,7 +77,7 @@ class VolumetricTerrain extends THREE.Object3D{
                         addChunks.push({
                             dist: x * x + z * z,
                             add: () =>{
-                                new Chunk(
+                                new this.chunkClass(
                                     x,
                                     z,
                                     this,
@@ -99,19 +89,13 @@ class VolumetricTerrain extends THREE.Object3D{
                         num_initial_chunks++;
                         max_initial_chunks++;
 
-                        const d = document.createElement('div');
-                        d.id = `${x}:${z}`;
-                        d.className = 'loading-grid-item';
-                        grid.appendChild(d);
-
                     }
 
                 }
 
-                const tvd = this.totalViewDistance * this.totalViewDistance;
-                addChunks
-                    .sort( ( a, b ) => a.dist - b.dist )
-                    .forEach( chunk => chunk.add() );
+                for( let chunk of addChunks.sort( ( a, b ) => a.dist - b.dist ) ){
+                    chunk.add();
+                }
 
             }, 10);
             
@@ -119,20 +103,6 @@ class VolumetricTerrain extends THREE.Object3D{
 		} );
 
 	}
-
-
-    toggleClock( start ){
-
-        if ( start ){            
-            this.clock = setInterval(() => {
-                this.update();
-            }, 300 );
-        } else {
-            clearInterval(this.clock);
-        }
-
-    }
-
 
 
 	//                              .o8                .             
@@ -143,8 +113,9 @@ class VolumetricTerrain extends THREE.Object3D{
 	//  888   888   888   888 888   888  d8(  888    888 . 888    .o 
 	//  `V88V"V8P'  888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P' 
 	//              888                                              
-	//             o888o                                          
-	update() {
+	//             o888o         
+
+	async update( currentCoord ) {
 
         //create array of promises
         let updatedChunk = false;
@@ -153,28 +124,28 @@ class VolumetricTerrain extends THREE.Object3D{
         //update chunks after digging        
         if ( Object.keys( this.updateChunks ).length > 0 ) {
 
-            Object.keys( this.updateChunks ).forEach( chunkKey => {
+            for( let chunkKey of Object.keys( this.updateChunks ) ) {
 
                 promises.push( this.chunks[ chunkKey ].update() );
                 delete this.updateChunks[ chunkKey ];
                 updatedChunk = true;
 
-            } );
+            };
             
         }
 
 		//create new chunks
 		if ( Object.keys( this.createNewChunks ).length > 0 ) {
 
-            Object.keys( this.createNewChunks ).forEach( chunkKey => {
+            for( let chunkKey of Object.keys( this.createNewChunks )){
                 
                 if ( ! this.chunks[ chunkKey ] ) {
     
                     promises.push(new Promise( ( resolve )=>{
     
-                        new Chunk(
+                        new this.chunkClass(
                             this.createNewChunks[ chunkKey ].x,
-                            this.createNewChunks[ chunkKey ].y,
+                            this.createNewChunks[ chunkKey ].z,
                             this,
                             chunk => {
                                 this.chunks[ chunkKey ] = chunk;
@@ -187,45 +158,39 @@ class VolumetricTerrain extends THREE.Object3D{
 
                 delete this.createNewChunks[ chunkKey ];
 
-            });
+            };
 
 		}
 
 
-        Promise.all( promises ).then( ()=>{
+        await Promise.all( promises );
 
-            if ( ! this.prevCoord ||
-                   updatedChunk === true ||
-                   this.prevCoord.x != player.currentChunkCoord.x ||
-                   this.prevCoord.y != player.currentChunkCoord.y ) {
-    
+        if ( ! this.prevCoord ||
+                updatedChunk === true ||
+                this.prevCoord.x != currentCoord.x ||
+                this.prevCoord.z != currentCoord.z ) {
 
-                this.generateInstancedObjects();
-                this.updateCastChunkTerrainArray();			
+            this.updatePrevCoord( currentCoord, !updatedChunk );
 
-                if ( !updatedChunk ){
-                    
-                    this.updateVisibleChunkTerrainArray();
-                    this.prevCoord = player.currentChunkCoord.clone();
-
-                }
-
-                //set birdsound volume
-                let chunk = chunkController.chunks[ getChunkKey( this.prevCoord ) ];
-                let treeAmount = chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length;
-                document.querySelector( 'audio' ).setVolume( map( treeAmount, 10, 35, 0.0, 0.3, true ), 2.5 );
-    
-            }
-            
-        } );
-
-
-		//update fake-fog
-		if ( this.fogCloud && this.fogCloud.material.userData.shader){
-			this.fogCloud.material.userData.shader.uniforms.time.value += 0.05;
-		}
+        }
 
 	}
+
+    updatePrevCoord( currentCoord, newChunks ){
+         
+        
+        //updated after adjusting grid
+        this.updateCastChunkTerrainArray( currentCoord );
+
+        if ( newChunks ){
+            
+            this.updateVisibleChunkTerrainArray( currentCoord );
+            //update after changing coord
+            this.prevCoord = currentCoord;
+            
+        }            
+        
+    }
 	
 	//                          .     .oooooo.   oooo                                oooo        
 	//                        .o8    d8P'  `Y8b  `888                                `888        
@@ -241,6 +206,11 @@ class VolumetricTerrain extends THREE.Object3D{
 		return this.chunks[ key ];
 
 	}
+    getChunkKey( coord ) {
+    
+        return coord.x + ":" + coord.z;
+        
+    }
 
 	//                              .o8                .                  
 	//                             "888              .o8                  
@@ -265,62 +235,50 @@ class VolumetricTerrain extends THREE.Object3D{
 	// 888        888   888   888   888   888   888   888888.    `"Y88b.  
 	// 888   .o8  888   888   888   888   888   888   888 `88b.  o.  )88b 
 	// `Y8bod8P' o888o o888o  `V88V"V8P' o888o o888o o888o o888o 8""888P' 
-	updateVisibleChunkTerrainArray() {
+	updateVisibleChunkTerrainArray( currentCoord ) {
 
-		//new set of visible chunks
-		let newVisibleChunks = {};
+        	//new set of visible chunks
+        	let newVisibleChunks = {};
+    
+        	//new chunk coordinate
+        	for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
+    
+        		for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
+    
+        			let coord = { x: currentCoord.x + x, z: currentCoord.z + z };
+        			let chunkKey = this.getChunkKey( coord );
+    
+                    
+        			//if chunk does not exist, 
+        			//or it's low lod and if it's a farchunk:
+        			//add it to chunk generation queue
+        			if ( ! this.getChunk( chunkKey ) ){
+    
+        				this.createNewChunks[ chunkKey ] = coord;                        
+    
+        			}
+    
+        			newVisibleChunks[ chunkKey ] = true;
+    
+        		}
+    
+        	}
+    
+        	//check existing chunks
+        	for( let key of Object.keys( this.chunks ) ){
+    
+        		//if this chunk is not needed in new visible chunks, hide it.
+        		if ( ! newVisibleChunks[ key ]) {
+    
+        			this.chunks[ key ].dispose();
+        			delete this.chunks[ key ];
+    
+        		}
+    
+        	};
+    
+        }
 
-		//new chunk coordinate
-		for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
-
-			for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
-
-				let coord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
-				let chunkKey = getChunkKey( coord );
-
-				
-				//if chunk does not exist, 
-				//or it's low lod and if it's a farchunk:
-				//add it to chunk generation queue
-				if ( ! this.chunks[ chunkKey ] ){
-
-					this.createNewChunks[ chunkKey ] = coord;
-					
-
-				} else if  ( x >= -this.chunkViewDistance && x <= this.chunkViewDistance &&
-							 z >= -this.chunkViewDistance && z <= this.chunkViewDistance ) {
-
-					
-					this.chunks[ chunkKey ].showLevel( 1 );
-					
-
-				} else {
-
-					//store in visible chunks object
-					this.chunks[ chunkKey ].showLevel( 0 );						
-
-				}
-
-				newVisibleChunks[ chunkKey ] = true;
-
-			}
-
-		}
-
-		//check existing chunks
-		Object.keys( this.chunks ).forEach( key=>{
-
-			//if this chunk is not needed in new visible chunks, hide it.
-			if ( ! newVisibleChunks[ key ]) {
-
-				this.chunks[ key ].remove();
-				delete this.chunks[ key ];
-
-			}
-
-		} );
-
-	}
 
 	//                              .o8                .                   
 	//                             "888              .o8                   
@@ -347,9 +305,9 @@ class VolumetricTerrain extends THREE.Object3D{
 	// 888        888   888   888   888   888   888   888888.    `"Y88b.   
 	// 888   .o8  888   888   888   888   888   888   888 `88b.  o.  )88b  
 	// `Y8bod8P' o888o o888o  `V88V"V8P' o888o o888o o888o o888o 8""888P'  
-	updateCastChunkTerrainArray() {
+	updateCastChunkTerrainArray( currentCoord ) {
 
-		//new set of visible chunks
+        //new set of visible chunks
 		let newcastChunks = {};
 
 		//raycast chunk range
@@ -358,8 +316,8 @@ class VolumetricTerrain extends THREE.Object3D{
 
 			for ( let z = - d; z <= d; z ++ ) {
 
-				let chunkCoord = { x: player.currentChunkCoord.x + x, y: player.currentChunkCoord.y + z };
-				let chunkKey = getChunkKey( chunkCoord );
+				let chunkCoord = { x: currentCoord.x + x, z: currentCoord.z + z };
+				let chunkKey = this.getChunkKey( chunkCoord );
 
 				newcastChunks[ chunkKey ] = true;
 
@@ -371,9 +329,9 @@ class VolumetricTerrain extends THREE.Object3D{
 
 		for ( let chunkKey in newcastChunks ) {
 
-			let chunk = chunkController.getChunk( chunkKey );
+            let chunk = terrainController.getChunk( chunkKey );
 			if ( chunk ) {
-				this.castChunks.push( chunk.terrainMesh );
+				this.castChunks.push( chunk.mesh );
 			}
 		}
 

@@ -1,16 +1,6 @@
 - triplanar texture
 
-- instancedLOD
-
-- surfacenet
-    - controller
-        - lod settings
-        - material
-        - geometryfactory
-        - update(position)
-    - chunk
-        - geo update function?
-    - gridworker-script
+- instancedLOD                                     <<<------------- next
 
 - raycast-bhv pullrequest
 

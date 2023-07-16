@@ -11,7 +11,7 @@ const raycaster = new THREE.Raycaster();
 raycaster.firstHitOnly = true;
 
 //chunks
-let chunkController;
+let terrainController;
 
 //player
 let player;
@@ -27,12 +27,6 @@ const key = {
 	flyMode: 70
 };
 
-const gridScale = new THREE.Vector3( 10, 10, 10 );
-const gridSize = {
-    x: 16,
-    y: 256,
-    z: 16
-};
 
 
 
@@ -55,7 +49,7 @@ function setup() {
 	cnv.parent( 'p5-div' );
 	noLoop();
     textFont("'Fira Sans', sans-serif");
-	textSize( height * 0.018 );
+	textSize( width * 0.009 );
 
 	const birdSound = document.querySelector( 'audio' );
 	birdSound.volume = 0.2;
@@ -155,9 +149,7 @@ function render() {
 
 	let delta = clock.getDelta();
 
-	// chunkController.update( delta );
-
-	//update player controller. moving/collision/digging
+	//update player controller
 	player.update( delta );
 
 	//draw text on screen and crosshair
@@ -170,7 +162,6 @@ function render() {
 
 	//render scene
 	renderer.render( scene, player.camera );
-	// composer.render( delta );
 
 }
 
@@ -250,31 +241,27 @@ function startLoading( _, offset ){
         
         document.getElementById( 'loading-img' ).classList.add( 'hidden' );
         
-        if ( !chunkController ) {
+        if ( !terrainController ) {
             
             await new Promise((resolve) => {
-                
-                chunkController = new ChunkController( (controller) => {
-                    chunkController = controller;
-                    resolve();
-                } ) 
+                terrainController = new TerrainController( () => resolve() );
+                scene.add( terrainController );                
             })
             
         } else {
 
-            await chunkController.init();
+            await terrainController.init();
 
         }
             
         document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
 
+        offset = offset || { x: 0, z: 0 };
         player.init(
-            chunkController.chunks[ getChunkKey( offset || { x: 0, y: 0 } ) ],
+            terrainController.getChunk( terrainController.getChunkKey( offset ) ),
             () => {
 
-                loaded = true;
-                chunkController.updateVisibleChunkTerrainArray();
-                chunkController.updateCastChunkTerrainArray();
+                loaded = true;                
                 start();
                 resolve();
 
@@ -297,7 +284,7 @@ function start( userEvent ) {
 
 	running = true;
 	clock.start();
-    chunkController.toggleClock(true);
+    terrainController.toggleClock(true);
 	document.querySelector( 'audio' ).play();
 	document.getElementById( 'main-menu' ).classList.add( 'hidden' );
 	render();
@@ -320,7 +307,7 @@ function stop(){
     
     running = false;
     clock.stop();
-    chunkController.toggleClock(false);
+    terrainController.toggleClock(false);
     document.querySelector( 'audio' ).pause();
 
 }
@@ -353,7 +340,7 @@ function drawHud() {
 
     textAlign(RIGHT);
     text( `chunk:`, width * 0.99, height * 0.92 );
-    text( `x: ${player.currentChunkCoord.x} z: ${player.currentChunkCoord.y}`, width * 0.99, height * 0.94 );
+    text( `x: ${player.currentChunkCoord.x} z: ${player.currentChunkCoord.z}`, width * 0.99, height * 0.94 );
     text( `position:`, width * 0.99, height * 0.96 );
     text( `x: ${floor(player.position.x)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
     
@@ -421,11 +408,6 @@ function animateVegetation( delta ) {
     
 }
 
-function getChunkKey( coord ) {
-    
-    return coord.x + ":" + coord.y;
-    
-}
 
 
 
