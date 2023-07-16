@@ -1,4 +1,6 @@
-class VolumetricTerrain extends THREE.Object3D{
+const CHUNK_OVERLAP = 2;
+
+class VolumetricTerrain extends THREE.Object3D {
 
     constructor(options = {}, cb){
         
@@ -7,7 +9,7 @@ class VolumetricTerrain extends THREE.Object3D{
         this.isVolumetricTerrain = true;
 		this.surfaceNetEngine = new SurfaceNets();
 
-        this.prevCoord = {x: 0, z: 0};
+        this.currentCoord = options.currentCoord || {x: 0, z: 0};
 		this.chunks = {};
 		this.updateChunks = {};
 		this.createNewChunks = {};
@@ -19,6 +21,7 @@ class VolumetricTerrain extends THREE.Object3D{
 		this.farViewDistance = options.farViewDistance || 0;
         this.totalViewDistance =  this.viewDistance + this.farViewDistance;
         this.chunkSize = this.gridScale.x * this.gridSize.x;
+        this.chunkSizeOverlap = ( this.gridSize.x - CHUNK_OVERLAP ) * this.gridScale.x;
 
 		this.material = options.material || new THREE.MeshLambertMaterial( {color: 'rgb(100, 100, 100)'} );
         this.meshFactory = options.meshFactory || undefined;
@@ -78,8 +81,8 @@ class VolumetricTerrain extends THREE.Object3D{
                             dist: x * x + z * z,
                             add: () =>{
                                 new this.chunkClass(
-                                    x,
-                                    z,
+                                    this.currentCoord.x + x,
+                                    this.currentCoord.z + z,
                                     this,
                                     (chunk) => loadInitialTerrain( chunk )
                                 );
@@ -115,11 +118,13 @@ class VolumetricTerrain extends THREE.Object3D{
 	//              888                                              
 	//             o888o         
 
-	async update( currentCoord ) {
+	async update( position ) {
 
         //create array of promises
         let updatedChunk = false;
         const promises = [];
+
+        const currentCoord = this.getCoordFromPosition( position );
 
         //update chunks after digging        
         if ( Object.keys( this.updateChunks ).length > 0 ) {
@@ -165,18 +170,18 @@ class VolumetricTerrain extends THREE.Object3D{
 
         await Promise.all( promises );
 
-        if ( ! this.prevCoord ||
+        if ( ! this.currentCoord ||
                 updatedChunk === true ||
-                this.prevCoord.x != currentCoord.x ||
-                this.prevCoord.z != currentCoord.z ) {
+                this.currentCoord.x != currentCoord.x ||
+                this.currentCoord.z != currentCoord.z ) {
 
-            this.updatePrevCoord( currentCoord, !updatedChunk );
+            this.updatecurrentCoord( currentCoord, !updatedChunk );
 
         }
 
 	}
 
-    updatePrevCoord( currentCoord, newChunks ){
+    updatecurrentCoord( currentCoord, newChunks ){
          
         
         //updated after adjusting grid
@@ -186,7 +191,7 @@ class VolumetricTerrain extends THREE.Object3D{
             
             this.updateVisibleChunkTerrainArray( currentCoord );
             //update after changing coord
-            this.prevCoord = currentCoord;
+            this.currentCoord = currentCoord;
             
         }            
         
@@ -201,16 +206,22 @@ class VolumetricTerrain extends THREE.Object3D{
 	// `8oooooo.  `Y8bod8P'   "888"  `Y8bood8P'  o888o o888o  `V88V"V8P' o888o o888o o888o o888o 
 	// d"     YD                                                                                 
 	// "Y88888P'                                                                              
-	getChunk( key ) {
+    getCoordFromPosition( position ){
 
-		return this.chunks[ key ];
+        return { x: Math.floor(position.x / this.chunkSizeOverlap), z: Math.floor(position.z / this.chunkSizeOverlap) };
 
-	}
+    }
     getChunkKey( coord ) {
     
         return coord.x + ":" + coord.z;
         
     }
+	getChunk( key ) {
+
+		return this.chunks[ key ];
+
+	}
+
 
 	//                              .o8                .                  
 	//                             "888              .o8                  

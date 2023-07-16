@@ -89,8 +89,8 @@ materials['terrain'].onBeforeCompile = ( shader ) => {
         `
         vec3 norm = normalize(vNormal2);
         vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
-        float diff = 0.7 + max(dot(norm, lightDir), 0.0) * 0.3;
-        vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff * 1.2, opacity );
+        float diff = 0.9 + max(dot(norm, lightDir), 0.0) * 0.1;
+        vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff, opacity );
         `			
     );
 

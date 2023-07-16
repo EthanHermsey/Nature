@@ -2,14 +2,15 @@
 
 class TerrainController extends VolumetricTerrain{
 
-	constructor( callback ) {
+	constructor( offset, callback ) {
 		
         super(
             {
                 gridSize: { x: 16, y: 256, z: 16 },
                 gridScale: { x: 10, y: 10, z: 10 },
-                viewDistance: 6,
-                farViewDistance: 4,
+                currentCoord: offset,
+                viewDistance: 4,
+                farViewDistance: 0,
                 material: materials['terrain'],
                 workers: 4,
                 workerScript: './js/terrain/worker/worker.js',
@@ -24,9 +25,7 @@ class TerrainController extends VolumetricTerrain{
                 this.treeViewDistance = 16;
                 this.treeHighViewDistance = 3;
 
-                this.deltaCountCreate = 0;
-                this.deltaCountUpdate = 0;
-                this.updateCastChunkTerrainArray( this.prevCoord );
+                this.updateCastChunkTerrainArray( this.currentCoord );
                 this.updateLODs();
                 this.generateInstancedObjects();
                 callback( this );
@@ -151,18 +150,18 @@ class TerrainController extends VolumetricTerrain{
 			this.fogCloud.material.userData.shader.uniforms.time.value += 0.05;
 		}
 
-        await super.update( player.currentChunkCoord );
+        await super.update( player.position );
 
         // //set birdsound volume
-        let chunk = this.chunks[ this.getChunkKey( this.prevCoord ) ];
+        let chunk = this.chunks[ this.getChunkKey( this.currentCoord ) ];
         let treeAmount = chunk.modelMatrices[ 'tree' ] ? chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length : 0;
         document.querySelector( 'audio' ).setVolume( map( treeAmount, 10, 35, 0.0, 0.3, true ), 2.5 );        
 
 	}
 
-    updatePrevCoord( currentCoord, newChunks ){
+    updatecurrentCoord( currentCoord, newChunks ){
      
-        super.updatePrevCoord(currentCoord, newChunks );
+        super.updatecurrentCoord(currentCoord, newChunks );
         
         if ( newChunks ) {
             this.updateLODs();
@@ -175,8 +174,8 @@ class TerrainController extends VolumetricTerrain{
         for( let chunk in this.chunks){
             
             chunk = this.chunks[chunk];
-            const x = Math.abs(this.prevCoord.x - chunk.offset.x);
-            const z = Math.abs(this.prevCoord.z - chunk.offset.z);
+            const x = Math.abs(this.currentCoord.x - chunk.offset.x);
+            const z = Math.abs(this.currentCoord.z - chunk.offset.z);
             
             if  ( x >= -this.viewDistance && x <= this.viewDistance &&
                   z >= -this.viewDistance && z <= this.viewDistance ) {
@@ -302,8 +301,13 @@ class TerrainController extends VolumetricTerrain{
 				)
 			];
 			this.grass[0].receiveShadow = true;
-			this.grass[1].receiveShadow = true;
-			this.grass[2].receiveShadow = true;
+			this.grass[0].castShadow = true;
+			
+            this.grass[1].receiveShadow = true;
+			this.grass[1].castShadow = true;
+			
+            this.grass[2].receiveShadow = true;
+			this.grass[2].castShadow = true;
 
 			scene.add( this.grass[0] );
 			scene.add( this.grass[1] );
@@ -311,14 +315,15 @@ class TerrainController extends VolumetricTerrain{
 
 		}
 
+        const playerCoord = terrainController.getCoordFromPosition( player.position );
 		let count0 = 0, count1 = 0, count2 = 0;
 		for ( let x = - this.grassViewDistance; x <= this.grassViewDistance; x ++ ) {
 
 			for ( let z = - this.grassViewDistance; z <= this.grassViewDistance; z ++ ) {
 
 				const chunkCoord = { 
-					x: ( player?.currentChunkCoord?.x || 0 ) + x, 
-					z: ( player?.currentChunkCoord?.z || 0 ) + z, 
+					x: ( playerCoord?.x || 0 ) + x, 
+					z: ( playerCoord?.z || 0 ) + z, 
 				};
                 const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
@@ -402,14 +407,15 @@ class TerrainController extends VolumetricTerrain{
 
 		}
 
+        const playerCoord = terrainController.getCoordFromPosition( player.position );
 		let count = 0;
 		for ( let x = - this.fernViewDistance; x <= this.fernViewDistance; x ++ ) {
 
 			for ( let z = - this.fernViewDistance; z <= this.fernViewDistance; z ++ ) {
 
 				const chunkCoord = { 
-					x: ( player?.currentChunkCoord?.x || 0 ) + x, 
-					z: ( player?.currentChunkCoord?.z || 0 ) + z, 
+					x: ( playerCoord?.x || 0 ) + x, 
+					z: ( playerCoord?.z || 0 ) + z, 
 				};
 				const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
@@ -583,6 +589,7 @@ class TerrainController extends VolumetricTerrain{
 
 		}
 
+        const playerCoord = terrainController.getCoordFromPosition( player.position );
 		let t = new THREE.Matrix4();
 		let count = [0,0,0,0];
 		for ( let x = - this.treeViewDistance; x <= this.treeViewDistance; x ++ ) {
@@ -590,8 +597,8 @@ class TerrainController extends VolumetricTerrain{
 			for ( let z = - this.treeViewDistance; z <= this.treeViewDistance; z ++ ) {
 
 				const chunkCoord = { 
-					x: ( player?.currentChunkCoord?.x || 0 ) + x, 
-					z: ( player?.currentChunkCoord?.z || 0 ) + z, 
+					x: ( playerCoord?.x || 0 ) + x, 
+					z: ( playerCoord?.z || 0 ) + z, 
 				};
 				const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 				let playerPosition = ( x <= this.treeHighViewDistance && x >= -this.treeHighViewDistance) && ( z <= this.treeHighViewDistance && z >= -this.treeHighViewDistance );

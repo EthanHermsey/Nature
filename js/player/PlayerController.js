@@ -76,9 +76,6 @@ class Player {
                                 
    init( startChunk, resolve ){
 
-        //set chunkcoord and position
-		this.currentChunkCoord = this.getChunkCoord( this.position, ( terrainController.gridSize.x - 2 ) * terrainController.gridScale.x );
-
         let x = ( startChunk.offset.x * startChunk.terrain.chunkSize ) + startChunk.terrain.chunkSize / 2;
         let z = ( startChunk.offset.z * startChunk.terrain.chunkSize ) + startChunk.terrain.chunkSize / 2;
         let m = Math.floor( terrainController.gridSize.x / 2 );
@@ -131,25 +128,27 @@ class Player {
     
     
             //add shadowlight
-            this.shadowLightOffset = new THREE.Vector3( 30, 50, 0 );
-            this.shadowLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
+            this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
+            this.shadowLight = new THREE.DirectionalLight( 0xffffff, 1 );
             this.shadowLight.target = new THREE.Object3D();
             scene.add( this.shadowLight.target );
             this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
             this.shadowLight.target.position.copy( this.position );
     
             this.shadowLight.castShadow = true;
-            this.shadowLight.shadow.mapSize.width = 512; // default
-            this.shadowLight.shadow.mapSize.height = 512; // default
-            this.shadowLight.shadow.camera.near = 0.5; // default
-            this.shadowLight.shadow.camera.far = 300; // default
-            this.shadowLight.shadow.camera.top = - 500;
-            this.shadowLight.shadow.camera.bottom = 500;
-            this.shadowLight.shadow.camera.left = - 500;
-            this.shadowLight.shadow.camera.right = 500;
+            this.shadowLight.shadow.mapSize.width = 1024;
+            this.shadowLight.shadow.mapSize.height = 1024;
+            this.shadowLight.shadow.camera.near = 1;
+            this.shadowLight.shadow.camera.far = 800;
+            this.shadowLight.shadow.camera.top = - 1000;
+            this.shadowLight.shadow.camera.bottom = 1000;
+            this.shadowLight.shadow.camera.left = - 1000;
+            this.shadowLight.shadow.camera.right = 1000;
+            this.shadowLight.shadow.bias = -0.002;
             scene.add( this.shadowLight );
             this.cameraTimer = 0;
-    
+
+                
     
             //add a skybox. This position is
             this.skyBox = new THREE.Mesh(
@@ -190,8 +189,6 @@ class Player {
 
 	update( delta ) {
 
-		this.currentChunkCoord = this.getChunkCoord( this.position, ( terrainController.gridSize.x - 2 ) * terrainController.gridScale.x );
-
 		this.movePlayer( delta );
 
 		this.model.mixer.update( delta );
@@ -222,6 +219,13 @@ class Player {
 		if ( ++ this.cameraTimer > 200 ) {
 
 			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
+            // this.shadowLight.intensity = this.shadowLight.position.y < 1200 ? 0 : 1;
+            if ( this.shadowLight.position.y < 1200) {
+                this.shadowLight.position.y = 1200;
+                this.shadowLight.intensity = 0;
+            } else {
+                this.shadowLight.intensity = 1;
+            }
 			this.shadowLight.target.position.copy( this.position );
 			this.cameraTimer = 0;
 

@@ -1,4 +1,3 @@
-const CHUNK_OVERLAP = 2;
 
 class VolumetricChunk{
 

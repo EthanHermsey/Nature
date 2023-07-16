@@ -107,7 +107,7 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.5 );
+	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.6 );
 	scene.add( amb );
 
 	//fog
@@ -216,6 +216,7 @@ function loadFromStorage(){
         const {position, offset} = JSON.parse(localStorage.getItem('position'));
         startLoading( true, offset )
             .then(() => {
+                terrainController.generateInstancedObjects();
                 player.position.fromArray( position );
             });
 
@@ -244,7 +245,7 @@ function startLoading( _, offset ){
         if ( !terrainController ) {
             
             await new Promise((resolve) => {
-                terrainController = new TerrainController( () => resolve() );
+                terrainController = new TerrainController( offset, () => resolve() );
                 scene.add( terrainController );                
             })
             
@@ -301,7 +302,7 @@ function stop(){
     document.getElementById( 'load-button' ).classList.remove( 'hidden' );
     document.getElementById( 'start-button' ).textContent = 'new';
 
-    if ( player.currentChunkCoord ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: player.currentChunkCoord } ) );
+    localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
 
     if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', pointerLockChangeCallback, false );		
     
@@ -338,27 +339,28 @@ function drawHud() {
 	text( "MOUSE", width * 0.01, height * 0.98 );
     text( "- remove/add terrain", width * 0.05, height * 0.98 );
 
+    const coord = terrainController.getCoordFromPosition( player.position );
     textAlign(RIGHT);
     text( `chunk:`, width * 0.99, height * 0.92 );
-    text( `x: ${player.currentChunkCoord.x} z: ${player.currentChunkCoord.z}`, width * 0.99, height * 0.94 );
+    text( `x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.94 );
     text( `position:`, width * 0.99, height * 0.96 );
     text( `x: ${floor(player.position.x)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
     
     if ( player ){
-        const compass = ['.', '.', '╷', '.', '.', '╷', '.', '.', 'SW', '.', '.', '╷', '.', '.', '╷', '.', '.', 'W', '.', '.', '╷', '.', '.', '╷', '.', '.', 'NW', '.', '.', '╷', '.', '.', '╷', '.', '.', 'N', '.', '.', '╷', '.', '.', '╷', '.', '.', 'NE', '.', '.', '╷', '.', '.', '╷', '.', '.', 'E', '.', '.', '╷', '.', '.', '╷', '.', '.', 'SE', '.', '.', '╷', '.', '.', '╷', '.', '.', 'S'];
+        const compass = [' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'SW', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'W', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'NW', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'N', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'NE', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'E', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'SE', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'S'];
         const rotation = (player.cameraRig.rotation.y + PI) * 0.5;
         const index = floor(map(rotation, 0, PI, compass.length, 0, true ));
 
-        const str = [];
+        let str = '';
         for( let i = index - 12; i <= index + 12; i++){
             let c = i;
             if (c < 0) c += compass.length;
-            if (c >= compass.length) c = c % compass.length;
-            str.push( compass[ c ] );
+            if (c >= compass.length) c = c -= compass.length;
+            str += compass[ c ] + '  ';
         }
 
         textAlign(CENTER);
-        text( str.join('  '), width * 0.57, height * 0.05 );
+        text( str, width * 0.57, height * 0.05 );
 
     }
         

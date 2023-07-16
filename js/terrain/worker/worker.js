@@ -174,8 +174,8 @@ async function generateGrid( { gridSize, offset } ) {
         );
     
         const density_3d = noise_3d + mapSplineNoise( (Math.abs(y - terrainHeight) / (gridSize.y * 0.5)) + 0.001, noise_3d_spline);
-        const density_3d_value = map(density_3d, 1, 0, 1, 0.5); // skylands
-        // const density_3d_value = map(density_3d, 1, 0, 0.5, -0.5);
+        // const density_3d_value = map(density_3d, 1, 0, 0, 1); // skylands
+        const density_3d_value = map(density_3d, 1, 0, 0.5, -0.5);
     
         //caves and tunnels
         if ( y < terrainHeight * 0.99 && y > 5){
