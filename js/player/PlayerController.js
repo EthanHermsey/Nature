@@ -44,12 +44,11 @@ class Player {
 		this.height = 1.9;
 		this.walkSpeed = 10;
 		this.sprintSpeedMultiplier = 2.2; //4
-		this.walkSlopeLimit = 2.75;
+		this.walkSlopeLimit = 1.2;
 		this.vDown = 0.0;
-		this.vDownMax = 99;
-		this.gravity = 2.5;
-		this.jumpStrength = 0.8;
-		this.bouncyness = 0.2;
+		this.gravity = 1.5;
+		this.jumpStrength = 0.45;
+		this.bouncyness = 0.1;
 		this.mouseSensitivity = 0.0016;
 		this.grounded = true;
 
@@ -128,7 +127,7 @@ class Player {
     
     
             //add shadowlight
-            this.shadowLightIntensity = 1.1;
+            this.shadowLightIntensity = 0.5;
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
             this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
             this.shadowLight.target = new THREE.Object3D();
@@ -341,49 +340,51 @@ class Player {
 
             if ( this.godMode == false ){
 
-                //add gravity
-                nPos.y += this.vDown;
-
                 //get the collisions for new position (down, up and in walkDirection )
                 let collisions = this.terrainCollidePoint( nPos, walkDirection );
     
                 if ( collisions.down.normal ) {
-    
-                    if ( nPos.y > collisions.down.position.y + this.height &&
-                        this.flyMode == false ) {
-    
-                        //fallingdown
-                        this.vDown -= this.gravity * delta;
+
+                    //add gravity
+                    nPos.y += this.vDown;
+
+                    if ( nPos.y > collisions.down.position.y + this.height ) {
+
+                            
+                        if ( this.flyMode == false ) {
+        
+                            //fallingdown
+                            this.vDown -= this.gravity * delta;
+                                  
+                        } 
                         this.grounded = false;
-    
+
                     } else {
-    
+
                         //climbing up terrain
                         if ( this.flyMode == false ) {
     
                             nPos.y = collisions.down.position.y + this.height;
     
                         } else {
-    
+
                             nPos.y -= this.vDown;
-                            this.vDown *= this.bouncyness;
-    
+        
                             if ( abs( nPos.y - collisions.down.position.y ) < this.height * 1.5 ) {
     
                                 nPos.y = collisions.down.position.y + this.height * 1.5;
     
                             }
     
-                        }
-    
+                        }    
                         this.grounded = true;
-    
+
                     }
     
                 } else {
     
                     nPos.copy( this.position );
-                    nPos.y ++;
+                    this.vDown = 0;
     
                 }
     
@@ -405,10 +406,9 @@ class Player {
 
 
             //set new position and gravity velocity
-            this.position.copy( nPos );
-            this.vDown = constrain( this.vDown, - this.vDownMax, this.vDownMax );
-            
+            this.position.copy( nPos );            
             resolve();
+
         });
 
 	}
@@ -464,18 +464,20 @@ class Player {
 		}
 
 		//y axis up
-		if ( keyIsDown( key.space ) && this.grounded ) {
+		if ( keyIsDown( key.space ) ) {
 
 			if ( this.flyMode == false ) {
 
-				//add to gravity vector
-				d.y += this.jumpStrength;
-				this.vDown = this.jumpStrength;
+                if ( this.grounded ){
+                    //add to gravity vector
+                    d.y += this.jumpStrength;
+                    this.vDown = this.jumpStrength;
+                }
 
 			} else {
 
 				//only position
-				d.y += this.jumpStrength;
+				d.y += 1;
 
 			}
 

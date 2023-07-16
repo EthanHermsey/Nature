@@ -260,7 +260,7 @@ const preloadModels = () => {
             modelBank.grassModelHigh.geometry.scale( 0.45, 0.85, 0.45 );
 
             model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' );
-            model.material.map.alphaTest = 0.2
+            model.material.map.alphaTest = 0.2;
 
             modelBank.grassModelHigh.material.onBeforeCompile = ( shader ) => {
 

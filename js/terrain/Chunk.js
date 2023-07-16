@@ -608,6 +608,8 @@ class Chunk extends VolumetricChunk{
                 boulderGeo, 
 				modelBank.rocks.children[ 0 ].material
             );
+            this.boulders.receiveShadow = true;
+            this.boulders.castShadow = true;
 			this.mesh.add( this.boulders );
 
 		}

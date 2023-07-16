@@ -9,8 +9,8 @@ class TerrainController extends VolumetricTerrain{
                 gridSize: { x: 16, y: 256, z: 16 },
                 gridScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
-                viewDistance: 6,
-                farViewDistance: 4,
+                viewDistance: 4,
+                farViewDistance: 0,
                 material: materials['terrain'],
                 workers: 4,
                 workerScript: './js/terrain/worker/worker.js',
@@ -162,10 +162,10 @@ class TerrainController extends VolumetricTerrain{
     updatecurrentCoord( currentCoord, newChunks ){
      
         super.updatecurrentCoord(currentCoord, newChunks );
+        this.generateInstancedObjects();
         
         if ( newChunks ) {
             this.updateLODs();
-            this.generateInstancedObjects();
         }
     }
 
@@ -300,14 +300,9 @@ class TerrainController extends VolumetricTerrain{
 					15000
 				)
 			];
-			this.grass[0].receiveShadow = true;
-			this.grass[0].castShadow = true;
-			
-            this.grass[1].receiveShadow = true;
-			this.grass[1].castShadow = true;
-			
+			this.grass[0].receiveShadow = true;			
+            this.grass[1].receiveShadow = true;			
             this.grass[2].receiveShadow = true;
-			this.grass[2].castShadow = true;
 
 			scene.add( this.grass[0] );
 			scene.add( this.grass[1] );
@@ -402,6 +397,8 @@ class TerrainController extends VolumetricTerrain{
 				modelBank.fernModel.material,
 				2500
 			);
+            this.ferns.receiveShadow = true;
+            this.ferns.castShadow = true;
 
 			scene.add( this.ferns );
 

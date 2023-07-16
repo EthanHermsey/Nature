@@ -13,11 +13,12 @@ let rocktex = new THREE.TextureLoader().load( './resources/terrain/rock.jpg' );
 let grasstex = new THREE.TextureLoader().load( './resources/terrain/grass.png' );
 rocktex.anisotropy = 8;
 grasstex.anisotropy = 8;
+rocktex.encoding = THREE.sRGBEncoding
+grasstex.encoding = THREE.sRGBEncoding
 
 materials['terrain'] = new THREE.MeshLambertMaterial( {
-    color: 'rgb(100, 100, 100)',
     dithering: true,
-    map: rocktex
+    map: rocktex // enables UV's in shader
 } );
 materials['terrain'].onBeforeCompile = ( shader ) => {
     
@@ -59,7 +60,7 @@ materials['terrain'].onBeforeCompile = ( shader ) => {
         vec4 getTriPlanarTexture(){
                                 
             //mesh scaled
-            float rockRepeat = 0.015;
+            float rockRepeat = 0.02;
             float grassRepeat = 0.03;
 
             vec3 blending = getTriPlanarBlend( vNormal2 );
@@ -89,7 +90,7 @@ materials['terrain'].onBeforeCompile = ( shader ) => {
         `
         vec3 norm = normalize(vNormal2);
         vec3 lightDir = normalize(vec3(1000.0, 1000.0, 0.0) - vPos);
-        float diff = 0.9 + max(dot(norm, lightDir), 0.0) * 0.1;
+        float diff = 0.6 + max(dot(norm, lightDir), 0.0) * 0.4;
         vec4 diffuseColor =  vec4( getTriPlanarTexture().rgb * diff, opacity );
         `			
     );
