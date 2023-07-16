@@ -110,10 +110,12 @@ const preloadModels = () => {
 
         loader.load( './resources/trees/treeHigh2.json', model=>{
 
+            model.children[ 0 ].material.map.encoding = THREE.sRGBEncoding;
             model.children[ 0 ].material.map.wrapT = model.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
 
-            model.children[ 1 ].material.blending = THREE.NoBlending;
-            model.children[ 1 ].material.alphaTest = 0.3;            
+            model.children[ 1 ].material.map.encoding = THREE.sRGBEncoding;
+            model.children[ 1 ].material.blending = THREE.NoBlending;            
+            model.children[ 1 ].material.transparent = true;
             model.children[ 1 ].material.opacity = 0.3;
 
             //trunk
