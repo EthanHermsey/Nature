@@ -371,7 +371,7 @@ class Chunk extends VolumetricChunk{
 						dummy.rotation.x = Math.random() * 0.14 - 0.07;
 						dummy.rotation.z = Math.random() * 0.14 - 0.07;
 
-						let s = Math.random() * 10 + 20;
+						let s = Math.random() * 1 + 2;
 						dummy.scale.x = s;
 						dummy.scale.y = s;
 						dummy.scale.z = s;

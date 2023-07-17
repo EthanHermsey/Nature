@@ -47,7 +47,7 @@ class Player {
 		this.walkSlopeLimit = 1.2;
 		this.vDown = 0.0;
 		this.gravity = 1.5;
-		this.jumpStrength = 0.45;
+		this.jumpStrength = 0.55;
 		this.bouncyness = 0.1;
 		this.mouseSensitivity = 0.0016;
 		this.grounded = true;
@@ -112,9 +112,11 @@ class Player {
                 this.model.position.y -= this.height;
                 this.model.rotation.order = "YXZ";
                 this.model.rotation.y = Math.PI;
+                this.model.castShadow = true;
+                this.model.receiveShadow = true;    
                 for( let c of this.model.children ){
     
-                    if ( c.type != 'Bone' ) {    
+                    if ( c.type != 'Bone' ) {
                         c.castShadow = true;
                         c.receiveShadow = true;    
                     }
@@ -127,7 +129,7 @@ class Player {
     
     
             //add shadowlight
-            this.shadowLightIntensity = 0.5;
+            this.shadowLightIntensity = 0.6;
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
             this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
             this.shadowLight.target = new THREE.Object3D();
@@ -699,7 +701,7 @@ class Player {
 				.sub( this.intersectPoint.object.position )
 				.divide( terrainController.gridScale )
 				.round();
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
+			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength * 1.2;
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( gridPosition, this.brushRadius, val, true );

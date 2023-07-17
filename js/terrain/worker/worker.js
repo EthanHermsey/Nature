@@ -163,7 +163,7 @@ async function generateGrid( { gridSize, offset } ) {
 
     function getValue(x, y, z, offset, terrainHeight){
 
-        let terrainHeightValue = y < terrainHeight ? 0.5 : map(y - terrainHeight, 0, 2, 0.5, -0.5, true);
+        let terrainHeightValue = y < terrainHeight ? 0.2 : map(y - terrainHeight, 0, 2, 0.5, -0.5, true);
     
         //3d noise
         const noise_3d_scale = 0.025

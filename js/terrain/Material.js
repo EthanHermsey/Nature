@@ -1,6 +1,3 @@
-const materials = {};
-
-
 
 //     .                                          o8o              
 //   .o8                                          `"'              
@@ -16,11 +13,11 @@ grasstex.anisotropy = 8;
 rocktex.encoding = THREE.sRGBEncoding
 grasstex.encoding = THREE.sRGBEncoding
 
-materials['terrain'] = new THREE.MeshLambertMaterial( {
+const terrainMaterial = new THREE.MeshLambertMaterial( {
     dithering: true,
     map: rocktex // enables UV's in shader
 } );
-materials['terrain'].onBeforeCompile = ( shader ) => {
+terrainMaterial.onBeforeCompile = ( shader ) => {
     
     shader.uniforms.tDiff = {
         value: [
@@ -60,7 +57,7 @@ materials['terrain'].onBeforeCompile = ( shader ) => {
         vec4 getTriPlanarTexture(){
                                 
             //mesh scaled
-            float rockRepeat = 0.02;
+            float rockRepeat = 0.025;
             float grassRepeat = 0.03;
 
             vec3 blending = getTriPlanarBlend( vNormal2 );

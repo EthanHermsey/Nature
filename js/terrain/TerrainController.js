@@ -11,7 +11,7 @@ class TerrainController extends VolumetricTerrain{
                 currentCoord: offset,
                 viewDistance: 4,
                 farViewDistance: 0,
-                material: materials['terrain'],
+                material: terrainMaterial,
                 workers: 4,
                 workerScript: './js/terrain/worker/worker.js',
                 meshFactory: Mesh,
@@ -23,7 +23,7 @@ class TerrainController extends VolumetricTerrain{
                 this.grassHighViewDistance = 2;
                 this.fernViewDistance = 3;
                 this.treeViewDistance = 16;
-                this.treeHighViewDistance = 3;
+                this.treeHighViewDistance = 4;
 
                 this.updateCastChunkTerrainArray( this.currentCoord );
                 this.updateLODs();
@@ -502,6 +502,9 @@ class TerrainController extends VolumetricTerrain{
 		scene.add( this.fogCloud );
 	}
 
+
+
+    
 	//                                                                   .             
 	//                                                                 .o8             
 	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.  
@@ -519,132 +522,48 @@ class TerrainController extends VolumetricTerrain{
 	//   888    888     888ooo888 888ooo888 `"Y88b.                                    
 	//   888 .  888     888    .o 888    .o o.  )88b                                   
 	//   "888" d888b    `Y8bod8P' `Y8bod8P' 8""888P'                                
-	async generateTrees() {
+    async generateTrees() {
 
-		if ( ! this.trees ) {
+        if ( ! this.treeLOD1 ) {
 
-			this.trees = [
-				new THREE.InstancedMesh(
-					modelBank.treeModel.geometry,
-					modelBank.treeModel.material,
-					50000
-				),
-				new THREE.InstancedMesh(
-					modelBank.treeModel1.geometry,
-					modelBank.treeModel1.material,
-					25000
-				),
-				new THREE.InstancedMesh( //high trunk
-					modelBank.treeModelHigh.children[0].geometry,
-					modelBank.treeModelHigh.children[0].material,
-					1200
-				),
-				new THREE.InstancedMesh( //high leaves
-					modelBank.treeModelHigh.children[1].geometry,
-					modelBank.treeModelHigh.children[1].material,
-					1200
-				),
-				new THREE.InstancedMesh( //high trunk2
-					modelBank.treeModelHigh2.children[0].geometry,
-					modelBank.treeModelHigh2.children[0].material,
-					1200
-				),
-				new THREE.InstancedMesh( //high leaves2
-					modelBank.treeModelHigh2.children[1].geometry,
-					modelBank.treeModelHigh2.children[1].material,
-					1200
-				)
-			];
+            this.treeLOD1 = new Tree( this );
+            scene.add( this.treeLOD1 );
 
-			this.trees[0].material.alphaTest = 0.45;
-			this.trees[0].material.needsUpdate = true;
-            this.trees[0].material.blending = THREE.NoBlending;
-			this.trees[0].material.needsUpdate = true;
+            this.treeLOD2 = new Tree1( this );
+            scene.add( this.treeLOD2 );
 
-			this.trees[1].material.alphaTest = 0.45;
-			this.trees[1].material.needsUpdate = true;
-            this.trees[1].material.blending = THREE.NoBlending;
-			this.trees[1].material.needsUpdate = true;
+        } else {
 
-			this.trees[3].material.alphaTest = 0.075;			
-			this.trees[3].material.blending = THREE.NoBlending;
-			this.trees[3].material.needsUpdate = true;
+            const playerCoord = terrainController.getCoordFromPosition( player.position );
+            this.treeLOD1.clearMatrices();
+            this.treeLOD2.clearMatrices();
 
-			this.trees[5].material.alphaTest = 0.075;
-			this.trees[5].material.blending = THREE.NoBlending;
-			this.trees[5].material.needsUpdate = true;
-			
-			this.trees[3].castShadow = true;
-			this.trees[5].castShadow = true;
+            for ( let x = - this.treeViewDistance; x <= this.treeViewDistance; x ++ ) {
+    
+                for ( let z = - this.treeViewDistance; z <= this.treeViewDistance; z ++ ) {
+    
+                    const chunkCoord = { 
+                        x: ( playerCoord?.x || 0 ) + x, 
+                        z: ( playerCoord?.z || 0 ) + z, 
+                    };
+                    const chunk = this.getChunk( this.getChunkKey( chunkCoord ) );
+                    
+                    if ( chunk ) {
+    
+                        this.treeLOD1.addMatrices( chunk.modelMatrices['tree'] );  
+                        this.treeLOD2.addMatrices( chunk.modelMatrices['tree1'] );
+    
+                    }
+    
+                }
+    
+            }
+            
+            this.treeLOD1.update( player.position );
+            this.treeLOD2.update( player.position );
+        }
 
-			scene.add( this.trees[0] );
-			scene.add( this.trees[1] );
-			scene.add( this.trees[2] );
-			scene.add( this.trees[3] );
-			scene.add( this.trees[4] );
-			scene.add( this.trees[5] );
+    }
 
-		}
 
-        const playerCoord = terrainController.getCoordFromPosition( player.position );
-		let t = new THREE.Matrix4();
-		let count = [0,0,0,0];
-		for ( let x = - this.treeViewDistance; x <= this.treeViewDistance; x ++ ) {
-
-			for ( let z = - this.treeViewDistance; z <= this.treeViewDistance; z ++ ) {
-
-				const chunkCoord = { 
-					x: ( playerCoord?.x || 0 ) + x, 
-					z: ( playerCoord?.z || 0 ) + z, 
-				};
-				const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
-				let playerPosition = ( x <= this.treeHighViewDistance && x >= -this.treeHighViewDistance) && ( z <= this.treeHighViewDistance && z >= -this.treeHighViewDistance );
-                
-				if ( chunk ) {
-
-					let treeMatrices = chunk.getTreeMatrices();
-					for(let m = 0; m < treeMatrices.length; m++){
-						if ( !treeMatrices[ m ] ) continue;
-						for ( let i = 0; i < treeMatrices[ m ].length; i ++, count[m] ++ ) {
-
-							if ( playerPosition ){
-
-								t.copy( treeMatrices[ m ][ i ] );                                
-								t.scale( new THREE.Vector3( 0.056, 0.085, 0.065 ) );
-								
-								let nM = ( m==0 ) ? 2 : 4;
-								this.trees[ nM ].setMatrixAt( count[m + 2], t );
-								this.trees[ nM + 1 ].setMatrixAt( count[m + 2], t );
-								count[m + 2]++								
-								continue;
-							}
-
-                            t.copy( treeMatrices[ m ][ i ] );                                
-							t.scale( new THREE.Vector3( 1.4, 1.4, 1.4 ) );
-							this.trees[ m ].setMatrixAt( count[m], t );
-
-						}
-					}
-
-				}
-
-			}
-
-		}
-		
-		this.trees[0].count = Math.min( count[0], 50000 );
-		this.trees[1].count = Math.min( count[1], 25000 );
-		this.trees[2].count = Math.min( count[2], 1200 );
-		this.trees[3].count = Math.min( count[2], 1200 );
-		this.trees[4].count = Math.min( count[3], 1200 );
-		this.trees[5].count = Math.min( count[3], 1200 );
-
-		this.trees[0].instanceMatrix.needsUpdate = true;		
-		this.trees[1].instanceMatrix.needsUpdate = true;
-		this.trees[2].instanceMatrix.needsUpdate = true;
-		this.trees[3].instanceMatrix.needsUpdate = true;
-		this.trees[4].instanceMatrix.needsUpdate = true;
-		this.trees[5].instanceMatrix.needsUpdate = true;
-
-	}
 }

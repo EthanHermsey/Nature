@@ -40,7 +40,7 @@ const Mesh = async ( generatedSurface, chunk ) => {
 
         //per face, check if any vertex is higher than terrainheight  * 0.95
         //add to topmesh
-        if ( topvertmap[ f[ 0 ] ] && topvertmap[ f[ 1 ] ] && topvertmap[ f[ 2 ] ] && topvertmap[ f[ 3 ] ] ){
+        if ( topvertmap[ f[ 0 ] ] || topvertmap[ f[ 1 ] ] || topvertmap[ f[ 2 ] ] || topvertmap[ f[ 3 ] ] ){
 
             const i0 = topvertmap[f[ 0 ]];
             const i1 = topvertmap[f[ 1 ]];

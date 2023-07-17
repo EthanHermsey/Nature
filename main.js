@@ -92,7 +92,7 @@ function setup() {
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 2.0;
+    renderer.toneMappingExposure = 2.2;
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize( windowWidth, windowHeight );
@@ -111,12 +111,11 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.12 );
+	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.15 );
 	scene.add( amb );
 
 	//fog
-	// scene.fog = new THREE.FogExp2( 'lightgrey', 0.0008 );
-	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0003 );
+	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0005 );
 
 	//terrainSeed
 	let rnd = 32921; //is very nice
@@ -146,7 +145,6 @@ function setup() {
 //  888     888    .o  888   888  888   888  888    .o  888
 // d888b    `Y8bod8P' o888o o888o `Y8bod88P" `Y8bod8P' d888b
 
-
 function render() {
 
 	if ( running ) requestAnimationFrame( render );
@@ -159,7 +157,7 @@ function render() {
 	//draw text on screen and crosshair
 	drawHud();
 
-	animateVegetation( delta );
+	// animateVegetation( delta );
 
 	//update fps counter
 	stats.update();
@@ -220,8 +218,8 @@ function loadFromStorage(){
         const {position, offset} = JSON.parse(localStorage.getItem('position'));
         startLoading( true, offset )
             .then(() => {
-                terrainController.generateInstancedObjects();
                 player.position.fromArray( position );
+                terrainController.generateInstancedObjects();
             });
 
     }
@@ -307,7 +305,7 @@ function stop(){
     document.getElementById( 'load-button' ).classList.remove( 'hidden' );
     document.getElementById( 'start-button' ).textContent = 'new';
 
-    localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
+    if ( player.position.length() > 0 ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
 
     if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', pointerLockChangeCallback, false );		
     
@@ -372,48 +370,48 @@ function drawHud() {
     
 }
 
-function animateVegetation( delta ) {
+// function animateVegetation( delta ) {
     
-    //update grass animation
-	let r = 1.0 + ( Math.random() * 0.5 );
-	if ( modelBank.grassModel1.material.userData.shader ) modelBank.grassModel1.material.userData.shader.uniforms.time.value += delta * r;
-	if ( modelBank.grassModel2.material.userData.shader ) modelBank.grassModel2.material.userData.shader.uniforms.time.value += delta * r;
-	//update tree1 animation
-	if ( modelBank.treeModelHigh.children[ 1 ].material.userData.shader ) {
+//     //update grass animation
+// 	let r = 1.0 + ( Math.random() * 0.5 );
+// 	if ( modelBank.grassModel1.material.userData.shader ) modelBank.grassModel1.material.userData.shader.uniforms.time.value += delta * r;
+// 	if ( modelBank.grassModel2.material.userData.shader ) modelBank.grassModel2.material.userData.shader.uniforms.time.value += delta * r;
+// 	//update tree1 animation
+// 	if ( modelBank.treeModelHigh.children[ 1 ].material.userData.shader ) {
         
-        modelBank.treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
+//         modelBank.treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
         
-	}
-	if ( modelBank.treeModelHigh.children[ 0 ].material.userData.shader ) {
+// 	}
+// 	if ( modelBank.treeModelHigh.children[ 0 ].material.userData.shader ) {
         
-        modelBank.treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
+//         modelBank.treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
         
-	}
-	//update tree2 aimation
-	if ( modelBank.treeModelHigh2.children[ 1 ].material.userData.shader ) {
+// 	}
+// 	//update tree2 aimation
+// 	if ( modelBank.treeModelHigh2.children[ 1 ].material.userData.shader ) {
         
-        modelBank.treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
+//         modelBank.treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
         
-	}
-	if ( modelBank.treeModelHigh2.children[ 0 ].material.userData.shader ) {
+// 	}
+// 	if ( modelBank.treeModelHigh2.children[ 0 ].material.userData.shader ) {
         
-        modelBank.treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
+//         modelBank.treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
         
-	}
-	//update grasHigh
-	if ( modelBank.grassModelHigh.material.userData.shader ) {
+// 	}
+// 	//update grasHigh
+// 	if ( modelBank.grassModelHigh.material.userData.shader ) {
         
-        modelBank.grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
+//         modelBank.grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
         
-	}
-	//update fern
-	if ( modelBank.fernModel.material.userData.shader ) {
+// 	}
+// 	//update fern
+// 	if ( modelBank.fernModel.material.userData.shader ) {
         
-        modelBank.fernModel.material.userData.shader.uniforms.time.value += delta * r;
+//         modelBank.fernModel.material.userData.shader.uniforms.time.value += delta * r;
         
-	}
+// 	}
     
-}
+// }
 
 
 
