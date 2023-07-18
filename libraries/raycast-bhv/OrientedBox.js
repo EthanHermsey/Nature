@@ -135,9 +135,9 @@ OrientedBox.prototype.intersectsTriangle = ( function () {
 
 	const saTri = new SeparatingAxisTriangle();
 	const pointsArr = new Array( 3 );
-	const cachedSatBounds = new SeparatingAxisBounds();
-	const cachedSatBounds2 = new SeparatingAxisBounds();
-	const cachedAxis = new THREE.Vector3();
+	const chunkedSatBounds = new SeparatingAxisBounds();
+	const chunkedSatBounds2 = new SeparatingAxisBounds();
+	const chunkedAxis = new THREE.Vector3();
 	return function intersectsTriangle( triangle ) {
 
 		if ( ! triangle.isSeparatingAxisTriangle ) {
@@ -159,8 +159,8 @@ OrientedBox.prototype.intersectsTriangle = ( function () {
 
 			const sb = satBounds[ i ];
 			const sa = satAxes[ i ];
-			cachedSatBounds.setFromPoints( sa, pointsArr );
-			if ( sb.isSeparated( cachedSatBounds ) ) return false;
+			chunkedSatBounds.setFromPoints( sa, pointsArr );
+			if ( sb.isSeparated( chunkedSatBounds ) ) return false;
 
 		}
 
@@ -171,8 +171,8 @@ OrientedBox.prototype.intersectsTriangle = ( function () {
 
 			const sb = triSatBounds[ i ];
 			const sa = triSatAxes[ i ];
-			cachedSatBounds.setFromPoints( sa, points );
-			if ( sb.isSeparated( cachedSatBounds ) ) return false;
+			chunkedSatBounds.setFromPoints( sa, points );
+			if ( sb.isSeparated( chunkedSatBounds ) ) return false;
 
 		}
 
@@ -183,10 +183,10 @@ OrientedBox.prototype.intersectsTriangle = ( function () {
 			for ( let i2 = 0; i2 < 4; i2 ++ ) {
 
 				const sa2 = triSatAxes[ i2 ];
-				cachedAxis.crossVectors( sa1, sa2 );
-				cachedSatBounds.setFromPoints( cachedAxis, pointsArr );
-				cachedSatBounds2.setFromPoints( cachedAxis, points );
-				if ( cachedSatBounds.isSeparated( cachedSatBounds2 ) ) return false;
+				chunkedAxis.crossVectors( sa1, sa2 );
+				chunkedSatBounds.setFromPoints( chunkedAxis, pointsArr );
+				chunkedSatBounds2.setFromPoints( chunkedAxis, points );
+				if ( chunkedSatBounds.isSeparated( chunkedSatBounds2 ) ) return false;
 
 			}
 

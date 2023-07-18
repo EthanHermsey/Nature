@@ -13,9 +13,9 @@ class VolumetricChunk{
 
 		//terrain generation vars
 		this.position = new THREE.Vector3(
-			this.offset.x * ( this.terrain.gridSize.x - CHUNK_OVERLAP ) * this.terrain.gridScale.x,
+			this.offset.x * ( this.terrain.gridSize.x - CHUNK_OVERLAP ) * this.terrain.terrainScale.x,
 			0,
-			this.offset.z * ( this.terrain.gridSize.z - CHUNK_OVERLAP ) * this.terrain.gridScale.z
+			this.offset.z * ( this.terrain.gridSize.z - CHUNK_OVERLAP ) * this.terrain.terrainScale.z
 		);
 
 		this.modelMatrices = {};
@@ -156,7 +156,7 @@ class VolumetricChunk{
 
                     //create new mesh with preloaded material
                     this.mesh = new THREE.Mesh( geo, this.terrain.material );
-                    this.mesh.scale.set( this.terrain.gridScale.x, this.terrain.gridScale.y, this.terrain.gridScale.z );                    
+                    this.mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );                    
                     this.mesh.chunk = this;
                     this.mesh.position.x = this.position.x;
                     this.mesh.position.z = this.position.z;

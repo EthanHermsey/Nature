@@ -2675,35 +2675,35 @@ class GLTFParser {
 			if ( useMorphTargets ) cacheKey += 'morph-targets:';
 			if ( useMorphNormals ) cacheKey += 'morph-normals:';
 
-			let cachedMaterial = this.cache.get( cacheKey );
+			let chunkedMaterial = this.cache.get( cacheKey );
 
-			if ( ! cachedMaterial ) {
+			if ( ! chunkedMaterial ) {
 
-				cachedMaterial = material.clone();
+				chunkedMaterial = material.clone();
 
-				if ( useSkinning ) cachedMaterial.skinning = true;
-				if ( useVertexColors ) cachedMaterial.vertexColors = true;
-				if ( useFlatShading ) cachedMaterial.flatShading = true;
-				if ( useMorphTargets ) cachedMaterial.morphTargets = true;
-				if ( useMorphNormals ) cachedMaterial.morphNormals = true;
+				if ( useSkinning ) chunkedMaterial.skinning = true;
+				if ( useVertexColors ) chunkedMaterial.vertexColors = true;
+				if ( useFlatShading ) chunkedMaterial.flatShading = true;
+				if ( useMorphTargets ) chunkedMaterial.morphTargets = true;
+				if ( useMorphNormals ) chunkedMaterial.morphNormals = true;
 
 				if ( useVertexTangents ) {
 
-					cachedMaterial.vertexTangents = true;
+					chunkedMaterial.vertexTangents = true;
 
 					// https://github.com/mrdoob/three.js/issues/11438#issuecomment-507003995
-					if ( cachedMaterial.normalScale ) cachedMaterial.normalScale.y *= - 1;
-					if ( cachedMaterial.clearcoatNormalScale ) cachedMaterial.clearcoatNormalScale.y *= - 1;
+					if ( chunkedMaterial.normalScale ) chunkedMaterial.normalScale.y *= - 1;
+					if ( chunkedMaterial.clearcoatNormalScale ) chunkedMaterial.clearcoatNormalScale.y *= - 1;
 
 				}
 
-				this.cache.add( cacheKey, cachedMaterial );
+				this.cache.add( cacheKey, chunkedMaterial );
 
-				this.associations.set( cachedMaterial, this.associations.get( material ) );
+				this.associations.set( chunkedMaterial, this.associations.get( material ) );
 
 			}
 
-			material = cachedMaterial;
+			material = chunkedMaterial;
 
 		}
 
@@ -2955,12 +2955,12 @@ class GLTFParser {
 			const cacheKey = createPrimitiveKey( primitive );
 
 			// See if we've already created this geometry
-			const cached = cache[ cacheKey ];
+			const chunked = cache[ cacheKey ];
 
-			if ( cached ) {
+			if ( chunked ) {
 
-				// Use the cached geometry if it exists
-				pending.push( cached.promise );
+				// Use the chunked geometry if it exists
+				pending.push( chunked.promise );
 
 			} else {
 

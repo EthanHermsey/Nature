@@ -78,10 +78,10 @@ class Player {
         let x = ( startChunk.offset.x * startChunk.terrain.chunkSize ) + startChunk.terrain.chunkSize / 2;
         let z = ( startChunk.offset.z * startChunk.terrain.chunkSize ) + startChunk.terrain.chunkSize / 2;
         let m = Math.floor( terrainController.gridSize.x / 2 );
-        let y = startChunk.getTerrainHeight( m, m ) * terrainController.gridScale.y * 1.2;
+        let y = startChunk.getTerrainHeight( m, m ) * terrainController.terrainScale.y * 1.2;
         this.position.set( x, y, z );
 
-        this.minDigDistance = this.brushRadius * ( terrainController.gridScale.x / 2 + 0.5 );
+        this.minDigDistance = this.brushRadius * ( terrainController.terrainScale.x / 2 + 0.5 );
         
 
         if ( !this.model){
@@ -129,7 +129,7 @@ class Player {
     
     
             //add shadowlight
-            this.shadowLightIntensity = 0.6;
+            this.shadowLightIntensity = 0.65;
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
             this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
             this.shadowLight.target = new THREE.Object3D();
@@ -239,7 +239,7 @@ class Player {
         const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
         
 		raycaster.set( rigPosition, v );
-		let intersectdir = raycaster.intersectObjects( terrainController.castChunks );
+		let intersectdir = raycaster.intersectObjects( terrainController.castables );
 
 		if ( intersectdir.length > 0 ) {
 
@@ -348,7 +348,7 @@ class Player {
                 if ( collisions.down.normal ) {
 
                     //add gravity
-                    nPos.y += this.vDown;
+                    if ( this.flyMode == false ) nPos.y += this.vDown;
 
                     if ( nPos.y > collisions.down.position.y + this.height ) {
 
@@ -573,7 +573,7 @@ class Player {
 
 		raycaster.setFromCamera( new THREE.Vector2(), this.camera );
 
-		let intersects = raycaster.intersectObjects( terrainController.castChunks, true );
+		let intersects = raycaster.intersectObjects( terrainController.castables, true );
 
 		this.intersectPoint = null;
 
@@ -595,7 +595,7 @@ class Player {
 		downPos.y += this.height * 0.5 - this.vDown;
 
 		raycaster.set( downPos, scene.down );
-		let intersectDown = raycaster.intersectObjects( terrainController.castChunks, true );
+		let intersectDown = raycaster.intersectObjects( terrainController.castables, true );
 
 
 		if ( intersectDown.length > 0 ) {
@@ -616,7 +616,7 @@ class Player {
 		let dirPos = this.position.clone();
 
 		raycaster.set( dirPos, direction.normalize() );
-		let intersectdir = raycaster.intersectObjects( terrainController.castChunks );
+		let intersectdir = raycaster.intersectObjects( terrainController.castables );
 
 		if ( intersectdir.length > 0 ) {
 
@@ -699,7 +699,7 @@ class Player {
 			//get the gridposition of the cameraIntersect.point and adjust value.
 			let gridPosition = this.intersectPoint.point.clone()
 				.sub( this.intersectPoint.object.position )
-				.divide( terrainController.gridScale )
+				.divide( terrainController.terrainScale )
 				.round();
 			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength * 1.2;
 

@@ -134,8 +134,8 @@ class MeshBVHNode {
 MeshBVHNode.prototype.shapecast = ( function () {
 
 	const triangle = new SeparatingAxisTriangle();
-	const cachedBox1 = new THREE.Box3();
-	const cachedBox2 = new THREE.Box3();
+	const chunkedBox1 = new THREE.Box3();
+	const chunkedBox2 = new THREE.Box3();
 	return function shapecast( mesh, intersectsBoundsFunc, intersectsTriangleFunc = null, nodeScoreFunc = null ) {
 
 		if ( this.count && intersectsTriangleFunc ) {
@@ -172,8 +172,8 @@ MeshBVHNode.prototype.shapecast = ( function () {
 			let box1, box2;
 			if ( nodeScoreFunc ) {
 
-				box1 = cachedBox1;
-				box2 = cachedBox2;
+				box1 = chunkedBox1;
+				box2 = chunkedBox2;
 
 				arrayToBox( c1.boundingData, box1 );
 				arrayToBox( c2.boundingData, box2 );
@@ -200,7 +200,7 @@ MeshBVHNode.prototype.shapecast = ( function () {
 
 			if ( ! box1 ) {
 
-				box1 = cachedBox1;
+				box1 = chunkedBox1;
 				arrayToBox( c1.boundingData, box1 );
 
 			}
@@ -215,7 +215,7 @@ MeshBVHNode.prototype.shapecast = ( function () {
 
 			if ( ! box2 ) {
 
-				box2 = cachedBox2;
+				box2 = chunkedBox2;
 				arrayToBox( c2.boundingData, box2 );
 
 			}
@@ -239,15 +239,15 @@ MeshBVHNode.prototype.intersectsGeometry = ( function () {
 
 	const triangle = new SeparatingAxisTriangle();
 	const triangle2 = new SeparatingAxisTriangle();
-	const cachedMesh = new THREE.Mesh();
+	const chunkedMesh = new THREE.Mesh();
 	const invertedMat = new THREE.Matrix4();
 
 	const obb = new OrientedBox();
 	const obb2 = new OrientedBox();
 
-	return function intersectsGeometry( mesh, geometry, geometryToBvh, cachedObb = null ) {
+	return function intersectsGeometry( mesh, geometry, geometryToBvh, chunkedObb = null ) {
 
-		if ( cachedObb === null ) {
+		if ( chunkedObb === null ) {
 
 			if ( ! geometry.boundingBox ) {
 
@@ -257,7 +257,7 @@ MeshBVHNode.prototype.intersectsGeometry = ( function () {
 
 			obb.set( geometry.boundingBox.min, geometry.boundingBox.max, geometryToBvh );
 			obb.update();
-			cachedObb = obb;
+			chunkedObb = obb;
 
 		}
 
@@ -284,8 +284,8 @@ MeshBVHNode.prototype.intersectsGeometry = ( function () {
 				obb2.matrix.copy( invertedMat );
 				obb2.update();
 
-				cachedMesh.geometry = geometry;
-				const res = geometry.boundsTree.shapecast( cachedMesh, box => obb2.intersectsBox( box ), function ( tri ) {
+				chunkedMesh.geometry = geometry;
+				const res = geometry.boundsTree.shapecast( chunkedMesh, box => obb2.intersectsBox( box ), function ( tri ) {
 
 					tri.a.applyMatrix4( geometryToBvh );
 					tri.b.applyMatrix4( geometryToBvh );
@@ -308,7 +308,7 @@ MeshBVHNode.prototype.intersectsGeometry = ( function () {
 					return false;
 
 				} );
-				cachedMesh.geometry = null;
+				chunkedMesh.geometry = null;
 
 				return res;
 
@@ -347,16 +347,16 @@ MeshBVHNode.prototype.intersectsGeometry = ( function () {
 
 			arrayToBox( left.boundingData, boundingBox );
 			const leftIntersection =
-				cachedObb.intersectsBox( boundingBox ) &&
-				left.intersectsGeometry( mesh, geometry, geometryToBvh, cachedObb );
+				chunkedObb.intersectsBox( boundingBox ) &&
+				left.intersectsGeometry( mesh, geometry, geometryToBvh, chunkedObb );
 
 			if ( leftIntersection ) return true;
 
 
 			arrayToBox( right.boundingData, boundingBox );
 			const rightIntersection =
-				cachedObb.intersectsBox( boundingBox ) &&
-				right.intersectsGeometry( mesh, geometry, geometryToBvh, cachedObb );
+				chunkedObb.intersectsBox( boundingBox ) &&
+				right.intersectsGeometry( mesh, geometry, geometryToBvh, chunkedObb );
 
 			if ( rightIntersection ) return true;
 

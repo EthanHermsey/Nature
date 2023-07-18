@@ -92,7 +92,7 @@ function setup() {
     renderer.physicallyCorrectLights = true;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 2.2;
+    renderer.toneMappingExposure = 2.3;
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.setSize( windowWidth, windowHeight );
@@ -111,7 +111,7 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.15 );
+	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.25 );
 	scene.add( amb );
 
 	//fog
@@ -132,6 +132,41 @@ function setup() {
 
 
 
+// oooo  oooo   .oooo.o  .ooooo.  oooo d8b
+// `888  `888  d88(  "8 d88' `88b `888""8P
+//  888   888  `"Y88b.  888ooo888  888
+//  888   888  o.  )88b 888    .o  888
+//  `V88V"V8P' 8""888P' `Y8bod8P' d888b
+
+
+
+//  o8o                                         .
+//  `"'                                       .o8
+// oooo  ooo. .oo.   oo.ooooo.  oooo  oooo  .o888oo
+// `888  `888P"Y88b   888' `88b `888  `888    888
+//  888   888   888   888   888  888   888    888
+//  888   888   888   888   888  888   888    888 .
+// o888o o888o o888o  888bod8P'  `V88V"V8P'   "888"
+//                    888
+//                   o888o
+
+
+function onMouseMove( e ) {
+
+	player.mouseMoved( e );
+
+}
+
+function pointerLockChangeCallback() {
+
+	if ( !document.pointerLockElement ) {
+
+        stop();
+
+	}
+
+}
+
 
 
 
@@ -151,15 +186,16 @@ function render() {
 
 	let delta = clock.getDelta();
 
-	//update player controller
+	// update player controller
 	player.update( delta );
 
-	//draw text on screen and crosshair
+	// animate terrain
+    terrainController.animate( delta );	
+
+    // draw text on screen and crosshair
 	drawHud();
 
-	// animateVegetation( delta );
-
-	//update fps counter
+	// update fps counter
 	stats.update();
 
 	//render scene
@@ -216,10 +252,10 @@ function loadFromStorage(){
     } else {
 
         const {position, offset} = JSON.parse(localStorage.getItem('position'));
-        startLoading( true, offset )
+        startLoading( offset )
             .then(() => {
                 player.position.fromArray( position );
-                terrainController.generateInstancedObjects();
+                terrainController.updateInstancedObjects();
             });
 
     }
@@ -231,17 +267,12 @@ function loadNew(){
 }
 
 
-function startLoading( _, offset ){
+function startLoading( offset ){
 
     return new Promise( async ( resolve ) => {
 
         document.getElementById( 'menu-content' ).classList.add( 'hidden' );
-        document.getElementById( 'loading-container' ).classList.remove( 'hidden' );
-        
-        if (!loaded){
-            await preloadModels();
-        }
-        
+        document.getElementById( 'loading-container' ).classList.remove( 'hidden' );                
         document.getElementById( 'loading-img' ).classList.add( 'hidden' );
         
         if ( !terrainController ) {
@@ -260,6 +291,7 @@ function startLoading( _, offset ){
         document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
 
         offset = offset || { x: 0, z: 0 };
+
         player.init(
             terrainController.getChunk( terrainController.getChunkKey( offset ) ),
             () => {
@@ -370,92 +402,7 @@ function drawHud() {
     
 }
 
-// function animateVegetation( delta ) {
-    
-//     //update grass animation
-// 	let r = 1.0 + ( Math.random() * 0.5 );
-// 	if ( modelBank.grassModel1.material.userData.shader ) modelBank.grassModel1.material.userData.shader.uniforms.time.value += delta * r;
-// 	if ( modelBank.grassModel2.material.userData.shader ) modelBank.grassModel2.material.userData.shader.uniforms.time.value += delta * r;
-// 	//update tree1 animation
-// 	if ( modelBank.treeModelHigh.children[ 1 ].material.userData.shader ) {
-        
-//         modelBank.treeModelHigh.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
-        
-// 	}
-// 	if ( modelBank.treeModelHigh.children[ 0 ].material.userData.shader ) {
-        
-//         modelBank.treeModelHigh.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
-        
-// 	}
-// 	//update tree2 aimation
-// 	if ( modelBank.treeModelHigh2.children[ 1 ].material.userData.shader ) {
-        
-//         modelBank.treeModelHigh2.children[ 1 ].material.userData.shader.uniforms.time.value += delta * r;
-        
-// 	}
-// 	if ( modelBank.treeModelHigh2.children[ 0 ].material.userData.shader ) {
-        
-//         modelBank.treeModelHigh2.children[ 0 ].material.userData.shader.uniforms.time.value += delta * r;
-        
-// 	}
-// 	//update grasHigh
-// 	if ( modelBank.grassModelHigh.material.userData.shader ) {
-        
-//         modelBank.grassModelHigh.material.userData.shader.uniforms.time.value += delta * r;
-        
-// 	}
-// 	//update fern
-// 	if ( modelBank.fernModel.material.userData.shader ) {
-        
-//         modelBank.fernModel.material.userData.shader.uniforms.time.value += delta * r;
-        
-// 	}
-    
-// }
 
 
 
 
-
-
-
-
-
-
-
-
-
-// oooo  oooo   .oooo.o  .ooooo.  oooo d8b
-// `888  `888  d88(  "8 d88' `88b `888""8P
-//  888   888  `"Y88b.  888ooo888  888
-//  888   888  o.  )88b 888    .o  888
-//  `V88V"V8P' 8""888P' `Y8bod8P' d888b
-
-
-
-//  o8o                                         .
-//  `"'                                       .o8
-// oooo  ooo. .oo.   oo.ooooo.  oooo  oooo  .o888oo
-// `888  `888P"Y88b   888' `88b `888  `888    888
-//  888   888   888   888   888  888   888    888
-//  888   888   888   888   888  888   888    888 .
-// o888o o888o o888o  888bod8P'  `V88V"V8P'   "888"
-//                    888
-//                   o888o
-
-
-function onMouseMove( e ) {
-
-	player.mouseMoved( e );
-
-}
-
-function pointerLockChangeCallback() {
-
-	if ( !document.pointerLockElement ) {
-
-        stop();
-
-	}
-
-}

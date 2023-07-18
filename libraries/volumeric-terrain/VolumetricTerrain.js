@@ -13,15 +13,15 @@ class VolumetricTerrain extends THREE.Object3D {
 		this.chunks = {};
 		this.updateChunks = {};
 		this.createNewChunks = {};
-		this.castChunks = [];		
+		this.castables = [];		
 		
         this.gridSize = options.gridSize || { x: 16, y: 256, z: 16 };
-        this.gridScale = options.gridScale || { x: 5, y: 5, z: 5 };
+        this.terrainScale = options.terrainScale || { x: 5, y: 5, z: 5 };
         this.viewDistance = options.viewDistance || 6;
 		this.farViewDistance = options.farViewDistance || 0;
         this.totalViewDistance =  this.viewDistance + this.farViewDistance;
-        this.chunkSize = this.gridScale.x * this.gridSize.x;
-        this.chunkSizeOverlap = ( this.gridSize.x - CHUNK_OVERLAP ) * this.gridScale.x;
+        this.chunkSize = this.terrainScale.x * this.gridSize.x;
+        this.chunkSizeOverlap = ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x;
 
 		this.material = options.material || new THREE.MeshLambertMaterial( {color: 'rgb(100, 100, 100)'} );
         this.meshFactory = options.meshFactory || undefined;
@@ -316,10 +316,10 @@ class VolumetricTerrain extends THREE.Object3D {
 	// 888        888   888   888   888   888   888   888888.    `"Y88b.   
 	// 888   .o8  888   888   888   888   888   888   888 `88b.  o.  )88b  
 	// `Y8bod8P' o888o o888o  `V88V"V8P' o888o o888o o888o o888o 8""888P'  
-	updateCastChunkTerrainArray( currentCoord ) {
+	updateCastChunkTerrainArray( currentCoord, castableObjects ) {
 
         //new set of visible chunks
-		let newcastChunks = {};
+		let newcastables = {};
 
 		//raycast chunk range
         let d = 1
@@ -330,19 +330,19 @@ class VolumetricTerrain extends THREE.Object3D {
 				let chunkCoord = { x: currentCoord.x + x, z: currentCoord.z + z };
 				let chunkKey = this.getChunkKey( chunkCoord );
 
-				newcastChunks[ chunkKey ] = true;
+				newcastables[ chunkKey ] = true;
 
 			}
 
 		}
 
-		this.castChunks = [];
+		this.castables = [];
 
-		for ( let chunkKey in newcastChunks ) {
+		for ( let chunkKey in newcastables ) {
 
             let chunk = terrainController.getChunk( chunkKey );
 			if ( chunk ) {
-				this.castChunks.push( chunk.mesh );
+				this.castables.push( ...[chunk.mesh, ...castableObjects] );
 			}
 		}
 

@@ -65,9 +65,9 @@ SeparatingAxisTriangle.prototype.intersectsTriangle = ( function () {
 	const saTri2 = new SeparatingAxisTriangle();
 	const arr1 = new Array( 3 );
 	const arr2 = new Array( 3 );
-	const cachedSatBounds = new SeparatingAxisBounds();
-	const cachedSatBounds2 = new SeparatingAxisBounds();
-	const cachedAxis = new THREE.Vector3();
+	const chunkedSatBounds = new SeparatingAxisBounds();
+	const chunkedSatBounds2 = new SeparatingAxisBounds();
+	const chunkedAxis = new THREE.Vector3();
 	return function intersectsTriangle( other ) {
 
 		if ( ! other.isSeparatingAxisTriangle ) {
@@ -87,8 +87,8 @@ SeparatingAxisTriangle.prototype.intersectsTriangle = ( function () {
 
 			const sb = satBounds1[ i ];
 			const sa = satAxes1[ i ];
-			cachedSatBounds.setFromPoints( sa, arr2 );
-			if ( sb.isSeparated( cachedSatBounds ) ) return false;
+			chunkedSatBounds.setFromPoints( sa, arr2 );
+			if ( sb.isSeparated( chunkedSatBounds ) ) return false;
 
 		}
 
@@ -101,8 +101,8 @@ SeparatingAxisTriangle.prototype.intersectsTriangle = ( function () {
 
 			const sb = satBounds2[ i ];
 			const sa = satAxes2[ i ];
-			cachedSatBounds.setFromPoints( sa, arr1 );
-			if ( sb.isSeparated( cachedSatBounds ) ) return false;
+			chunkedSatBounds.setFromPoints( sa, arr1 );
+			if ( sb.isSeparated( chunkedSatBounds ) ) return false;
 
 		}
 
@@ -113,10 +113,10 @@ SeparatingAxisTriangle.prototype.intersectsTriangle = ( function () {
 			for ( let i2 = 0; i2 < 4; i2 ++ ) {
 
 				const sa2 = satAxes2[ i2 ];
-				cachedAxis.crossVectors( sa1, sa2 );
-				cachedSatBounds.setFromPoints( cachedAxis, arr1 );
-				cachedSatBounds2.setFromPoints( cachedAxis, arr2 );
-				if ( cachedSatBounds.isSeparated( cachedSatBounds2 ) ) return false;
+				chunkedAxis.crossVectors( sa1, sa2 );
+				chunkedSatBounds.setFromPoints( chunkedAxis, arr1 );
+				chunkedSatBounds2.setFromPoints( chunkedAxis, arr2 );
+				if ( chunkedSatBounds.isSeparated( chunkedSatBounds2 ) ) return false;
 
 			}
 

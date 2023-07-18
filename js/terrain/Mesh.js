@@ -74,7 +74,7 @@ const Mesh = async ( generatedSurface, chunk ) => {
 
     //create new mesh with preloaded material
     chunk.mesh = new THREE.Mesh( geo, chunk.terrain.material );
-    chunk.mesh.scale.set( terrainController.gridScale.x, terrainController.gridScale.y, terrainController.gridScale.z );
+    chunk.mesh.scale.set( terrainController.terrainScale.x, terrainController.terrainScale.y, terrainController.terrainScale.z );
     chunk.mesh.raycast = acceleratedRaycast;
     chunk.mesh.chunk = chunk;
     chunk.mesh.position.x = chunk.position.x;
@@ -88,7 +88,7 @@ const Mesh = async ( generatedSurface, chunk ) => {
     chunk.mesh.name = "terrain";
 
     chunk.farMesh = new THREE.Mesh( topgeo, chunk.terrain.material );
-    chunk.farMesh.scale.set( terrainController.gridScale.x, terrainController.gridScale.y, terrainController.gridScale.z );
+    chunk.farMesh.scale.set( terrainController.terrainScale.x, terrainController.terrainScale.y, terrainController.terrainScale.z );
     chunk.farMesh.position.x = chunk.position.x;
     chunk.farMesh.position.z = chunk.position.z;
 

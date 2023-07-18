@@ -1,4 +1,4 @@
-importScripts("noise.js");
+importScripts("Noise.js");
 
 const continenal_spline = [
     [

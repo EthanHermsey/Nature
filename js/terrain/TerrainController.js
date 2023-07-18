@@ -7,27 +7,37 @@ class TerrainController extends VolumetricTerrain{
         super(
             {
                 gridSize: { x: 16, y: 256, z: 16 },
-                gridScale: { x: 10, y: 10, z: 10 },
+                terrainScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
                 viewDistance: 4,
                 farViewDistance: 0,
                 material: terrainMaterial,
                 workers: 4,
-                workerScript: './js/terrain/worker/worker.js',
+                workerScript: './js/terrain/worker/Worker.js',
                 meshFactory: Mesh,
                 chunkClass: Chunk
             },
             ()=>{
 
+                this.instancedObjectViewDistance = 16;                
                 this.grassViewDistance = 4;
-                this.grassHighViewDistance = 2;
+                this.grassHighViewDistance = 2;                
                 this.fernViewDistance = 3;
+                this.fogViewDistance = 6;
                 this.treeViewDistance = 16;
                 this.treeHighViewDistance = 4;
+                this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
+
+                this.instancedObjects = {
+                    "Grass": new Grass( this, this.grassViewDistance ),
+                    "Tree": new Trees( this, this.treeViewDistance ),
+                    "Fern": new Fern( this, this.fernViewDistance ),
+                    "Fog": new Fog( this, this.fogViewDistance ),
+                    "Boulder": new Boulder( this, this.instancedObjectViewDistance)
+                };
 
                 this.updateCastChunkTerrainArray( this.currentCoord );
-                this.updateLODs();
-                this.generateInstancedObjects();
+                this.updateChunkLODs();   
                 callback( this );
 
             }
@@ -79,7 +89,7 @@ class TerrainController extends VolumetricTerrain{
                 
                 if ( num_initial_chunks == 0 ) {
 
-                    loadingtext.textContent = `loading player`;
+                    loadingtext.textContent = `loading resources`;
                     resolve();
 
                 }                
@@ -103,8 +113,8 @@ class TerrainController extends VolumetricTerrain{
                             dist: x * x + z * z,
                             add: () =>{
                                 new this.chunkClass(
-                                    x,
-                                    z,
+                                    this.currentCoord.x + x,
+                                    this.currentCoord.z + z,
                                     this,
                                     (chunk) => loadInitialTerrain( chunk )
                                 );
@@ -115,7 +125,7 @@ class TerrainController extends VolumetricTerrain{
                         max_initial_chunks++;
 
                         const d = document.createElement('div');
-                        d.id = `${x}:${z}`;
+                        d.id = `${this.currentCoord.x + x}:${this.currentCoord.z + z}`;
                         d.className = 'loading-grid-item';
                         grid.appendChild(d);
 
@@ -132,7 +142,24 @@ class TerrainController extends VolumetricTerrain{
 
         } );
 
-    }                                
+    }          
+    
+    //                        o8o                                  .             
+    //                        `"'                                .o8             
+    //  .oooo.   ooo. .oo.   oooo  ooo. .oo.  .oo.    .oooo.   .o888oo  .ooooo.  
+    // `P  )88b  `888P"Y88b  `888  `888P"Y88bP"Y88b  `P  )88b    888   d88' `88b 
+    //  .oP"888   888   888   888   888   888   888   .oP"888    888   888ooo888 
+    // d8(  888   888   888   888   888   888   888  d8(  888    888 . 888    .o 
+    // `Y888""8o o888o o888o o888o o888o o888o o888o `Y888""8o   "888" `Y8bod8P' 
+                                                                            
+    animate( delta ){
+        const keys = Object.keys( this.instancedObjects );
+        for( let key of keys){
+            this.instancedObjects[key].animate( delta );
+        }
+    }
+     
+
            
 	//                              .o8                .             
 	//                             "888              .o8             
@@ -145,11 +172,6 @@ class TerrainController extends VolumetricTerrain{
 	//             o888o                                          
 	async update() {
 		
-        // update fake-fog
-		if ( this.fogCloud && this.fogCloud.material.userData.shader){
-			this.fogCloud.material.userData.shader.uniforms.time.value += 0.05;
-		}
-
         await super.update( player.position );
 
         // //set birdsound volume
@@ -162,14 +184,14 @@ class TerrainController extends VolumetricTerrain{
     updatecurrentCoord( currentCoord, newChunks ){
      
         super.updatecurrentCoord(currentCoord, newChunks );
-        this.generateInstancedObjects();
+        this.updateInstancedObjects();   
         
         if ( newChunks ) {
-            this.updateLODs();
+            this.updateChunkLODs();
         }
     }
 
-    updateLODs(){
+    updateChunkLODs(){
      
         for( let chunk in this.chunks){
             
@@ -190,131 +212,22 @@ class TerrainController extends VolumetricTerrain{
         }
 
     }
-	
-	//                          .     .oooooo.   oooo                                oooo        
-	//                        .o8    d8P'  `Y8b  `888                                `888        
-	//  .oooooooo  .ooooo.  .o888oo 888           888 .oo.   oooo  oooo  ooo. .oo.    888  oooo  
-	// 888' `88b  d88' `88b   888   888           888P"Y88b  `888  `888  `888P"Y88b   888 .8P'   
-	// 888   888  888ooo888   888   888           888   888   888   888   888   888   888888.    
-	// `88bod8P'  888    .o   888 . `88b    ooo   888   888   888   888   888   888   888 `88b.  
-	// `8oooooo.  `Y8bod8P'   "888"  `Y8bood8P'  o888o o888o  `V88V"V8P' o888o o888o o888o o888o 
-	// d"     YD                                                                                 
-	// "Y88888P'                                                                              
-	getChunk( key ) {
 
-		return this.chunks[ key ];
+    updateInstancedObjects(){
 
-	}
+        const keys = Object.keys( this.instancedObjects );
 
+        for( let key of keys){
 
-
-
-
-
-
-
-
-
-
-
-
-
-	//                                                                   .                     
-	//                                                                 .o8                     
-	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.          
-	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b         
-	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888         
-	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o         
-	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P'         
-	// d"     YD                                                                               
-	// "Y88888P'                                                                               
-	                                                                                        
-	//  o8o                           .                                                   .o8  
-	//  `"'                         .o8                                                  "888  
-	// oooo  ooo. .oo.    .oooo.o .o888oo  .oooo.   ooo. .oo.    .ooooo.   .ooooo.   .oooo888  
-	// `888  `888P"Y88b  d88(  "8   888   `P  )88b  `888P"Y88b  d88' `"Y8 d88' `88b d88' `888  
-	//  888   888   888  `"Y88b.    888    .oP"888   888   888  888       888ooo888 888   888  
-	//  888   888   888  o.  )88b   888 . d8(  888   888   888  888   .o8 888    .o 888   888  
-	// o888o o888o o888o 8""888P'   "888" `Y888""8o o888o o888o `Y8bod8P' `Y8bod8P' `Y8bod88P" 
-	                                                                                        
-	                                                                                        
-	                                                                                        
-	//            .o8           o8o                         .                                  
-	//           "888           `"'                       .o8                                  
-	//  .ooooo.   888oooo.     oooo  .ooooo.   .ooooo.  .o888oo  .oooo.o                       
-	// d88' `88b  d88' `88b    `888 d88' `88b d88' `"Y8   888   d88(  "8                       
-	// 888   888  888   888     888 888ooo888 888         888   `"Y88b.                        
-	// 888   888  888   888     888 888    .o 888   .o8   888 . o.  )88b                       
-	// `Y8bod8P'  `Y8bod8P'     888 `Y8bod8P' `Y8bod8P'   "888" 8""888P'                       
-	//                          888                                                            
-	//                      .o. 88P                                                            
-	//                      `Y888P                                                             
-
-	generateInstancedObjects(){
-
-
-		// for( let object in store.instancedObjects){
-
-		// }
-		this.generateGrass();
-		this.generateFerns();
-		this.generateTrees();
-		this.generateFog();
-		
-	}
-
-	//                                                                   .             
-	//                                                                 .o8             
-	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.  
-	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b 
-	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888 
-	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o 
-	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P' 
-	// d"     YD                                                                       
-	// "Y88888P'                                                                    
-	//  .oooooooo oooo d8b  .oooo.    .oooo.o  .oooo.o                                 
-	// 888' `88b  `888""8P `P  )88b  d88(  "8 d88(  "8                                 
-	// 888   888   888      .oP"888  `"Y88b.  `"Y88b.                                  
-	// `88bod8P'   888     d8(  888  o.  )88b o.  )88b                                 
-	// `8oooooo.  d888b    `Y888""8o 8""888P' 8""888P'                                 
-	// d"     YD                                                                       
-	// "Y88888P'                                                                    
-	async generateGrass() {
-
-		if ( ! this.grass ) {
-
-			this.grass = [
-				new THREE.InstancedMesh(
-					modelBank.grassModel1.geometry,
-					modelBank.grassModel1.material,
-					100000
-				),
-				new THREE.InstancedMesh(
-					modelBank.grassModel2.geometry,
-					modelBank.grassModel2.material,
-					15000
-				),
-				new THREE.InstancedMesh(
-					modelBank.grassModelHigh.geometry,
-					modelBank.grassModelHigh.material,
-					15000
-				)
-			];
-			this.grass[0].receiveShadow = true;			
-            this.grass[1].receiveShadow = true;			
-            this.grass[2].receiveShadow = true;
-
-			scene.add( this.grass[0] );
-			scene.add( this.grass[1] );
-			scene.add( this.grass[2] );
-
-		}
+            this.instancedObjects[ key ].clearMatrices();
+        
+        }
 
         const playerCoord = terrainController.getCoordFromPosition( player.position );
-		let count0 = 0, count1 = 0, count2 = 0;
-		for ( let x = - this.grassViewDistance; x <= this.grassViewDistance; x ++ ) {
 
-			for ( let z = - this.grassViewDistance; z <= this.grassViewDistance; z ++ ) {
+		for ( let x = - this.instancedObjectViewDistance; x <= this.instancedObjectViewDistance; x ++ ) {
+
+			for ( let z = - this.instancedObjectViewDistance; z <= this.instancedObjectViewDistance; z ++ ) {
 
 				const chunkCoord = { 
 					x: ( playerCoord?.x || 0 ) + x, 
@@ -322,248 +235,66 @@ class TerrainController extends VolumetricTerrain{
 				};
                 const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
-				if ( chunk ) {
+                if ( chunk ) {
 
-					let grassMatrices = chunk.getGrassMatrices();
+                    for( let key of keys ) {
 
-					if ( Math.abs(x) <= 1 && Math.abs(z) <= this.grassHighViewDistance){
+                        this.instancedObjects[ key ].addChunk( chunk, x, z );
 
-						//high quality grass
-						for ( let i = 0; i < grassMatrices[0].length; i ++, count2 ++ ) {
-
-							this.grass[2].setMatrixAt( count2, grassMatrices[0][ i ] );
-	
-						}
-	
-					} else {
-
-                        if ( grassMatrices ){
-                            for ( let i = 0; i < grassMatrices[0].length; i ++, count0 ++ ) {
-        
-                                this.grass[0].setMatrixAt( count0, grassMatrices[0][ i ] );
-        
-                            }
-        
-                            for ( let i = 0; i < grassMatrices[1].length; i ++, count1 ++ ) {
-        
-                                this.grass[1].setMatrixAt( count1, grassMatrices[1][ i ] );
-        
-                            }
-                        }
-
-					}
-					
-
-				}
-
-			}
-
-		}
-
-		this.grass[0].count = Math.min( count0, 100000 );
-		this.grass[1].count = Math.min( count1, 15000 );
-		this.grass[2].count = Math.min( count2, 15000 );
-
-		this.grass[0].instanceMatrix.needsUpdate = true;
-		this.grass[1].instanceMatrix.needsUpdate = true;
-		this.grass[2].instanceMatrix.needsUpdate = true;
-
-	}
-
-
-	//                                                                   .             
-	//                                                                 .o8             
-	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.  
-	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b 
-	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888 
-	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o 
-	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P' 
-	// d"     YD                                                                       
-	// "Y88888P'                                                                       
-	                                                                                
-	// oooooooooooo                                                                    
-	// `888'     `8                                                                    
-	//  888          .ooooo.  oooo d8b ooo. .oo.    .oooo.o                            
-	//  888oooo8    d88' `88b `888""8P `888P"Y88b  d88(  "8                            
-	//  888    "    888ooo888  888      888   888  `"Y88b.                             
-	//  888         888    .o  888      888   888  o.  )88b                            
-	// o888o        `Y8bod8P' d888b    o888o o888o 8""888P'                            
-	async generateFerns() {
-
-		if ( ! this.ferns ) {
-
-			this.ferns = new THREE.InstancedMesh(
-				modelBank.fernModel.geometry,
-				modelBank.fernModel.material,
-				2500
-			);
-            this.ferns.receiveShadow = true;
-            this.ferns.castShadow = true;
-
-			scene.add( this.ferns );
-
-		}
-
-        const playerCoord = terrainController.getCoordFromPosition( player.position );
-		let count = 0;
-		for ( let x = - this.fernViewDistance; x <= this.fernViewDistance; x ++ ) {
-
-			for ( let z = - this.fernViewDistance; z <= this.fernViewDistance; z ++ ) {
-
-				const chunkCoord = { 
-					x: ( playerCoord?.x || 0 ) + x, 
-					z: ( playerCoord?.z || 0 ) + z, 
-				};
-				const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
-
-				if ( chunk ) {
-
-					let fernMatrices = chunk.getFernMatrices();
-					for ( let i = 0; i < fernMatrices.length; i ++, count ++ ) {
-
-						this.ferns.setMatrixAt( count, fernMatrices[ i ] );
-
-					}
-
-				}
-
-			}
-
-		}
-
-		this.ferns.count = Math.min( count, 2500 );
-		this.ferns.instanceMatrix.needsUpdate = true;
-
-	}
-
-
-	//                                                                   .             
-	//                                                                 .o8             
-	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.  
-	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b 
-	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888 
-	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o 
-	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P' 
-	// d"     YD                                                                       
-	// "Y88888P'                                                                       
-	                                                                                
-	//  .o88o.                                                                         
-	//  888 `"                                                                         
-	// o888oo   .ooooo.   .oooooooo                                                    
-	//  888    d88' `88b 888' `88b                                                     
-	//  888    888   888 888   888                                                     
-	//  888    888   888 `88bod8P'                                                     
-	// o888o   `Y8bod8P' `8oooooo.                                                     
-	//                   d"     YD                                                     
-	//                   "Y88888P'                                                  
-	generateFog(){
-			
-		if ( this.fogCloud ) {
-
-            this.fogCloud.geometry.dispose();
-            this.fogCloud.material.dispose();
-			scene.remove( this.fogCloud );
-
-		}
-
-		let points = Object.keys( this.chunks ).map( key => this.chunks[ key ].getFogMatrices() ).flat();
-		let fogGeo = new THREE.BufferGeometry().setFromPoints( points );
-		let fogMat = new THREE.PointsMaterial({
-			map: new THREE.TextureLoader().load('./resources/fog.png'),
-			size: 500,
-			transparent: true,
-			opacity: 0.08,
-			alphaTest: 0.015
-		})
-		fogMat.onBeforeCompile = ( shader ) => {
-						
-			shader.uniforms.time = { value: 0 };
-
-			shader.vertexShader = 'uniform float time;\n' + 
-				shader.vertexShader.replace(
-					`#include <begin_vertex>`,
-					`
-					vec3 transformed = vec3( position );
-					float r = rand( position.xz );
-
-					if ( transformed.y > 0.5){
-						transformed.x += sin( time * 0.008 * r ) * 250.0;
-						transformed.y -= sin( time * 0.0013 * r) * 250.0;
-						transformed.z += sin( time * 0.00734 * r) * 250.0;
-					}
-					`
-				);
-
-				fogMat.userData.shader = shader;
-
-		};
-		this.fogCloud = new THREE.Points( fogGeo, fogMat );		
-		this.fogCloud.material.needsUpdate = true;
-		scene.add( this.fogCloud );
-	}
-
-
-
-    
-	//                                                                   .             
-	//                                                                 .o8             
-	//  .oooooooo  .ooooo.  ooo. .oo.    .ooooo.  oooo d8b  .oooo.   .o888oo  .ooooo.  
-	// 888' `88b  d88' `88b `888P"Y88b  d88' `88b `888""8P `P  )88b    888   d88' `88b 
-	// 888   888  888ooo888  888   888  888ooo888  888      .oP"888    888   888ooo888 
-	// `88bod8P'  888    .o  888   888  888    .o  888     d8(  888    888 . 888    .o 
-	// `8oooooo.  `Y8bod8P' o888o o888o `Y8bod8P' d888b    `Y888""8o   "888" `Y8bod8P' 
-	// d"     YD                                                                       
-	// "Y88888P'                                                                       
-	                                                                                
-	//     .                                                                           
-	//   .o8                                                                           
-	// .o888oo oooo d8b  .ooooo.   .ooooo.   .oooo.o                                   
-	//   888   `888""8P d88' `88b d88' `88b d88(  "8                                   
-	//   888    888     888ooo888 888ooo888 `"Y88b.                                    
-	//   888 .  888     888    .o 888    .o o.  )88b                                   
-	//   "888" d888b    `Y8bod8P' `Y8bod8P' 8""888P'                                
-    async generateTrees() {
-
-        if ( ! this.treeLOD1 ) {
-
-            this.treeLOD1 = new Tree( this );
-            scene.add( this.treeLOD1 );
-
-            this.treeLOD2 = new Tree1( this );
-            scene.add( this.treeLOD2 );
-
-        } else {
-
-            const playerCoord = terrainController.getCoordFromPosition( player.position );
-            this.treeLOD1.clearMatrices();
-            this.treeLOD2.clearMatrices();
-
-            for ( let x = - this.treeViewDistance; x <= this.treeViewDistance; x ++ ) {
-    
-                for ( let z = - this.treeViewDistance; z <= this.treeViewDistance; z ++ ) {
-    
-                    const chunkCoord = { 
-                        x: ( playerCoord?.x || 0 ) + x, 
-                        z: ( playerCoord?.z || 0 ) + z, 
-                    };
-                    const chunk = this.getChunk( this.getChunkKey( chunkCoord ) );
-                    
-                    if ( chunk ) {
-    
-                        this.treeLOD1.addMatrices( chunk.modelMatrices['tree'] );  
-                        this.treeLOD2.addMatrices( chunk.modelMatrices['tree1'] );
-    
                     }
-    
+
                 }
-    
+
             }
-            
-            this.treeLOD1.update( player.position );
-            this.treeLOD2.update( player.position );
+
         }
 
+        for ( let key of keys ) {
+        
+            this.instancedObjects[ key ].update( player.position );
+        
+        }
+        
     }
 
+    //                              .o8                .               .oooooo.                          .   
+    //                             "888              .o8              d8P'  `Y8b                       .o8   
+    // oooo  oooo  oo.ooooo.   .oooo888   .oooo.   .o888oo  .ooooo.  888           .oooo.    .oooo.o .o888oo 
+    // `888  `888   888' `88b d88' `888  `P  )88b    888   d88' `88b 888          `P  )88b  d88(  "8   888   
+    //  888   888   888   888 888   888   .oP"888    888   888ooo888 888           .oP"888  `"Y88b.    888   
+    //  888   888   888   888 888   888  d8(  888    888 . 888    .o `88b    ooo  d8(  888  o.  )88b   888 . 
+    //  `V88V"V8P'  888bod8P' `Y8bod88P" `Y888""8o   "888" `Y8bod8P'  `Y8bood8P'  `Y888""8o 8""888P'   "888" 
+    //              888                                                                                      
+    //             o888o                                                                                  
+    //   .oooooo.   oooo                                oooo                                                 
+    //  d8P'  `Y8b  `888                                `888                                                 
+    // 888           888 .oo.   oooo  oooo  ooo. .oo.    888  oooo                                           
+    // 888           888P"Y88b  `888  `888  `888P"Y88b   888 .8P'                                            
+    // 888           888   888   888   888   888   888   888888.                                             
+    // `88b    ooo   888   888   888   888   888   888   888 `88b.                                           
+    //  `Y8bood8P'  o888o o888o  `V88V"V8P' o888o o888o o888o o888o                                       
+    // ooooooooooooo                                        o8o                                              
+    // 8'   888   `8                                        `"'                                              
+    //      888       .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.                                   
+    //      888      d88' `88b `888""8P `888""8P `P  )88b  `888  `888P"Y88b                                  
+    //      888      888ooo888  888      888      .oP"888   888   888   888                                  
+    //      888      888    .o  888      888     d8(  888   888   888   888                                  
+    //     o888o     `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o                              
+    //       .o.                                                                                             
+    //      .888.                                                                                            
+    //     .8"888.     oooo d8b oooo d8b  .oooo.   oooo    ooo                                               
+    //    .8' `888.    `888""8P `888""8P `P  )88b   `88.  .8'                                                
+    //   .88ooo8888.    888      888      .oP"888    `88..8'                                                 
+    //  .8'     `888.   888      888     d8(  888     `888'                                                  
+    // o88o     o8888o d888b    d888b    `Y888""8o     .8'                                                   
+    //                                             .o..P'                                                    
+    //                                             `Y8P'                                                     
+                                                                                                                          
+    updateCastChunkTerrainArray( currentCoord ) { //adding boulders to castables
+
+        super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'] ] );
+
+	}
+                                                                 
 
 }
