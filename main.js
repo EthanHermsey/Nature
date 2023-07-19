@@ -125,6 +125,7 @@ function setup() {
 
     //player!
     player = new Player();
+
 }
 
 
@@ -263,7 +264,10 @@ function loadFromStorage(){
 }
 
 function loadNew(){
-    startLoading();
+    startLoading()
+        .then(() => {
+            terrainController.updateInstancedObjects();
+        });
 }
 
 
@@ -274,7 +278,12 @@ function startLoading( offset ){
         document.getElementById( 'menu-content' ).classList.add( 'hidden' );
         document.getElementById( 'loading-container' ).classList.remove( 'hidden' );                
         document.getElementById( 'loading-img' ).classList.add( 'hidden' );
-        
+
+        if ( !offset ){
+            const db = new DB('grid-data');
+            db.clear();
+        }
+
         if ( !terrainController ) {
             
             await new Promise((resolve) => {
@@ -286,7 +295,7 @@ function startLoading( offset ){
 
             await terrainController.init();
 
-        }
+        }        
             
         document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
 
@@ -317,7 +326,7 @@ function start( userEvent ) {
 
     if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', pointerLockChangeCallback, false );
 
-	running = true;
+    running = true;
 	clock.start();
     terrainController.toggleClock(true);
 	document.querySelector( 'audio' ).play();
@@ -340,11 +349,13 @@ function stop(){
     if ( player.position.length() > 0 ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
 
     if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', pointerLockChangeCallback, false );		
-    
+
     running = false;
     clock.stop();
     terrainController.toggleClock(false);
     document.querySelector( 'audio' ).pause();
+
+    terrainController.save();
 
 }
 

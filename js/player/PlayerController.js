@@ -15,7 +15,7 @@ class Player {
 		this.camera = new THREE.PerspectiveCamera(
 			70,
 			windowWidth / windowHeight,
-			0.001,
+			0.1,
 			10000
 		);
 		this.camera.position.x += 1;
@@ -161,11 +161,13 @@ class Player {
                     64
                 ),
                 new THREE.MeshBasicMaterial( {
+                    fog: false,
                     map: new THREE.TextureLoader().load( './resources/background.jpg' ),
                     side: THREE.BackSide
                 } )
             );
             this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
+            this.skyBox.material.map.encoding = THREE.sRGBEncoding;
     
             scene.add( this.skyBox );    
 

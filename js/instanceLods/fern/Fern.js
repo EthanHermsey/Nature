@@ -1,12 +1,11 @@
 
-class Fern extends InstancedLOD {
+class Fern extends ChunkedInstancedLOD {
 
     constructor( terrain, viewDistance ){
 
         super();
         this.terrain = terrain;
         this.viewDistance = viewDistance;
-        this.chunkedMatrices = {};
         this.loadObjects();
         scene.add( this );
 
@@ -23,27 +22,6 @@ class Fern extends InstancedLOD {
         }
 
     }
-    
-
-    update( position ){
-
-        super.update( position );        
-        const currentCoord = this.terrain.getCoordFromPosition( position );
-
-        for( let matrix in this.chunkedMatrices ) {
-
-            const chunk = this.terrain.getChunk( this.chunkedMatrices[matrix].chunkKey);
-            if ( !chunk || 
-                 Math.abs( chunk.offset.x - currentCoord.x) > this.viewDistance ||
-                 Math.abs( chunk.offset.z - currentCoord.z) > this.viewDistance ){
-
-                delete this.chunkedMatrices[ matrix ];
-
-            }
-
-        }
-
-    }
 
     addObjects( models ) {
 
@@ -53,26 +31,6 @@ class Fern extends InstancedLOD {
             
         }
 
-    }
-
-    addChunk( chunk, x, z ){
-        
-        if (x >= -this.viewDistance && 
-            x <= this.viewDistance &&
-            z >= -this.viewDistance && 
-            z <= this.viewDistance ) {
-
-            const chunkKey = chunk.chunkKey;
-            if ( !this.chunkedMatrices[chunkKey] ){
-                
-                this.chunkedMatrices[chunkKey] = this.generateMatrices( chunk );
-                this.chunkedMatrices[chunkKey].chunkKey = chunkKey;
-            }
-
-            this.addMatrices( this.chunkedMatrices[chunkKey] );
-
-        }
-    
     }
 
     loadObjects(){
@@ -122,7 +80,7 @@ class Fern extends InstancedLOD {
 
     }
 
-    generateMatrices( chunk ){
+    generateData( chunk ){
 
         const mesh = chunk.mesh;
         const surfaceSampler = new THREE.MeshSurfaceSampler( mesh )

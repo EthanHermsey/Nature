@@ -119,7 +119,7 @@ async function generateGrid( { gridSize, offset } ) {
         for ( var x = 0; x < gridSize.x; x ++ ) {             
              for ( var z = 0; z < gridSize.z; z ++ ) {
                  
-                const continenal_scale = 0.006;
+                const continenal_scale = 0.0058; //0.006
                 const continental_noise = noise(
                     5999754664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * continenal_scale,
                     5999754664 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * continenal_scale,

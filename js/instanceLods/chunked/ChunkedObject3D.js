@@ -5,6 +5,11 @@ class ChunkedObject3D extends THREE.Object3D{
         this.chunkedData = {}
     }
 
+    animate(){}    
+    clearMatrices(){}
+    addData(){}
+    removeData(){}
+
     update( position ){
 
         const currentCoord = this.terrain.getCoordFromPosition( position );
@@ -36,7 +41,8 @@ class ChunkedObject3D extends THREE.Object3D{
             
             if ( !this.chunkedData[chunkKey] ){
                 
-                this.chunkedData[chunkKey] = this.generateData( chunk );
+                const data = this.generateData( chunk );
+                if ( data ) this.chunkedData[chunkKey] = data
 
             }
             

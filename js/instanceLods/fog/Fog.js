@@ -8,7 +8,7 @@ class Fog extends ChunkedPoints {
             map: new THREE.TextureLoader().load('./resources/fog.png'),
 			size: 500,
 			transparent: true,
-			opacity: 0.2,
+			opacity: 0.08,
 			alphaTest: 0.02
 		})
 		fogMat.onBeforeCompile = ( shader ) => {

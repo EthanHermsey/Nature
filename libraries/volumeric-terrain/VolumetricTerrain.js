@@ -8,6 +8,7 @@ class VolumetricTerrain extends THREE.Object3D {
 
         this.isVolumetricTerrain = true;
 		this.surfaceNetEngine = new SurfaceNets();
+        this.DB = options.DB;
 
         this.currentCoord = options.currentCoord || {x: 0, z: 0};
 		this.chunks = {};
@@ -61,12 +62,14 @@ class VolumetricTerrain extends THREE.Object3D {
 
             let max_initial_chunks = 0;
             let num_initial_chunks = 0;
-            let loadInitialTerrain = ( chunk ) => {
+            let LOAD_INITIAL_TERRAIN = async ( chunk ) => {
 
                 this.chunks[ chunk.chunkKey ] = chunk;
                 num_initial_chunks--;            
                 
                 if ( num_initial_chunks == 0 ) resolve();
+
+                if ( this.DB ) this.DB.add( chunk.chunkKey, { grid: chunk.grid, terrainHeights: chunk.terrainHeights } );
 
             };
 
@@ -84,7 +87,7 @@ class VolumetricTerrain extends THREE.Object3D {
                                     this.currentCoord.x + x,
                                     this.currentCoord.z + z,
                                     this,
-                                    (chunk) => loadInitialTerrain( chunk )
+                                    (chunk) => LOAD_INITIAL_TERRAIN( chunk )
                                 );
                             }
                         })
@@ -196,6 +199,33 @@ class VolumetricTerrain extends THREE.Object3D {
         }            
         
     }
+
+
+                                             
+                                         
+//  .oooo.o  .oooo.   oooo    ooo  .ooooo.  
+// d88(  "8 `P  )88b   `88.  .8'  d88' `88b 
+// `"Y88b.   .oP"888    `88..8'   888ooo888 
+// o.  )88b d8(  888     `888'    888    .o 
+// 8""888P' `Y888""8o     `8'     `Y8bod8P' 
+    async save(){
+
+        if ( this.DB ){
+
+            for( let chunk in this.chunks ){    
+                chunk = this.chunks[chunk]    
+                await this.DB.put( chunk.chunkKey, { grid: chunk.grid, terrainHeights: chunk.terrainHeights } );    
+            }
+
+        }
+        
+    }                                         
+                                         
+                                         
+
+
+
+
 	
 	//                          .     .oooooo.   oooo                                oooo        
 	//                        .o8    d8P'  `Y8b  `888                                `888        
@@ -278,10 +308,10 @@ class VolumetricTerrain extends THREE.Object3D {
         	//check existing chunks
         	for( let key of Object.keys( this.chunks ) ){
     
-        		//if this chunk is not needed in new visible chunks, hide it.
-        		if ( ! newVisibleChunks[ key ]) {
-    
-        			this.chunks[ key ].dispose();
+                //if this chunk is not needed in new visible chunks, hide it.
+                if ( ! newVisibleChunks[ key ]) {
+                    
+                    this.chunks[ key ].dispose();
         			delete this.chunks[ key ];
     
         		}

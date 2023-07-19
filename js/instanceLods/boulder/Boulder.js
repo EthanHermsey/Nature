@@ -11,16 +11,30 @@ class Boulder extends ChunkedObject3D {
         scene.add( this );
 
     }
-
-    animate(){}
     
+    update( position ){
 
-    clearMatrices(){}
+        super.update( position );
+
+        const object = this.children[0];
+        if ( object ) {
+            object.geometry.dispose();
+            this.remove( object );
+        }
+        
+        this.add( this.generateBoulders() );        
+        
+    }
+
+    removeData( key ){
+        for( let geo of this.chunkedData[ key ] ){
+            geo.dispose();
+        }
+    }
 
     loadObjects(){
 
         const loader = new THREE.ObjectLoader();
-        const models = {};
 
         loader.load( './resources/rocks/rocks.json', model=>{
 
@@ -32,15 +46,28 @@ class Boulder extends ChunkedObject3D {
 
     }
 
-    addData( data ){
-        if ( data ) this.add( data );
-    }
+    generateBoulders(){
 
-    removeData( data ){
-        if ( this.chunkedData[ data ] ) {
-            this.chunkedData[ data ].geometry.dispose();
-            this.remove( this.chunkedData[ data ] );
-        }
+        //merge all cliff parts together
+        const geometries = Object.values(this.chunkedData).flat();
+        const boulderGeo = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );
+        
+        boulderGeo.computeBoundsTree = computeBoundsTree;
+        boulderGeo.disposeBoundsTree = disposeBoundsTree;
+        boulderGeo.computeBoundsTree();
+
+        const boulders = new THREE.Mesh( 
+            boulderGeo, 
+            this.model.children[ 0 ].material
+        );
+        boulders.frustumCulled = false;
+        boulders.scale.copy( this.terrain.terrainScale );
+        boulders.receiveShadow = true;
+        boulders.castShadow = true;
+        boulders.raycast = acceleratedRaycast;
+
+        return boulders;
+
     }
 
     generateData( chunk ){
@@ -113,8 +140,9 @@ class Boulder extends ChunkedObject3D {
 
 		}
 
-		//add extra verts to make it a 3d shape
-        let d = new THREE.Object3D();
+        //add extra verts to make it a 3d shape
+        const scaledChunkPosition = chunk.position.clone().divide(this.terrain.terrainScale);
+        let dummy = new THREE.Object3D();
         let geometries = [];
         for(let i = 0; i < chunked.length; i++){
             
@@ -149,18 +177,23 @@ class Boulder extends ChunkedObject3D {
 
             if ( verts.length > 6 ) {
 
-				new THREE.Box3().setFromPoints( verts ).getSize( d.scale );
+                //dummy rotation
+				dummy.quaternion.setFromUnitVectors( scene.up, n );
+				dummy.rotateY( Math.random() * Math.PI );
+				if ( Math.random() > 0.6 ) dummy.rotateX( Math.PI );
 
-				d.quaternion.setFromUnitVectors( scene.up, n );
-				d.rotateY( Math.random() * Math.PI );
-				if ( Math.random() > 0.6 ) d.rotateX( Math.PI );
+                //dummy position
+				dummy.position.copy( c );
+                dummy.position.add( scaledChunkPosition );
 
-				d.position.copy( c );
-				d.updateMatrix();
+                //dummy scale
+                new THREE.Box3().setFromPoints( verts ).getSize( dummy.scale );
+                
+				dummy.updateMatrix();
 
 				let r = Math.floor( Math.random() * 4 );
 				let rock = this.model.children[ r ].geometry.clone();
-				rock.applyMatrix4( d.matrix );
+				rock.applyMatrix4( dummy.matrix );
 
 				geometries.push( rock );
 
@@ -168,29 +201,7 @@ class Boulder extends ChunkedObject3D {
 
 		};
 
-		//merge all cliff parts together
-		let boulderGeo = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );
-        let boulders;
-		if ( boulderGeo ) {
-
-			boulders = new THREE.Mesh( 
-                boulderGeo, 
-				this.model.children[ 0 ].material
-            );
-            boulders.position.add( chunk.position );
-            boulders.scale.copy( chunk.terrain.terrainScale );
-            boulders.receiveShadow = true;
-            boulders.castShadow = true;
-
-		}
-
-        //dispose temp geo's
-        for(let geo of geometries){
-            geo.dispose();
-        }
-
-        return boulders;
-
+		return geometries.length > 0 ? geometries : undefined;
     }
 
 }

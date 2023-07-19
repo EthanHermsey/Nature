@@ -15,7 +15,8 @@ class TerrainController extends VolumetricTerrain{
                 workers: 4,
                 workerScript: './js/terrain/worker/Worker.js',
                 meshFactory: Mesh,
-                chunkClass: Chunk
+                chunkClass: Chunk,
+                // DB: new DB('nature-db', 'grid-data', 'chunkKey')
             },
             ()=>{
 
@@ -58,13 +59,14 @@ class TerrainController extends VolumetricTerrain{
     }
 
 
-//   o8o               o8o      .   
-//   `"'               `"'    .o8   
-//  oooo  ooo. .oo.   oooo  .o888oo 
-//  `888  `888P"Y88b  `888    888   
-//   888   888   888   888    888   
-//   888   888   888   888    888 . 
-//  o888o o888o o888o o888o   "888" 
+
+    //   o8o               o8o      .   
+    //   `"'               `"'    .o8   
+    //  oooo  ooo. .oo.   oooo  .o888oo 
+    //  `888  `888P"Y88b  `888    888   
+    //   888   888   888   888    888   
+    //   888   888   888   888    888 . 
+    //  o888o o888o o888o o888o   "888" 
     init() {
 
         return new Promise( resolve =>{
@@ -81,9 +83,9 @@ class TerrainController extends VolumetricTerrain{
             
             let max_initial_chunks = 0;
             let num_initial_chunks = 0;
-            let loadInitialTerrain = ( chunk ) => {
+            const LOAD_INITIAL_TERRAIN = async ( chunk ) => {
 
-                this.chunks[ chunk.chunkKey ] = chunk;
+                this.chunks[ chunk.chunkKey ] = chunk;                
                 num_initial_chunks--;
                 document.getElementById( chunk.chunkKey ).classList.add('active');
                 
@@ -92,7 +94,9 @@ class TerrainController extends VolumetricTerrain{
                     loadingtext.textContent = `loading resources`;
                     resolve();
 
-                }                
+                }
+
+                if ( this.DB ) this.DB.add( chunk.chunkKey, { grid: chunk.grid, terrainHeights: chunk.terrainHeights } );
 
             };
 
@@ -116,7 +120,7 @@ class TerrainController extends VolumetricTerrain{
                                     this.currentCoord.x + x,
                                     this.currentCoord.z + z,
                                     this,
-                                    (chunk) => loadInitialTerrain( chunk )
+                                    (chunk) => LOAD_INITIAL_TERRAIN( chunk )
                                 );
                             }
                         })
@@ -295,6 +299,6 @@ class TerrainController extends VolumetricTerrain{
         super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'] ] );
 
 	}
-                                                                 
-
+    
+    
 }

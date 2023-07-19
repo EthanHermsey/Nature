@@ -22,12 +22,6 @@ class Grass extends ChunkedInstancedLOD {
         
     }
 
-    addData( data ){
-
-        this.addMatrices( data );
-
-    }
-
     addObjects( models ) {
 
         if ( models.grassModel && models.grassModelHigh ) {

@@ -81,7 +81,19 @@ class VolumetricChunk{
 
     initGrid() {
 
-        return new Promise( resolve => {
+        return new Promise( async resolve => {
+
+            if ( this.terrain.DB ){
+                
+                const data = await this.terrain.DB.get( this.chunkKey );                
+                if ( data && data.grid && data.terrainHeights){
+                    this.grid = data.grid;
+                    this.terrainHeights = data.terrainHeights;                    
+                    resolve();
+
+                }
+
+            }
 
             this.terrain.workerBank.work({offset: this.offset, gridSize: this.terrain.gridSize }, ( { data } ) => {
 
@@ -390,12 +402,15 @@ class VolumetricChunk{
 
 	}
 
-	dispose() {
+	async dispose() {
 
-		if ( this.mesh ) {
+        if ( this.mesh ) {
+
             this.mesh.geometry.dispose();
             this.terrain.remove( this.mesh );
-            this.mesh = undefined;
+            this.mesh = undefined;            
+            if ( this.terrain.DB ) this.terrain.DB.put( this.chunkKey, { grid: this.grid, terrainHeights: this.terrainHeights } );
+
         }
 
 	}

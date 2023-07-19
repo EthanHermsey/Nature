@@ -74,11 +74,7 @@ class Chunk extends VolumetricChunk{
 
     dispose() {
 
-		if ( this.mesh ) {
-            this.mesh.geometry.dispose();
-            this.terrain.remove( this.mesh );
-            this.mesh = undefined;
-        }
+		super.dispose();
 
         if ( this.farMesh ) {
             this.farMesh.geometry.dispose();

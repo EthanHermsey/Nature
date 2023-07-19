@@ -8,7 +8,6 @@ class ChunkedInstancedLOD extends InstancedLOD {
     update( position ){
 
         super.update( position );
-
         const currentCoord = this.terrain.getCoordFromPosition( position );
         
         for( let key in this.chunkedData ) {
@@ -21,6 +20,12 @@ class ChunkedInstancedLOD extends InstancedLOD {
             }
 
         }
+
+    }
+
+    addData( data ){
+
+        this.addMatrices( data );
 
     }
 
