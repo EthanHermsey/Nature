@@ -104,7 +104,7 @@ class InstancedLOD extends THREE.Object3D{
 
     }
 
-    clearMatrices(){
+    clearData(){
         this.matrices = [];
     }
 

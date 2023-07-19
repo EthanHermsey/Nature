@@ -61,7 +61,7 @@ class Fog extends CachedPoints {
 
     }
 
-    clearMatrices(){
+    clearData(){
         this.positionBuffer.length = 0;
     }
 

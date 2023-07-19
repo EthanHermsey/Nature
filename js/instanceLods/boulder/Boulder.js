@@ -21,14 +21,17 @@ class Boulder extends CachedMesh {
     update( position ){
 
         super.update( position );
-        this.generateMesh();
         
-    }
-
-    removeData( key ){
-        for( let geo of this.cachedData[ key ] ){
-            geo.dispose();
+        while(this.children.length > 0){             
+            this.remove(this.children[0]);
         }
+
+        for( let key of Object.keys( this.cachedData ) ){
+
+            if ( this.cachedData[ key ].mesh ) this.add( this.cachedData[ key ].mesh );
+            
+        }
+        
     }
 
     loadObjects(){
@@ -46,25 +49,62 @@ class Boulder extends CachedMesh {
 
     }
 
-    generateMesh(){
+    removeMatricesOnDistanceFromPoint( chunkKey, point, distance ){
 
-        return new Promise( resolve => {
+        if ( !this.cachedData[ chunkKey ] ) return;
+        
+		const p = new THREE.Vector3();
+        let changes = false;
 
-            //merge all cliff parts together
-            const geometries = Object.values(this.cachedData).flat();
-            const newGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );        
+		const checkData = ( array ) => {
+
+			return array.filter( data => {
+
+                p.copy( data.boundingSphere.center ).multiply( terrainController.terrainScale ); //custom
+                const keep = ( p.distanceToSquared( point ) > distance * distance * 50 );
+                if ( !keep ) {
+                    changes = true;
+                }
+                return keep;
+
+            });
+
+		}
+
+        this.cachedData[ chunkKey ] = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ) };
+
+        if ( changes ) this.generateMesh( this.cachedData[ chunkKey ] );
+        
+        return changes;
+        
+    }
+
+    generateMesh( data ){
+
+        if ( data.mesh ){
+            data.mesh.geometry.dispose();
+            this.remove( data.mesh );
+        }
+
+        if ( data.geometries.length > 0 ){
+
+            const newGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries( data.geometries, true );
             newGeometry.computeBoundsTree = computeBoundsTree;
             newGeometry.disposeBoundsTree = disposeBoundsTree;
             newGeometry.computeBoundsTree();
+    
+            data.mesh = new THREE.Mesh( newGeometry, this.material );
+            data.mesh.raycast = acceleratedRaycast;
+            this.add( data.mesh );
 
-            this.geometry.dispose();
-            this.geometry = newGeometry;
-            resolve()
-            
-        });
+        }
 
     }
 
+    addData( data ){
+        if ( !data.mesh ) this.generateMesh( data );
+    }
+    
     generateData( chunk ){
 
         const mesh = chunk.mesh;
@@ -196,7 +236,8 @@ class Boulder extends CachedMesh {
 
 		};
 
-		return geometries.length > 0 ? geometries : undefined;
+        return {mesh: undefined, geometries};
+
     }
 
 }

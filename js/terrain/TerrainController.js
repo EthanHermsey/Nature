@@ -250,7 +250,7 @@ class TerrainController extends VolumetricTerrain{
 
     updateInstancedObject( key ){
 
-        this.instancedObjects[ key ].clearMatrices();        
+        this.instancedObjects[ key ].clearData();        
         const playerCoord = terrainController.getCoordFromPosition( player.position );
 
 		for ( let x = - this.instancedObjectViewDistance; x <= this.instancedObjectViewDistance; x ++ ) {

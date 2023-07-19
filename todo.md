@@ -1,6 +1,12 @@
-- triplanar texture
+- boulders spawnen werkt niet goed
 
-- instancedLOD                                     <<<------------- next
+- needsupdate voor performance / verbeteren van build tick
+
+- nieuwe boulders verschijnen / oude niet te verwijderen
+
+- verbeterde spawner voor objecten met gelaagde objecten
+
+- triplanar texture
 
 - raycast-bhv pullrequest
 

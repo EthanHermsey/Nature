@@ -58,10 +58,10 @@ class Trees extends Cached {
 
     }
 
-    clearMatrices(){
+    clearData(){
 
-        this.tree.clearMatrices();
-        this.tree1.clearMatrices();
+        this.tree.clearData();
+        this.tree1.clearData();
 
     }
 

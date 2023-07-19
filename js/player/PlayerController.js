@@ -112,17 +112,20 @@ class Player {
                 this.model.position.y -= this.height;
                 this.model.rotation.order = "YXZ";
                 this.model.rotation.y = Math.PI;
-                this.model.castShadow = true;
-                this.model.receiveShadow = true;    
-                for( let c of this.model.children ){
-    
-                    if ( c.type != 'Bone' ) {
-                        c.castShadow = true;
-                        c.receiveShadow = true;    
-                    }
-    
-                };
+
+                const shadowGeometry = new THREE.SphereGeometry( 0.6, 16, 16 );                
+                shadowGeometry.scale( 1.8, 0.25, 1.8 );
+                const shadowMaker = new THREE.Mesh(
+                    shadowGeometry,
+                    new THREE.MeshBasicMaterial({color: 'black', transparent: true, opacity: 0.05 })
+                );
+
+                shadowMaker.position.copy( this.object.position );
+                shadowMaker.position.y -= this.height;
+
+                this.object.attach( shadowMaker );
                 this.object.add( this.model );
+
                 resolve();
     
             } );
