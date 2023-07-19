@@ -1,72 +1,67 @@
 
-class Boulder extends ChunkedObject3D {
+class Boulder extends CachedMesh {
 
     constructor( terrain, viewDistance ){
 
         super();
-        this.frustumCulled = false;
         this.terrain = terrain;
         this.viewDistance = viewDistance;
-        this.loadObjects();
+
+        this.frustumCulled = false;
+        this.scale.copy( this.terrain.terrainScale );
+        this.receiveShadow = true;
+        this.castShadow = true;
+        this.raycast = acceleratedRaycast;
         scene.add( this );
+
+        this.loadObjects();
 
     }
     
     update( position ){
 
         super.update( position );
-
-        const object = this.children[0];
-        if ( object ) {
-            object.geometry.dispose();
-            this.remove( object );
-        }
-        
-        this.add( this.generateBoulders() );        
+        this.generateMesh();
         
     }
 
     removeData( key ){
-        for( let geo of this.chunkedData[ key ] ){
+        for( let geo of this.cachedData[ key ] ){
             geo.dispose();
         }
     }
 
     loadObjects(){
-
+         
         const loader = new THREE.ObjectLoader();
 
         loader.load( './resources/rocks/rocks.json', model=>{
 
-            this.model = model;
-            this.model.children[ 0 ].material.color = new THREE.Color( 'rgb(180, 180, 180)' );
-            this.model.children[ 0 ].material.map.encoding = THREE.sRGBEncoding;
+            this.geometries = model.children.map( child => child.geometry );
+            this.material = model.children[ 0 ].material;            
+            this.material.color = new THREE.Color( 'rgb(180, 180, 180)' );
+            this.material.map.encoding = THREE.sRGBEncoding;
 
-        });
+        });        
 
     }
 
-    generateBoulders(){
+    generateMesh(){
 
-        //merge all cliff parts together
-        const geometries = Object.values(this.chunkedData).flat();
-        const boulderGeo = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );
-        
-        boulderGeo.computeBoundsTree = computeBoundsTree;
-        boulderGeo.disposeBoundsTree = disposeBoundsTree;
-        boulderGeo.computeBoundsTree();
+        return new Promise( resolve => {
 
-        const boulders = new THREE.Mesh( 
-            boulderGeo, 
-            this.model.children[ 0 ].material
-        );
-        boulders.frustumCulled = false;
-        boulders.scale.copy( this.terrain.terrainScale );
-        boulders.receiveShadow = true;
-        boulders.castShadow = true;
-        boulders.raycast = acceleratedRaycast;
+            //merge all cliff parts together
+            const geometries = Object.values(this.cachedData).flat();
+            const newGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries( geometries, true );        
+            newGeometry.computeBoundsTree = computeBoundsTree;
+            newGeometry.disposeBoundsTree = disposeBoundsTree;
+            newGeometry.computeBoundsTree();
 
-        return boulders;
+            this.geometry.dispose();
+            this.geometry = newGeometry;
+            resolve()
+            
+        });
 
     }
 
@@ -192,7 +187,7 @@ class Boulder extends ChunkedObject3D {
 				dummy.updateMatrix();
 
 				let r = Math.floor( Math.random() * 4 );
-				let rock = this.model.children[ r ].geometry.clone();
+				let rock = this.geometries[ r ].clone();
 				rock.applyMatrix4( dummy.matrix );
 
 				geometries.push( rock );

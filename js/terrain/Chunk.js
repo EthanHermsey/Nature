@@ -41,36 +41,8 @@ class Chunk extends VolumetricChunk{
 
     async adjust( center, radius, val, checkNeighbors ) {
         super.adjust( center, radius, val, checkNeighbors );
-        // this.adjustVegetation( center, radius );
+        this.terrain.adjustInstancedObjects( this.chunkKey, center, radius );
     }
-
-    adjustVegetation( center, radius ) {
-
-		// const worldCenter = this.position.clone().add( center.clone().multiply( this.terrain.terrainScale ) );
-		// const p = new THREE.Vector3();
-        // let changes = false;
-
-		// function checkMatrices( matrices ) {
-
-		// 	return matrices.filter( matrix =>{
-
-		// 		p.setFromMatrixPosition( matrix );
-        //         const keep = ( p.distanceToSquared( worldCenter ) > radius * radius * 25 );
-        //         if ( !keep ) changes = true;
-		// 		return keep;
-
-		// 	} );
-
-		// }
-
-		// this.modelMatrices[ 'ferns' ] = checkMatrices( this.modelMatrices[ 'ferns' ] );
-		// this.modelMatrices[ 'grass' ][ 0 ] = checkMatrices( this.modelMatrices[ 'grass' ][ 0 ] );
-		// this.modelMatrices[ 'grass' ][ 1 ] = checkMatrices( this.modelMatrices[ 'grass' ][ 1 ] );
-		// this.modelMatrices[ 'tree' ] = checkMatrices( this.modelMatrices[ 'tree' ] );
-		// this.modelMatrices[ 'tree1' ] = checkMatrices( this.modelMatrices[ 'tree1' ] );
-
-        // if ( changes ) this.terrain.generateInstancedObjects();
-	}
 
     dispose() {
 

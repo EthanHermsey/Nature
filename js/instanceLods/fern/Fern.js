@@ -1,5 +1,5 @@
 
-class Fern extends ChunkedInstancedLOD {
+class Fern extends CachedInstancedLOD {
 
     constructor( terrain, viewDistance ){
 

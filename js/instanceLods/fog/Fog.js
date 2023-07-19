@@ -1,5 +1,5 @@
 
-class Fog extends ChunkedPoints {
+class Fog extends CachedPoints {
 
     constructor( terrain, viewDistance ){
 
@@ -43,6 +43,8 @@ class Fog extends ChunkedPoints {
         scene.add( this );
 
     }
+
+    removeMatricesOnDistanceFromPoint(){}
 
     animate( delta ){
 		if ( this.material.userData.shader ){            

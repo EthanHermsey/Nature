@@ -29,6 +29,13 @@ class TerrainController extends VolumetricTerrain{
                 this.treeHighViewDistance = 4;
                 this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
 
+                this.instancedObjectsNeedUpdate = {
+                    "Grass": false,
+                    "Tree": false,
+                    "Fern": false,
+                    "Fog": false,
+                    "Boulder": false
+                };
                 this.instancedObjects = {
                     "Grass": new Grass( this, this.grassViewDistance ),
                     "Tree": new Trees( this, this.treeViewDistance ),
@@ -217,16 +224,33 @@ class TerrainController extends VolumetricTerrain{
 
     }
 
-    updateInstancedObjects(){
+    updateInstancedObjectsIfNeeded(){
+        for ( let key of Object.keys( this.instancedObjects ) ) {
 
-        const keys = Object.keys( this.instancedObjects );
+            if ( this.instancedObjectsNeedUpdate[ key ] ){
 
-        for( let key of keys){
+                this.instancedObjectsNeedUpdate[ key ] = false;
+                this.updateInstancedObject( key );
 
-            this.instancedObjects[ key ].clearMatrices();
-        
+            }
+
         }
 
+    }
+
+    updateInstancedObjects(){
+
+        for( let key of Object.keys( this.instancedObjects ) ){
+
+            this.updateInstancedObject( key );
+        
+        }
+        
+    }
+
+    updateInstancedObject( key ){
+
+        this.instancedObjects[ key ].clearMatrices();        
         const playerCoord = terrainController.getCoordFromPosition( player.position );
 
 		for ( let x = - this.instancedObjectViewDistance; x <= this.instancedObjectViewDistance; x ++ ) {
@@ -239,25 +263,13 @@ class TerrainController extends VolumetricTerrain{
 				};
                 const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
-                if ( chunk ) {
-
-                    for( let key of keys ) {
-
-                        this.instancedObjects[ key ].addChunk( chunk, x, z );
-
-                    }
-
-                }
+                if ( chunk ) this.instancedObjects[ key ].addChunk( chunk, x, z );
 
             }
 
         }
-
-        for ( let key of keys ) {
         
-            this.instancedObjects[ key ].update( player.position );
-        
-        }
+        this.instancedObjects[ key ].update( player.position );
         
     }
 
@@ -299,6 +311,56 @@ class TerrainController extends VolumetricTerrain{
         super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'] ] );
 
 	}
-    
+
+
+
+
+
+
+
+
+    //                 .o8      o8o                          .                                 
+    //                "888      `"'                        .o8                                 
+    //  .oooo.    .oooo888     oooo oooo  oooo   .oooo.o .o888oo                               
+    // `P  )88b  d88' `888     `888 `888  `888  d88(  "8   888                                 
+    //  .oP"888  888   888      888  888   888  `"Y88b.    888                                 
+    // d8(  888  888   888      888  888   888  o.  )88b   888 .                               
+    // `Y888""8o `Y8bod88P"     888  `V88V"V8P' 8""888P'   "888"                               
+    //                          888                                                            
+    //                      .o. 88P                                                            
+    //                      `Y888P                                                             
+    //  o8o                           .                                                   .o8  
+    //  `"'                         .o8                                                  "888  
+    // oooo  ooo. .oo.    .oooo.o .o888oo  .oooo.   ooo. .oo.    .ooooo.   .ooooo.   .oooo888  
+    // `888  `888P"Y88b  d88(  "8   888   `P  )88b  `888P"Y88b  d88' `"Y8 d88' `88b d88' `888  
+    //  888   888   888  `"Y88b.    888    .oP"888   888   888  888       888ooo888 888   888  
+    //  888   888   888  o.  )88b   888 . d8(  888   888   888  888   .o8 888    .o 888   888  
+    // o888o o888o o888o 8""888P'   "888" `Y888""8o o888o o888o `Y8bod8P' `Y8bod8P' `Y8bod88P" 
+    //            .o8           o8o                         .                                  
+    //           "888           `"'                       .o8                                  
+    //  .ooooo.   888oooo.     oooo  .ooooo.   .ooooo.  .o888oo  .oooo.o                       
+    // d88' `88b  d88' `88b    `888 d88' `88b d88' `"Y8   888   d88(  "8                       
+    // 888   888  888   888     888 888ooo888 888         888   `"Y88b.                        
+    // 888   888  888   888     888 888    .o 888   .o8   888 . o.  )88b                       
+    // `Y8bod8P'  `Y8bod8P'     888 `Y8bod8P' `Y8bod8P'   "888" 8""888P'                       
+    //                          888                                                            
+    //                      .o. 88P                                                            
+    //                      `Y888P                                                             
+    adjustInstancedObjects( chunkKey, center, radius ) {
+
+        const chunk = this.getChunk( chunkKey );
+        const point = chunk.position.clone().add( center.clone().multiply( this.terrainScale ) );
+
+        for ( let key of Object.keys( this.instancedObjects ) ) {
+        
+            if ( this.instancedObjects[ key ].removeMatricesOnDistanceFromPoint( chunkKey, point, radius ) ){
+
+                this.instancedObjectsNeedUpdate[key] = true;
+                
+            }
+        
+        }
+
+	}
     
 }

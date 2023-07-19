@@ -1,5 +1,5 @@
 
-class Trees extends Chunked {
+class Trees extends Cached {
 
     constructor( terrain, viewDistance ){
 
@@ -43,14 +43,14 @@ class Trees extends Chunked {
         this.tree1.update( position );
 
         const currentCoord = this.terrain.getCoordFromPosition( position );
-        for( let key in this.chunkedMatrices ) {
+        for( let key in this.cachedMatrices ) {
 
-            const chunk = this.terrain.getChunk( this.chunkedMatrices[key].chunkKey);
+            const chunk = this.terrain.getChunk( this.cachedMatrices[key].chunkKey);
             if ( !chunk || 
                  Math.abs( chunk.offset.x - currentCoord.x) > this.viewDistance ||
                  Math.abs( chunk.offset.z - currentCoord.z) > this.viewDistance ){
 
-                delete this.chunkedMatrices[ key ];
+                delete this.cachedMatrices[ key ];
 
             }
 
@@ -154,6 +154,34 @@ class Trees extends Chunked {
 
         return modelMatrices;
 
+    }
+
+    removeMatricesOnDistanceFromPoint( chunkKey, point, distance ){
+
+        
+		const p = new THREE.Vector3();
+        let changes = false;
+
+		function checkData( array ) {
+
+			return array.filter( data =>{
+
+                p.setFromMatrixPosition( data );
+                const keep = ( p.distanceToSquared( point ) > distance * distance * 25 );
+                if ( !keep ) {
+                    changes = true;
+                }
+				return keep;
+
+			} );
+
+		}
+
+        this.cachedData[ chunkKey ].tree = checkData( this.cachedData[ chunkKey ].tree );
+        this.cachedData[ chunkKey ].tree1 = checkData( this.cachedData[ chunkKey ].tree1 );
+        
+        return changes;
+        
     }
 
 }

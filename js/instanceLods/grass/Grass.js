@@ -1,5 +1,5 @@
 
-class Grass extends ChunkedInstancedLOD {
+class Grass extends CachedInstancedLOD {
 
     constructor( terrain, viewDistance ){
 

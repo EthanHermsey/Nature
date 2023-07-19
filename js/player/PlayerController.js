@@ -707,6 +707,7 @@ class Player {
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( gridPosition, this.brushRadius, val, true );
+            terrainController.updateInstancedObjectsIfNeeded();
 
 		}
 
