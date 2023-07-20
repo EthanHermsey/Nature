@@ -1,12 +1,8 @@
-- boulders spawnen werkt niet goed
-
 - needsupdate voor performance / verbeteren van build tick
 
-- nieuwe boulders verschijnen / oude niet te verwijderen
+- efficiently save/load from db
 
 - verbeterde spawner voor objecten met gelaagde objecten
-
-- triplanar texture
 
 - raycast-bhv pullrequest
 

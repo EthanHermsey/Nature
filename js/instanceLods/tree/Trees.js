@@ -6,6 +6,7 @@ class Trees extends Cached {
         super();
         this.terrain = terrain;
         this.viewDistance = viewDistance;
+        this.needsUpdate = true;
 
         this.tree = new Tree( this.terrain );
         this.tree1 = new Tree1( this.terrain );        
@@ -55,6 +56,8 @@ class Trees extends Cached {
             }
 
         }
+        
+        this.needsUpdate = false;
 
     }
 
@@ -158,8 +161,7 @@ class Trees extends Cached {
 
     removeMatricesOnDistanceFromPoint( chunkKey, point, distance ){
 
-        
-		const p = new THREE.Vector3();
+        const p = new THREE.Vector3();
         let changes = false;
 
 		function checkData( array ) {
@@ -180,7 +182,7 @@ class Trees extends Cached {
         this.cachedData[ chunkKey ].tree = checkData( this.cachedData[ chunkKey ].tree );
         this.cachedData[ chunkKey ].tree1 = checkData( this.cachedData[ chunkKey ].tree1 );
         
-        return changes;
+        this.needsUpdate = changes;
         
     }
 

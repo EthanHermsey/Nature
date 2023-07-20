@@ -2,7 +2,8 @@ class CachedPoints extends THREE.Points {
 
     constructor(...args){
         super(...args);
-        this.cachedData = {}
+        this.cachedData = {};
+        this.needsUpdate = true;
     }
 
     update( position ){
@@ -19,6 +20,8 @@ class CachedPoints extends THREE.Points {
             }
 
         }
+
+        this.needsUpdate = false;
 
     }
 
@@ -66,8 +69,7 @@ class CachedPoints extends THREE.Points {
 		}
 
         this.cachedData[ chunkKey ] = checkData( this.cachedData[ chunkKey ] );
-        
-        return changes;
+        this.needsUpdate = changes;
         
     }
 

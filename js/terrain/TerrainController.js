@@ -2,18 +2,19 @@
 
 class TerrainController extends VolumetricTerrain{
 
-	constructor( offset, callback ) {
+	constructor( offset, seed, callback ) {
 		
         super(
             {
                 gridSize: { x: 16, y: 256, z: 16 },
                 terrainScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
-                viewDistance: 4,
+                viewDistance: 6,
                 farViewDistance: 0,
+                seed: seed,
                 material: terrainMaterial,
                 workers: 4,
-                workerScript: './js/terrain/worker/Worker.js',
+                workerScript: './js/terrain/worker/GridWorker.js',
                 meshFactory: Mesh,
                 chunkClass: Chunk,
                 // DB: new DB('nature-db', 'grid-data', 'chunkKey')
@@ -29,13 +30,6 @@ class TerrainController extends VolumetricTerrain{
                 this.treeHighViewDistance = 4;
                 this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
 
-                this.instancedObjectsNeedUpdate = {
-                    "Grass": false,
-                    "Tree": false,
-                    "Fern": false,
-                    "Fog": false,
-                    "Boulder": false
-                };
                 this.instancedObjects = {
                     "Grass": new Grass( this, this.grassViewDistance ),
                     "Tree": new Trees( this, this.treeViewDistance ),
@@ -199,6 +193,7 @@ class TerrainController extends VolumetricTerrain{
         
         if ( newChunks ) {
             this.updateChunkLODs();
+            this.updateInstancedObjects( true );
         }
     }
 
@@ -224,13 +219,13 @@ class TerrainController extends VolumetricTerrain{
 
     }
 
-    updateInstancedObjectsIfNeeded(){
-        for ( let key of Object.keys( this.instancedObjects ) ) {
+    updateInstancedObjects( force = false ){
 
-            if ( this.instancedObjectsNeedUpdate[ key ] ){
+        for ( let chunkKey of Object.keys( this.instancedObjects ) ) {
 
-                this.instancedObjectsNeedUpdate[ key ] = false;
-                this.updateInstancedObject( key );
+            if ( this.instancedObjects[ chunkKey ].needsUpdate || force ){
+
+                this.updateInstancedObject( chunkKey );                
 
             }
 
@@ -238,19 +233,10 @@ class TerrainController extends VolumetricTerrain{
 
     }
 
-    updateInstancedObjects(){
+    updateInstancedObject( chunkKey ){
 
-        for( let key of Object.keys( this.instancedObjects ) ){
-
-            this.updateInstancedObject( key );
+        this.instancedObjects[ chunkKey ].clearData();        
         
-        }
-        
-    }
-
-    updateInstancedObject( key ){
-
-        this.instancedObjects[ key ].clearData();        
         const playerCoord = terrainController.getCoordFromPosition( player.position );
 
 		for ( let x = - this.instancedObjectViewDistance; x <= this.instancedObjectViewDistance; x ++ ) {
@@ -263,13 +249,13 @@ class TerrainController extends VolumetricTerrain{
 				};
                 const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
-                if ( chunk ) this.instancedObjects[ key ].addChunk( chunk, x, z );
+                if ( chunk ) this.instancedObjects[ chunkKey ].addChunk( chunk, x, z );
 
             }
 
         }
         
-        this.instancedObjects[ key ].update( player.position );
+        this.instancedObjects[ chunkKey ].update( player.position );
         
     }
 
@@ -308,7 +294,12 @@ class TerrainController extends VolumetricTerrain{
                                                                                                                           
     updateCastChunkTerrainArray( currentCoord ) { //adding boulders to castables
 
-        super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'] ] );
+        if ( this.instancedObjects['Boulder'] ){
+            super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'] ] );
+        } else {
+            super.updateCastChunkTerrainArray( currentCoord );
+        }
+        
 
 	}
 
@@ -353,11 +344,7 @@ class TerrainController extends VolumetricTerrain{
 
         for ( let key of Object.keys( this.instancedObjects ) ) {
         
-            if ( this.instancedObjects[ key ].removeMatricesOnDistanceFromPoint( chunkKey, point, radius ) ){
-
-                this.instancedObjectsNeedUpdate[key] = true;
-                
-            }
+            this.instancedObjects[ key ].removeMatricesOnDistanceFromPoint( chunkKey, point, radius );
         
         }
 

@@ -1,7 +1,8 @@
 class Cached {
 
     constructor(){
-        this.cachedData = {}
+        this.cachedData = {};
+        this.needsUpdate = true;
     }
 
     update( position ){
@@ -18,6 +19,8 @@ class Cached {
             }
 
         }
+
+        this.needsUpdate = false;
 
     }
 
@@ -64,8 +67,7 @@ class Cached {
 		}
 
         this.cachedData[ chunkKey ] = checkData( this.cachedData[ chunkKey ] );
-        
-        return changes;
+        this.needsUpdate = changes;
         
     }
 

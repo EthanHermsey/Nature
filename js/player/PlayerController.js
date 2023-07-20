@@ -33,10 +33,10 @@ class Player {
 		this.intersectPoint = null;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.1;
+		this.terrainAdjustStrength = 0.12;
 		this.brushRadius = 4;
 		this.buildTimer = 0;
-		this.maxBuildTime = 0.21;
+		this.maxBuildTime = 0.12;
 		this.maxBuildDistance = 250;
 		
 
@@ -53,7 +53,7 @@ class Player {
 		this.grounded = true;
 
 		//flymode selector
-		this.flyMode = false;
+		this.flyMode = true;
         this.godMode = false;
 
 	}
@@ -113,17 +113,6 @@ class Player {
                 this.model.rotation.order = "YXZ";
                 this.model.rotation.y = Math.PI;
 
-                const shadowGeometry = new THREE.SphereGeometry( 0.6, 16, 16 );                
-                shadowGeometry.scale( 1.8, 0.25, 1.8 );
-                const shadowMaker = new THREE.Mesh(
-                    shadowGeometry,
-                    new THREE.MeshBasicMaterial({color: 'black', transparent: true, opacity: 0.05 })
-                );
-
-                shadowMaker.position.copy( this.object.position );
-                shadowMaker.position.y -= this.height;
-
-                this.object.attach( shadowMaker );
                 this.object.add( this.model );
 
                 resolve();
@@ -706,11 +695,11 @@ class Player {
 				.sub( this.intersectPoint.object.position )
 				.divide( terrainController.terrainScale )
 				.round();
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength * 1.2;
+			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( gridPosition, this.brushRadius, val, true );
-            terrainController.updateInstancedObjectsIfNeeded();
+            terrainController.updateInstancedObjects();
 
 		}
 

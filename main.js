@@ -12,6 +12,9 @@ raycaster.firstHitOnly = true;
 
 //chunks
 let terrainController;
+// const terrainSeed = 32921; //is very nice
+// const terrainSeed = Math.floor( Math.random() * 99999 );
+const terrainSeed = 55350; //is very nice
 
 //player
 let player;
@@ -116,12 +119,6 @@ function setup() {
 
 	//fog
 	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0005 );
-
-	//terrainSeed
-	let rnd = 32921; //is very nice
-	// let rnd = floor( random( 99999 ) );
-	console.log( '> Seed: ' + rnd );
-	noiseSeed( rnd ); //p5 function to set the seed of the perlin noise gen
 
     //player!
     player = new Player();
@@ -287,7 +284,7 @@ function startLoading( offset ){
         if ( !terrainController ) {
             
             await new Promise((resolve) => {
-                terrainController = new TerrainController( offset, () => resolve() );
+                terrainController = new TerrainController( offset, terrainSeed, () => resolve() );
                 scene.add( terrainController );                
             })
             

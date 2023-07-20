@@ -2,7 +2,8 @@ class CachedInstancedLOD extends InstancedLOD {
 
     constructor(){
         super();
-        this.cachedData = {}
+        this.cachedData = {};
+        this.needsUpdate = true;
     }
 
     update( position ){
@@ -20,6 +21,8 @@ class CachedInstancedLOD extends InstancedLOD {
             }
 
         }
+
+        this.needsUpdate = false;
 
     }
 
@@ -73,9 +76,8 @@ class CachedInstancedLOD extends InstancedLOD {
 		}
         
         this.cachedData[ chunkKey ] = checkData( this.cachedData[ chunkKey ] );        
+        this.needsUpdate = changes;
 
-        return changes;
-        
     }
 
 }

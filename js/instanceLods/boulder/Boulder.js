@@ -5,8 +5,7 @@ class Boulder extends CachedMesh {
 
         super();
         this.terrain = terrain;
-        this.viewDistance = viewDistance;
-
+        this.viewDistance = viewDistance;        
         this.frustumCulled = false;
         this.scale.copy( this.terrain.terrainScale );
         this.receiveShadow = true;
@@ -28,6 +27,10 @@ class Boulder extends CachedMesh {
 
         for( let key of Object.keys( this.cachedData ) ){
 
+            if ( this.cachedData[ key ].needsUpdate ) {
+                this.generateMesh( key );
+                delete this.cachedData[ key ].needsUpdate;
+            }
             if ( this.cachedData[ key ].mesh ) this.add( this.cachedData[ key ].mesh );
             
         }
@@ -71,11 +74,8 @@ class Boulder extends CachedMesh {
 
 		}
 
-        this.cachedData[ chunkKey ] = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ) };
-
-        if ( changes ) this.generateMesh( this.cachedData[ chunkKey ] );
-        
-        return changes;
+        this.cachedData[ chunkKey ] = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ), needsUpdate: changes };
+        this.needsUpdate = changes;
         
     }
 

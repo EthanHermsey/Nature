@@ -5,6 +5,7 @@ class InstancedLOD extends THREE.Object3D{
         super();
         this.levels = [];
         this.matrices = [];
+        this.needsUpdate = false;
         this.dummy = new THREE.Object3D();        
     }
 
@@ -78,6 +79,8 @@ class InstancedLOD extends THREE.Object3D{
         this.applyLevelCounts( levelCounts );
         this.updateInstancedObjectMatrices();
 
+        this.needsUpdate = false;
+
     }
 
     applyLevelCounts( levelCounts ){
@@ -123,7 +126,6 @@ class InstancedLOD extends THREE.Object3D{
         }
 
     }
-
     
     updateInstancedObjectMatrices = () => {
 

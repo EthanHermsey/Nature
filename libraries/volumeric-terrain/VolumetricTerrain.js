@@ -9,11 +9,11 @@ class VolumetricTerrain extends THREE.Object3D {
         this.isVolumetricTerrain = true;
 		this.surfaceNetEngine = new SurfaceNets();
         this.DB = options.DB;
+        this.seed = options.seed || Math.floor( Math.random() * 99999 );
 
         this.currentCoord = options.currentCoord || {x: 0, z: 0};
 		this.chunks = {};
-		this.updateChunks = {};
-		this.createNewChunks = {};
+		this.chunkBuildQueue = {};
 		this.castables = [];		
 		
         this.gridSize = options.gridSize || { x: 16, y: 256, z: 16 };
@@ -29,7 +29,7 @@ class VolumetricTerrain extends THREE.Object3D {
         this.chunkClass = options.chunkClass || VolumetricChunk;
 		
         const num_workers = options.workers || 4;
-        this.workerBank = new WorkerBank(options.workerScript, num_workers);
+        this.workerBank = new WorkerBank(options.workerScript, { terrainSeed: this.seed }, num_workers);
 
         this.init()
 			.then( ()=>{
@@ -129,31 +129,33 @@ class VolumetricTerrain extends THREE.Object3D {
 
         const currentCoord = this.getCoordFromPosition( position );
 
-        //update chunks after digging        
-        if ( Object.keys( this.updateChunks ).length > 0 ) {
+        //update chunks after digging
+        for( let chunkKey of Object.keys( this.chunks ) ) {
 
-            for( let chunkKey of Object.keys( this.updateChunks ) ) {
+            if ( this.chunks[ chunkKey].needsUpdate === true ){
 
                 promises.push( this.chunks[ chunkKey ].update() );
-                delete this.updateChunks[ chunkKey ];
+                this.chunks[ chunkKey].needsUpdate = false;
                 updatedChunk = true;
 
-            };
+            }
+
+        };
             
-        }
+        
 
 		//create new chunks
-		if ( Object.keys( this.createNewChunks ).length > 0 ) {
+		if ( Object.keys( this.chunkBuildQueue ).length > 0 ) {
 
-            for( let chunkKey of Object.keys( this.createNewChunks )){
+            for( let chunkKey of Object.keys( this.chunkBuildQueue )){
                 
                 if ( ! this.chunks[ chunkKey ] ) {
     
                     promises.push(new Promise( ( resolve )=>{
     
                         new this.chunkClass(
-                            this.createNewChunks[ chunkKey ].x,
-                            this.createNewChunks[ chunkKey ].z,
+                            this.chunkBuildQueue[ chunkKey ].x,
+                            this.chunkBuildQueue[ chunkKey ].z,
                             this,
                             chunk => {
                                 this.chunks[ chunkKey ] = chunk;
@@ -164,7 +166,7 @@ class VolumetricTerrain extends THREE.Object3D {
                     } ) );
                 }
 
-                delete this.createNewChunks[ chunkKey ];
+                delete this.chunkBuildQueue[ chunkKey ];
 
             };
 
@@ -295,7 +297,7 @@ class VolumetricTerrain extends THREE.Object3D {
         			//add it to chunk generation queue
         			if ( ! this.getChunk( chunkKey ) ){
     
-        				this.createNewChunks[ chunkKey ] = coord;                        
+        				this.chunkBuildQueue[ chunkKey ] = coord;                        
     
         			}
     
@@ -346,7 +348,7 @@ class VolumetricTerrain extends THREE.Object3D {
 	// 888        888   888   888   888   888   888   888888.    `"Y88b.   
 	// 888   .o8  888   888   888   888   888   888   888 `88b.  o.  )88b  
 	// `Y8bod8P' o888o o888o  `V88V"V8P' o888o o888o o888o o888o 8""888P'  
-	updateCastChunkTerrainArray( currentCoord, castableObjects ) {
+	updateCastChunkTerrainArray( currentCoord, castableObjects = [] ) {
 
         //new set of visible chunks
 		let newcastables = {};
@@ -371,9 +373,11 @@ class VolumetricTerrain extends THREE.Object3D {
 		for ( let chunkKey in newcastables ) {
 
             let chunk = terrainController.getChunk( chunkKey );
-			if ( chunk ) {
-				this.castables.push( ...[chunk.mesh, ...castableObjects] );
-			}
+            let objects = castableObjects.map( castableObject => castableObject?.cachedData[ chunkKey ]?.mesh || castableObject );
+
+			if ( chunk ) this.castables.push( chunk.mesh );
+			if ( objects.length > 0 ) this.castables.push( ...objects );
+
 		}
 
 	}

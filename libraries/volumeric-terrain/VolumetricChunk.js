@@ -5,6 +5,7 @@ class VolumetricChunk{
 
 		//parent
 		this.terrain = terrain;
+        this.needsUpdate = false;
 
 		//offset coordinates
 		this.offset = { x, z };
@@ -237,7 +238,7 @@ class VolumetricChunk{
 							if ( this.isInsideGrid( newPosition ) ) {
 
 								//if not lower that 0 or height that this.terrain.gridSize, add value
-								this.addValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
+								this.addScaleValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
 
 							}
 
@@ -250,7 +251,7 @@ class VolumetricChunk{
 			}
 
 			//put this chunk in the list of chunk that need updates
-			this.terrain.updateChunks[ this.chunkKey ] = true;
+			this.needsUpdate = true;
 
 			// if the player clicks near a chunk edge, make sure to
 			// check the neighbors for terrain adjusting
@@ -383,6 +384,14 @@ class VolumetricChunk{
 
 		let gridOffset = this.gridIndex( x, y, z );
 		this.grid[ gridOffset ] = val;
+
+	}
+
+    addScaleValueToGrid( x, y, z, val ) {
+
+		let gridOffset = this.gridIndex( x, y, z );
+        const oldValueScale = (abs(this.grid[ gridOffset ]) / 0.5) + 0.1;
+		this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + (val * oldValueScale), - 0.5, 0.5 );
 
 	}
 

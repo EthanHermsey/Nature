@@ -3,7 +3,8 @@ class CachedMesh extends THREE.Mesh{
     constructor( geometry, material ){
 
         super( geometry, material );
-        this.cachedData = {}
+        this.cachedData = {};
+        this.needsUpdate = true;
 
     }
 
@@ -28,6 +29,8 @@ class CachedMesh extends THREE.Mesh{
             }
 
         }
+
+        this.needsUpdate = false;
 
     }
 
