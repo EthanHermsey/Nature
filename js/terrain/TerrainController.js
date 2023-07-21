@@ -9,7 +9,7 @@ class TerrainController extends VolumetricTerrain{
                 gridSize: { x: 16, y: 256, z: 16 },
                 terrainScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
-                viewDistance: 6,
+                viewDistance: 4,
                 farViewDistance: 0,
                 seed: seed,
                 material: terrainMaterial,
@@ -17,7 +17,7 @@ class TerrainController extends VolumetricTerrain{
                 workerScript: './js/terrain/worker/GridWorker.js',
                 meshFactory: Mesh,
                 chunkClass: Chunk,
-                // DB: new DB('nature-db', 'grid-data', 'chunkKey')
+                db: false                   ////////////////////////////////    <<-------------------------------
             },
             ()=>{
 
@@ -29,6 +29,7 @@ class TerrainController extends VolumetricTerrain{
                 this.treeViewDistance = 16;
                 this.treeHighViewDistance = 4;
                 this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
+                this.upperBoulderHeightLimit = this.gridSize.y * 0.6;
 
                 this.instancedObjects = {
                     "Grass": new Grass( this, this.grassViewDistance ),
@@ -46,18 +47,6 @@ class TerrainController extends VolumetricTerrain{
         );
 
 	}
-
-    toggleClock( start ){
-
-        if ( start ){            
-            this.clock = setInterval(() => {
-                this.update();
-            }, 300 );
-        } else {
-            clearInterval(this.clock);
-        }
-
-    }
 
 
 
@@ -96,8 +85,6 @@ class TerrainController extends VolumetricTerrain{
                     resolve();
 
                 }
-
-                if ( this.DB ) this.DB.add( chunk.chunkKey, { grid: chunk.grid, terrainHeights: chunk.terrainHeights } );
 
             };
 
@@ -235,27 +222,33 @@ class TerrainController extends VolumetricTerrain{
 
     updateInstancedObject( chunkKey ){
 
-        this.instancedObjects[ chunkKey ].clearData();        
+        return new Promise( resolve => {
+
+            this.instancedObjects[ chunkKey ].clearData();        
         
-        const playerCoord = terrainController.getCoordFromPosition( player.position );
+            const playerCoord = terrainController.getCoordFromPosition( player.position );
 
-		for ( let x = - this.instancedObjectViewDistance; x <= this.instancedObjectViewDistance; x ++ ) {
+            for ( let x = - this.instancedObjectViewDistance; x <= this.instancedObjectViewDistance; x ++ ) {
 
-			for ( let z = - this.instancedObjectViewDistance; z <= this.instancedObjectViewDistance; z ++ ) {
+                for ( let z = - this.instancedObjectViewDistance; z <= this.instancedObjectViewDistance; z ++ ) {
 
-				const chunkCoord = { 
-					x: ( playerCoord?.x || 0 ) + x, 
-					z: ( playerCoord?.z || 0 ) + z, 
-				};
-                const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
+                    const chunkCoord = { 
+                        x: ( playerCoord?.x || 0 ) + x, 
+                        z: ( playerCoord?.z || 0 ) + z, 
+                    };
+                    const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
 
-                if ( chunk ) this.instancedObjects[ chunkKey ].addChunk( chunk, x, z );
+                    if ( chunk ) this.instancedObjects[ chunkKey ].addChunk( chunk, x, z );
+
+                }
 
             }
+            
+            this.instancedObjects[ chunkKey ].update( player.position );
 
-        }
-        
-        this.instancedObjects[ chunkKey ].update( player.position );
+            resolve();
+
+        })        
         
     }
 

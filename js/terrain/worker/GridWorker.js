@@ -168,7 +168,7 @@ async function generateGrid( { gridSize, offset } ) {
 
     function getValue(x, y, z, offset, terrainHeight){
 
-        let terrainHeightValue = y < terrainHeight ? 0.5 : map(y - terrainHeight, 0, 2, 0.5, -0.5, true);
+        let terrainHeightValue = y < terrainHeight ? 0.01 : map(y - terrainHeight, 0, 2, 0.01, -0.5, true);
     
         //3d noise
         const noise_3d_scale = 0.025
@@ -191,7 +191,7 @@ async function generateGrid( { gridSize, offset } ) {
                 5903854664 + ( y * ( gridSize.y - 1 ) ) * (scale * 0.01) * overallNoiseScale,
                 5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale * overallNoiseScale,
             );
-            if ( d < 0.33) terrainHeightValue = map(d, 0, 0.33, 0.5, -0.5, true);
+            if ( d < 0.33) terrainHeightValue = map(d, 0, 0.33, 0.01, -0.5, true);
     
             //tunnels
             const scale2 = 0.025
@@ -201,7 +201,7 @@ async function generateGrid( { gridSize, offset } ) {
                 5999111164 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * scale2 * overallNoiseScale,
             ) * 2 - 1);
             d2 = Math.pow( 1.0 - d2, 3);
-            if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 0.5, -0.5, true);
+            if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 0.01, -0.5, true);
         }
     
         return terrainHeightValue + density_3d_value;

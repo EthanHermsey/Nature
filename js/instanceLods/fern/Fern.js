@@ -96,7 +96,7 @@ class Fern extends CachedInstancedLOD {
         for ( let i = 0; i < 20; i ++ ) {
 
             let d, terrainHeight;
-            let tries = 100;
+            let tries = 20;
             do {
 
                 surfaceSampler.sample( _position, _normal );

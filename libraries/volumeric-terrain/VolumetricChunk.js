@@ -82,28 +82,31 @@ class VolumetricChunk{
 
     initGrid() {
 
-        return new Promise( async resolve => {
+        return new Promise( resolve => {
 
-            if ( this.terrain.DB ){
-                
-                const data = await this.terrain.DB.get( this.chunkKey );                
-                if ( data && data.grid && data.terrainHeights){
+            this.terrain.workerBank.work(
+                {
+                    offset: this.offset, 
+                    gridSize: this.terrain.gridSize 
+                }, 
+                async ( { data } ) => {
                     this.grid = data.grid;
-                    this.terrainHeights = data.terrainHeights;                    
+                    this.terrainHeights = data.terrainHeights;
+
+                    if ( this.terrain.DB ){
+                
+                        const data = await this.terrain.DB.getAll( this.chunkKey );
+                        for( let {id, value} of data ) {
+
+                            this.grid[id] = value;
+
+                        }
+        
+                    }
+
                     resolve();
-
                 }
-
-            }
-
-            this.terrain.workerBank.work({offset: this.offset, gridSize: this.terrain.gridSize }, ( { data } ) => {
-
-                this.grid = data.grid;
-                this.terrainHeights = data.terrainHeights;
-                resolve();
-    
-            })
-
+            );
             
         })
 
@@ -238,7 +241,12 @@ class VolumetricChunk{
 							if ( this.isInsideGrid( newPosition ) ) {
 
 								//if not lower that 0 or height that this.terrain.gridSize, add value
-								this.addScaleValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
+								const gridValue = this.addScaleValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
+
+                                if ( this.terrain.DB ) {
+                                    const index = this.gridIndex( newPosition.x, newPosition.y, newPosition.z );
+                                    this.terrain.DB.add( this.chunkKey, index, gridValue );
+                                }
 
 							}
 
@@ -375,7 +383,7 @@ class VolumetricChunk{
 	addValueToGrid( x, y, z, val ) {
 
 		let gridOffset = this.gridIndex( x, y, z );
-		this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + val, - 0.5, 0.5 );
+		return this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + val, - 0.5, 0.5 );
 
 	}
 
@@ -383,15 +391,15 @@ class VolumetricChunk{
 	setGridValue( x, y, z, val ) {
 
 		let gridOffset = this.gridIndex( x, y, z );
-		this.grid[ gridOffset ] = val;
+		return this.grid[ gridOffset ] = val;
 
 	}
 
     addScaleValueToGrid( x, y, z, val ) {
 
 		let gridOffset = this.gridIndex( x, y, z );
-        const oldValueScale = (abs(this.grid[ gridOffset ]) / 0.5) + 0.1;
-		this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + (val * oldValueScale), - 0.5, 0.5 );
+        const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
+		return this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + (val * oldValueScale), - 0.5, 0.5 );
 
 	}
 
@@ -418,7 +426,6 @@ class VolumetricChunk{
             this.mesh.geometry.dispose();
             this.terrain.remove( this.mesh );
             this.mesh = undefined;            
-            if ( this.terrain.DB ) this.terrain.DB.put( this.chunkKey, { grid: this.grid, terrainHeights: this.terrainHeights } );
 
         }
 

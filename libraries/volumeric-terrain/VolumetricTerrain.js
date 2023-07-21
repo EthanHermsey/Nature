@@ -8,8 +8,9 @@ class VolumetricTerrain extends THREE.Object3D {
 
         this.isVolumetricTerrain = true;
 		this.surfaceNetEngine = new SurfaceNets();
-        this.DB = options.DB;
+        this.DB = options.db ? new DB() : undefined;
         this.seed = options.seed || Math.floor( Math.random() * 99999 );
+        this.fps = options.fps || 20;
 
         this.currentCoord = options.currentCoord || {x: 0, z: 0};
 		this.chunks = {};
@@ -37,6 +38,18 @@ class VolumetricTerrain extends THREE.Object3D {
 				cb( this );
 
 			} );
+
+    }
+
+    toggleClock( start ){
+
+        if ( start ){            
+            this.clock = setInterval(() => {
+                this.update();
+            }, 1000 / this.fps );
+        } else {
+            clearInterval(this.clock);
+        }
 
     }
 
@@ -68,8 +81,6 @@ class VolumetricTerrain extends THREE.Object3D {
                 num_initial_chunks--;            
                 
                 if ( num_initial_chunks == 0 ) resolve();
-
-                if ( this.DB ) this.DB.add( chunk.chunkKey, { grid: chunk.grid, terrainHeights: chunk.terrainHeights } );
 
             };
 
@@ -136,7 +147,7 @@ class VolumetricTerrain extends THREE.Object3D {
 
                 promises.push( this.chunks[ chunkKey ].update() );
                 this.chunks[ chunkKey].needsUpdate = false;
-                updatedChunk = true;
+                updatedChunk = true;            
 
             }
 
@@ -145,10 +156,11 @@ class VolumetricTerrain extends THREE.Object3D {
         
 
 		//create new chunks
-		if ( Object.keys( this.chunkBuildQueue ).length > 0 ) {
+        const buildKeys = Object.keys( this.chunkBuildQueue );
+		if ( buildKeys.length > 0 ) {
 
-            for( let chunkKey of Object.keys( this.chunkBuildQueue )){
-                
+            // for( let chunkKey of Object.keys( this.chunkBuildQueue )){
+                const chunkKey = buildKeys[0];
                 if ( ! this.chunks[ chunkKey ] ) {
     
                     promises.push(new Promise( ( resolve )=>{
@@ -168,7 +180,7 @@ class VolumetricTerrain extends THREE.Object3D {
 
                 delete this.chunkBuildQueue[ chunkKey ];
 
-            };
+            // };
 
 		}
 
@@ -202,27 +214,7 @@ class VolumetricTerrain extends THREE.Object3D {
         
     }
 
-
-                                             
-                                         
-//  .oooo.o  .oooo.   oooo    ooo  .ooooo.  
-// d88(  "8 `P  )88b   `88.  .8'  d88' `88b 
-// `"Y88b.   .oP"888    `88..8'   888ooo888 
-// o.  )88b d8(  888     `888'    888    .o 
-// 8""888P' `Y888""8o     `8'     `Y8bod8P' 
-    async save(){
-
-        if ( this.DB ){
-
-            for( let chunk in this.chunks ){    
-                chunk = this.chunks[chunk]    
-                await this.DB.put( chunk.chunkKey, { grid: chunk.grid, terrainHeights: chunk.terrainHeights } );    
-            }
-
-        }
-        
-    }                                         
-                                         
+                            
                                          
 
 

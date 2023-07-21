@@ -1,8 +1,16 @@
-- needsupdate voor performance / verbeteren van build tick
 
-- efficiently save/load from db
 
-- verbeterde spawner voor objecten met gelaagde objecten
+
+- boulders en caves zijn fucked, fix het
+
+- object spawn system? 
+
+    - spires om te verzamelen
+    - watchtowers
+
+- multi
+    spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen
+    server kan spelers dichtbij speler zoeken om aan elkaar te koppelen 
 
 - raycast-bhv pullrequest
 
@@ -10,3 +18,13 @@
 <!-- {"position":[2752.7925935303933,1027.3258721815296,-1328.781806245274],"offset":{"x":19,"z":-10}} -->
 
 
+   !!!  NEE   !!!
+   
+- efficiently save/load from db ( alleen changed, mischien alleen changed indexes..)
+    db -> nature-grids
+    objectStore -> chunkKey
+    documents -> gridindex: value
+
+    bij aanpassen grid -> elke aangepastte positie opslaan in objectstore in db
+
+    bij genereren van chunk -> getall van objectstore -> overschrijven in grid

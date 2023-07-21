@@ -261,8 +261,11 @@ function loadFromStorage(){
 }
 
 function loadNew(){
-    startLoading()
+    const offset = { x: 1 ,z: 6};
+    const position = [238.48723630268393, 1090.6688567384383, 857.0908954026621];
+    startLoading( offset )
         .then(() => {
+            player.position.fromArray( position );
             terrainController.updateInstancedObjects();
         });
 }
@@ -351,8 +354,6 @@ function stop(){
     clock.stop();
     terrainController.toggleClock(false);
     document.querySelector( 'audio' ).pause();
-
-    terrainController.save();
 
 }
 

@@ -27,10 +27,6 @@ class Boulder extends CachedMesh {
 
         for( let key of Object.keys( this.cachedData ) ){
 
-            if ( this.cachedData[ key ].needsUpdate ) {
-                this.generateMesh( key );
-                delete this.cachedData[ key ].needsUpdate;
-            }
             if ( this.cachedData[ key ].mesh ) this.add( this.cachedData[ key ].mesh );
             
         }
@@ -74,8 +70,8 @@ class Boulder extends CachedMesh {
 
 		}
 
-        this.cachedData[ chunkKey ] = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ), needsUpdate: changes };
-        this.needsUpdate = changes;
+        this.cachedData[ chunkKey ] = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ) };
+        if ( changes ) this.generateMesh( this.cachedData[ chunkKey ] );
         
     }
 
@@ -126,11 +122,15 @@ class Boulder extends CachedMesh {
 				geo.attributes.normal.array[ i + 1 ],
 				geo.attributes.normal.array[ i + 2 ]
 			);
-			const d = scene.up.dot( n );
 
 			//check to see if slope is steep enough
 			//check to see if not underground
-			if ( d > 0.5 && d < 0.7 && abs( v.y - chunk.getTerrainHeight( Math.floor( v.x ), Math.floor( v.z ) ) ) < 15 ) {
+			const d = scene.up.dot( n );
+            const inRange = d > 0.55 && d < 0.68;
+
+			if ( inRange && 
+                abs( v.y - chunk.getTerrainHeight( Math.floor( v.x ), Math.floor( v.z ) ) ) < 15 &&
+                v.y < this.terrain.upperBoulderHeightLimit ) {
 
 				placedVerts.push( { v: v.clone(), n: n.clone() } );
 

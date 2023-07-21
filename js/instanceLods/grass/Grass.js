@@ -132,13 +132,15 @@ class Grass extends CachedInstancedLOD {
 		for ( let i = 0; i < 500; i ++ ) {
 
 			let d, terrainHeight;
-            let tries = 50;
+            let tries = 20;
 			do {
                 surfaceSampler.sample( _position, _normal );
 				d = 1.0 - scene.up.dot( _normal );
                 terrainHeight = chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) );
                 tries--;
-			} while ( tries > 0 && ( d > 0.12 || _position.y < terrainHeight ) );
+			} while ( tries > 0 && ( d < 0 || d > 0.12 || _position.y < terrainHeight ) );
+
+            if ( tries === 0 ) continue;
 
             if ( _position.y > terrainHeight ){
                 dummy.scale.set(

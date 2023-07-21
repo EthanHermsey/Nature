@@ -47,11 +47,10 @@ class CachedMesh extends THREE.Mesh{
             if ( !this.cachedData[chunkKey] ){
                 
                 const data = this.generateData( chunk );
+                this.addData( data );
                 if ( data ) this.cachedData[chunkKey] = data
 
             }
-            
-            this.addData( this.cachedData[chunkKey] );
 
         }
     

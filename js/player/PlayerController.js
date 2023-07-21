@@ -33,11 +33,11 @@ class Player {
 		this.intersectPoint = null;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.12;
+		this.terrainAdjustStrength = 0.15;
 		this.brushRadius = 4;
 		this.buildTimer = 0;
-		this.maxBuildTime = 0.12;
-		this.maxBuildDistance = 250;
+		this.maxBuildTime = 0.15;
+		this.maxBuildDistance = 350;
 		
 
 		//player height/movement vars
@@ -53,7 +53,7 @@ class Player {
 		this.grounded = true;
 
 		//flymode selector
-		this.flyMode = true;
+		this.flyMode = false;
         this.godMode = false;
 
 	}
