@@ -9,9 +9,10 @@ class TerrainController extends VolumetricTerrain{
                 gridSize: { x: 16, y: 256, z: 16 },
                 terrainScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
-                viewDistance: 4,
-                farViewDistance: 0,
+                viewDistance: 6,
+                farViewDistance: 8,
                 seed: seed,
+                fps: 10,
                 material: terrainMaterial,
                 workers: 4,
                 workerScript: './js/terrain/worker/GridWorker.js',
@@ -29,7 +30,7 @@ class TerrainController extends VolumetricTerrain{
                 this.treeViewDistance = 16;
                 this.treeHighViewDistance = 4;
                 this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
-                this.upperBoulderHeightLimit = this.gridSize.y * 0.6;
+                this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
 
                 this.instancedObjects = {
                     "Grass": new Grass( this, this.grassViewDistance ),

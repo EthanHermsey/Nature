@@ -1,7 +1,11 @@
 
 
 
-- boulders en caves zijn fucked, fix het
+- boulders zijn fucked, fix het
+
+- slider voor viewdistance 4-0 5-2 6-4 6-6 6-8 6-10 
+    details 4 - 6
+    distant 0-2-4-6-8-10
 
 - object spawn system? 
 

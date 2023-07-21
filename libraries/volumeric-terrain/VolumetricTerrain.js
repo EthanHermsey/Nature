@@ -8,7 +8,7 @@ class VolumetricTerrain extends THREE.Object3D {
 
         this.isVolumetricTerrain = true;
 		this.surfaceNetEngine = new SurfaceNets();
-        this.DB = options.db ? new DB() : undefined;
+        this.DB = options.db === true ? new DB() : undefined;
         this.seed = options.seed || Math.floor( Math.random() * 99999 );
         this.fps = options.fps || 20;
 

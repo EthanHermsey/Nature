@@ -12,9 +12,8 @@ raycaster.firstHitOnly = true;
 
 //chunks
 let terrainController;
-// const terrainSeed = 32921; //is very nice
+const terrainSeed = 32921; //is very nice
 // const terrainSeed = Math.floor( Math.random() * 99999 );
-const terrainSeed = 55350; //is very nice
 
 //player
 let player;
@@ -118,7 +117,7 @@ function setup() {
 	scene.add( amb );
 
 	//fog
-	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0005 );
+	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0004 );
 
     //player!
     player = new Player();
@@ -253,6 +252,7 @@ function loadFromStorage(){
         startLoading( offset )
             .then(() => {
                 player.position.fromArray( position );
+                player.position.y += 10;
                 terrainController.updateInstancedObjects();
             });
 
@@ -261,11 +261,8 @@ function loadFromStorage(){
 }
 
 function loadNew(){
-    const offset = { x: 1 ,z: 6};
-    const position = [238.48723630268393, 1090.6688567384383, 857.0908954026621];
-    startLoading( offset )
+    startLoading()
         .then(() => {
-            player.position.fromArray( position );
             terrainController.updateInstancedObjects();
         });
 }
@@ -388,7 +385,7 @@ function drawHud() {
     text( `chunk:`, width * 0.99, height * 0.92 );
     text( `x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.94 );
     text( `position:`, width * 0.99, height * 0.96 );
-    text( `x: ${floor(player.position.x)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
+    text( `x: ${floor(player.position.x)} y: ${floor(player.position.y)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
     
     if ( player ){
         const compass = [' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'SW', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'W', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'NW', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'N', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'NE', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'E', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'SE', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'S'];

@@ -1,4 +1,4 @@
-importScripts("Noise.js");
+importScripts("noise.js");
 
 const continenal_spline = [
     [
@@ -23,15 +23,15 @@ const continenal_spline = [
     ],
     [
         [0.6, 0.45],
-        [0.85, 0.7],
+        [0.85, 0.65],
     ],
     [
-        [0.85, 0.7],
-        [0.90, 0.85],
+        [0.85, 0.65],
+        [0.90, 0.75],
     ],
     [
-        [0.90, 0.85],
-        [1, 0.9],
+        [0.90, 0.75],
+        [1, 0.85],
     ]
 ];
 const bump_spline = [
@@ -79,6 +79,8 @@ const noise_3d_spline = [
     ]
 ];
 
+noiseSeed( 32921 );
+
                                  
                                  
 
@@ -97,15 +99,10 @@ const noise_3d_spline = [
                                  
 self.onmessage = async ( { data } ) => {
 
-    if ( data.terrainSeed ) {
-        console.log( '> Seed: ' + data.terrainSeed );
-        noiseSeed( data.terrainSeed );
-        return;
-    }
-
     await generateGrid( data );    
 
 }
+
 
 async function generateGrid( { gridSize, offset } ) {
 
@@ -122,7 +119,7 @@ async function generateGrid( { gridSize, offset } ) {
         for ( var x = 0; x < gridSize.x; x ++ ) {             
              for ( var z = 0; z < gridSize.z; z ++ ) {
                  
-                const continenal_scale = 0.0059;
+                const continenal_scale = 0.006;
                 const continental_noise = noise(
                     5999754664 + ( x + offset.x * ( gridSize.x - 1 ) - offset.x ) * continenal_scale,
                     5999754664 + ( z + offset.z * ( gridSize.z - 1 ) - offset.z ) * continenal_scale,
@@ -200,10 +197,6 @@ async function generateGrid( { gridSize, offset } ) {
             ) * 2 - 1);
             d2 = Math.pow( 1.0 - d2, 3);
             if ( d2 > 0.7) terrainHeightValue = map(d2, 0.7, 1, 0.5, -0.5, true);
-        } else if ( y < 5 ){
-
-            terrainHeightValue = 0.5;
-
         }
     
         return constrain(terrainHeightValue + density_3d_value, -0.5, 0.5);

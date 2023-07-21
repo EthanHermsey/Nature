@@ -33,11 +33,11 @@ class Player {
 		this.intersectPoint = null;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.15;
+		this.terrainAdjustStrength = 0.03;
 		this.brushRadius = 4;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.15;
-		this.maxBuildDistance = 350;
+		this.maxBuildDistance = 450;
 		
 
 		//player height/movement vars
@@ -186,27 +186,14 @@ class Player {
 
 	update( delta ) {
 
-		this.movePlayer( delta );
+        this.movePlayer( delta );
 
 		this.model.mixer.update( delta );
 
 		this.getCameraIntersect();
 
 		//timer for adjusting terrain
-		if ( mouseIsPressed ) {
-
-			if ( this.buildTimer == 0 ) {
-
-				this.adjustTerrain();
-
-			}
-			if ( ( this.buildTimer += delta ) >= this.maxBuildTime ) this.buildTimer = 0;
-
-		} else {
-
-			this.buildTimer = 0;
-
-		}
+		if ( mouseIsPressed ) this.adjustTerrain();
 
 		//move skybox along with the object/camera
 		this.skyBox.position.copy( this.position );
