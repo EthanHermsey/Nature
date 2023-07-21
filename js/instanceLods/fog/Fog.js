@@ -48,7 +48,7 @@ class Fog extends CachedPoints {
 
     animate( delta ){
 		if ( this.material.userData.shader ){            
-            this.material.userData.shader.uniforms.time.value += delta * 0.6;
+            this.material.userData.shader.uniforms.time.value += delta * 0.8;
 		}
 
     }

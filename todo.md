@@ -16,6 +16,8 @@
     spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen
     server kan spelers dichtbij speler zoeken om aan elkaar te koppelen 
 
+- effectcomposer toevoegen met AO, fxaa, tonemap + gamma?
+
 - raycast-bhv pullrequest
 
 <!-- {"position":[2581.7406015628853,980.6652195632854,-1359.391215912829],"offset":{"x":18,"y":-10}} -->

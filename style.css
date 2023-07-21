@@ -72,7 +72,7 @@ html {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 40px;
 }
 
 #load-button,
@@ -86,6 +86,16 @@ html {
 
     border-radius: 4px;
     border: outset 3px rgb(216, 216, 216);
+}
+
+#load-button {
+    width: 340px;
+    padding: 12px;
+}
+
+#start-button.new {
+    font-size: 1.72em;
+    width: 240px;
 }
 
 #load-button:hover,

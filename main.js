@@ -85,6 +85,7 @@ function setup() {
     if ( position ){
         document.getElementById( 'load-button' ).classList.remove( 'hidden' );
         document.getElementById( 'start-button' ).textContent = 'new';
+        document.getElementById( 'start-button' ).classList.add('new');
     };
 
     document.getElementById( 'load-button' ).addEventListener('click', setFullscreen, true);
@@ -113,7 +114,7 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( new THREE.Color( "rgb(240,240,240)" ), 0.25 );
+	let amb = new THREE.AmbientLight( "rgb(240,240,240)", 0.22 );
 	scene.add( amb );
 
 	//fog
@@ -147,6 +148,25 @@ function setup() {
 //                    888
 //                   o888o
 
+function keyPressed( e ){
+
+    if ( running && e.code == 'KeyC'){
+        player.camera.fov = 21;
+        player.mouseSensitivity *= 0.5;
+        windowResized();
+    }
+
+}
+
+function keyReleased( e ){
+    
+    if ( running && e.code == 'KeyC'){
+        player.camera.fov = 70;
+        player.mouseSensitivity *= 2;
+        windowResized();
+    }
+
+}
 
 function onMouseMove( e ) {
 

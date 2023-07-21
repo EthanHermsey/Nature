@@ -81,7 +81,7 @@ class Player {
         let y = startChunk.getTerrainHeight( m, m ) * terrainController.terrainScale.y * 1.2;
         this.position.set( x, y, z );
 
-        this.minDigDistance = this.brushRadius * ( terrainController.terrainScale.x / 2 + 0.5 );
+        this.minDigDistance = this.brushRadius * terrainController.terrainScale.x * 0.225;
         
 
         if ( !this.model){
@@ -105,7 +105,7 @@ class Player {
                 };
 
                 this.model.children[ 1 ].material.metalness = 0.0;
-                this.model.children[ 1 ].material.roughness = 0.75;
+                this.model.children[ 1 ].material.roughness = 0.85;
                 this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
                     .load( './resources/model/n.png' );
                 this.model.scale.multiplyScalar( this.height * 0.9 );
@@ -120,7 +120,7 @@ class Player {
             } );
     
     
-            //add shadowlight
+            //add shadowlight. This position is updated in the update function
             this.shadowLightIntensity = 0.65;
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
             this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
@@ -145,7 +145,7 @@ class Player {
 
                 
     
-            //add a skybox. This position is
+            //add a skybox. This position is updated in the update function
             this.skyBox = new THREE.Mesh(
                 new THREE.SphereGeometry(
                     startChunk.terrain.chunkSize * 2 * ( startChunk.terrain.viewDistance + startChunk.terrain.farViewDistance + 2 ),
@@ -520,8 +520,8 @@ class Player {
 		//rotate cameraRig on X
 		this.cameraRig.rotateX( e.movementY * - this.mouseSensitivity );
 
-		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.2 );
-		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -0.85 );
+		this.cameraRig.rotation.x = Math.min( this.cameraRig.rotation.x, 1.35 );
+		this.cameraRig.rotation.x = Math.max( this.cameraRig.rotation.x, -1.1 );
 		this.cameraRig.rotation.z = 0;
 
         this.updateCameraCollision();

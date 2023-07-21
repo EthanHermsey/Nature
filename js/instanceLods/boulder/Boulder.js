@@ -70,8 +70,9 @@ class Boulder extends CachedMesh {
 
 		}
 
-        this.cachedData[ chunkKey ] = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ) };
-        if ( changes ) this.generateMesh( this.cachedData[ chunkKey ] );
+        const data = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ) };
+        if ( changes ) this.generateMesh( data );
+        this.cachedData[ chunkKey ] = data;
         
     }
 
