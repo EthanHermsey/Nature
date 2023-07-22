@@ -82,10 +82,7 @@ class Fern extends CachedInstancedLOD {
 
     generateData( chunk ){
 
-        const mesh = chunk.mesh;
-        const surfaceSampler = new THREE.MeshSurfaceSampler( mesh )
-            .build();
-        
+        const surfaceSampler = chunk.sampler;        
         const _position = new THREE.Vector3();
         const _normal = new THREE.Vector3();
         const dummy = new THREE.Object3D();

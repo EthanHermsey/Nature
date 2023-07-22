@@ -83,7 +83,6 @@ class Grass extends CachedInstancedLOD {
         loader.load( './resources/grass/grassHigh.json', model=>{
 
             models.grassModelHigh = model.clone();
-            // models.grassModelHigh.geometry.scale( 0.43, 0.65, 0.35 );
             models.grassModelHigh.geometry.scale( 0.4, 0.55, 0.4 );
 
             model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' );
@@ -118,10 +117,7 @@ class Grass extends CachedInstancedLOD {
 
     generateData( chunk ){
 
-        const mesh = chunk.mesh;
-        const surfaceSampler = new THREE.MeshSurfaceSampler( mesh )
-            .build();
-        
+        const surfaceSampler = chunk.sampler;        
         const _position = new THREE.Vector3();
 		const _normal = new THREE.Vector3();
 		const dummy = new THREE.Object3D();

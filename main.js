@@ -237,6 +237,11 @@ function render() {
 // o888o    `V88V"V8P' o888o o888o `Y8bod8P'   "888" o888o `Y8bod8P' o888o o888o 8""888P'
 
 
+function showSettings( show ){
+    document.getElementById('settings-content').classList.toggle( 'hidden', !show );
+    document.getElementById('menu-content').classList.toggle( 'hidden', show );
+}
+
 
 function windowResized() {
     
@@ -397,8 +402,11 @@ function drawHud() {
 	text( "SPACE", width * 0.01, height * 0.96 );
 	text( "- jump", width * 0.05, height * 0.96 );
 
-	text( "MOUSE", width * 0.01, height * 0.98 );
-    text( "- remove/add terrain", width * 0.05, height * 0.98 );
+	text( "C", width * 0.01, height * 0.98 );
+    text( "- zoom", width * 0.05, height * 0.98 );
+
+	text( "MOUSE", width * 0.01, height * 1 );
+    text( "- remove/add terrain", width * 0.05, height * 1 );
 
     const coord = terrainController.getCoordFromPosition( player.position );
     textAlign(RIGHT);
@@ -427,8 +435,3 @@ function drawHud() {
         
     
 }
-
-
-
-
-

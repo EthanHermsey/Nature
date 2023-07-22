@@ -1,14 +1,14 @@
 
 
 
-- boulders zijn fucked, fix het
-
 - slider voor viewdistance 4-0 5-2 6-4 6-6 6-8 6-10 
-    details 4 - 6
-    distant 0-2-4-6-8-10
+    - details 4 - 6 distant 0-2-4-6-8-10
+    - shadows off - min - max (min is smaller shadowmap size)    
+
+
+- updateInstancedObjects nog erg langzaam. optimize? 
 
 - object spawn system? 
-
     - spires om te verzamelen
     - watchtowers
 

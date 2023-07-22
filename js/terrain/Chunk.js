@@ -5,6 +5,7 @@ class Chunk extends VolumetricChunk{
         super(...args);
         
         this.lodLevel = 0;
+        this.sampler;
 		this.modelMatrices = {};
         this.firstRender = true;
                 
@@ -17,6 +18,7 @@ class Chunk extends VolumetricChunk{
 	async generateMesh() {
 
 		await super.generateMesh();
+        this.sampler = new THREE.MeshSurfaceSampler( this.mesh ).build();
         this.showLevel();
         
 	}

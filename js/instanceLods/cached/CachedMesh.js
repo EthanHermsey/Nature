@@ -42,13 +42,16 @@ class CachedMesh extends THREE.Mesh{
             z <= this.viewDistance ) {
 
             const chunkKey = chunk.chunkKey;
-
             
             if ( !this.cachedData[chunkKey] ){
                 
                 const data = this.generateData( chunk );
-                this.addData( data );
-                if ( data ) this.cachedData[chunkKey] = data
+                if ( data ) {
+
+                    this.cachedData[chunkKey] = data;
+                    this.addData( chunkKey );
+
+                }
 
             }
 

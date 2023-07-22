@@ -16,6 +16,11 @@ const Mesh = async ( generatedSurface, chunk ) => {
     for(let i = 0; i < generatedSurface.vertices.length; i++){
 
         const v = generatedSurface.vertices[i];
+
+        //fix z-fighting
+        v[0] += -0.001 + Math.random() * 0.002;
+        v[2] += -0.001 + Math.random() * 0.002;
+
         vertices.push( v[ 0 ], v[ 1 ], v[ 2 ] );
 
         x = round( v[0] );

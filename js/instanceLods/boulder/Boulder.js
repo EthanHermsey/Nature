@@ -22,7 +22,9 @@ class Boulder extends CachedMesh {
         super.update( position );
         
         while(this.children.length > 0){             
+
             this.remove(this.children[0]);
+
         }
 
         for( let key of Object.keys( this.cachedData ) ){
@@ -61,9 +63,14 @@ class Boulder extends CachedMesh {
 
                 p.copy( data.boundingSphere.center ).multiply( terrainController.terrainScale ); //custom
                 const keep = ( p.distanceToSquared( point ) > distance * distance * 50 );
+                
                 if ( !keep ) {
+
+                    data.dispose();
                     changes = true;
+
                 }
+
                 return keep;
 
             });
@@ -71,16 +78,19 @@ class Boulder extends CachedMesh {
 		}
 
         const data = { mesh: this.cachedData[ chunkKey ].mesh, geometries: checkData( this.cachedData[ chunkKey ].geometries ) };
-        if ( changes ) this.generateMesh( data );
         this.cachedData[ chunkKey ] = data;
+        if ( changes ) this.generateMesh( chunkKey );
         
     }
 
-    generateMesh( data ){
+    generateMesh( chunkKey ){
+
+        const data = this.cachedData[ chunkKey ];
 
         if ( data.mesh ){
             data.mesh.geometry.dispose();
             this.remove( data.mesh );
+            delete data.mesh;
         }
 
         if ( data.geometries.length > 0 ){
@@ -92,14 +102,16 @@ class Boulder extends CachedMesh {
     
             data.mesh = new THREE.Mesh( newGeometry, this.material );
             data.mesh.raycast = acceleratedRaycast;
-            this.add( data.mesh );
+            this.add( data.mesh );            
 
         }
 
+        this.cachedData[ chunkKey ] = data;
+
     }
 
-    addData( data ){
-        if ( !data.mesh ) this.generateMesh( data );
+    addData( chunkKey ){
+        if ( !this.cachedData[ chunkKey ].mesh ) this.generateMesh( chunkKey );
     }
     
     generateData( chunk ){

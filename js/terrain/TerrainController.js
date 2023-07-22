@@ -293,6 +293,8 @@ class TerrainController extends VolumetricTerrain{
         } else {
             super.updateCastChunkTerrainArray( currentCoord );
         }
+
+        if ( window.watchtower ) this.castables.push( window.watchtower );
         
 
 	}
