@@ -37,7 +37,8 @@ class TerrainController extends VolumetricTerrain{
                     "Tree": new Trees( this, this.treeViewDistance ),
                     "Fern": new Fern( this, this.fernViewDistance ),
                     "Fog": new Fog( this, this.fogViewDistance ),
-                    "Boulder": new Boulder( this, this.instancedObjectViewDistance)
+                    "Boulder": new Boulder( this, this.instancedObjectViewDistance ),
+                    "Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
                 };
 
                 this.updateCastChunkTerrainArray( this.currentCoord );
@@ -88,7 +89,8 @@ class TerrainController extends VolumetricTerrain{
                 if ( num_initial_chunks == 0 ) {
 
                     uiController.elements.loadingText.textContent = `loading player`;
-                    resolve();
+
+                    setTimeout(()=>resolve(), 100);
 
                 }
 
@@ -294,7 +296,7 @@ class TerrainController extends VolumetricTerrain{
     updateCastChunkTerrainArray( currentCoord ) { //adding boulders to castables
 
         if ( this.instancedObjects['Boulder'] ){
-            super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'] ] );
+            super.updateCastChunkTerrainArray( currentCoord,  [ this.instancedObjects['Boulder'], this.instancedObjects['Pedestal'] ] );
         } else {
             super.updateCastChunkTerrainArray( currentCoord );
         }

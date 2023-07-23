@@ -23,6 +23,8 @@ class UIController{
             mouseSensitivity: document.getElementById( 'mouse_sensitivity' ),
             backButton: document.getElementById( 'back-button' ),
 
+            gem: document.getElementById( 'gem' ),
+
         }
         
         window.addEventListener('resize', this.windowResized, true );
@@ -209,6 +211,14 @@ class UIController{
     
     }
 
+
+    zoom( zoomin ){
+
+        player.camera.fov = zoomin ? 21 : 70;
+        player.mouseSensitivity *= zoomin ? 0.5 : 2;
+        this.windowResized();
+
+    }
 
     lockPointer(){
         

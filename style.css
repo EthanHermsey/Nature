@@ -30,6 +30,26 @@ html {
     z-index: 100;
 }
 
+#gem {
+    position: absolute;
+    height: 6vh;
+    width: 6vh;
+    top: 4vh;
+    right: 4vh;
+    padding-top: 4.5vh;
+
+    background: url('./resources/gem.png');
+    background-repeat: no-repeat;
+    background-size: 60%;
+    background-position: 50% 0%;
+
+    text-align: center;
+    color: rgb(245, 245, 245);
+    opacity: 0.5;
+    font-size: 1.6em;
+    font-weight: 500;
+}
+
 #banner {
     position: absolute;
     height: 100vh;

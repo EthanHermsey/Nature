@@ -27,7 +27,8 @@ const app = {
         right: 68,
         shift: 16,
         space: 32,
-        flyMode: 70
+        flyMode: 70,
+        grab: 69
     },
     startLoading: function( offset, viewDistance ){
 
@@ -54,23 +55,6 @@ const app = {
                 terrainController.getChunk( terrainController.getChunkKey( offset ) ),
                 () => {
     
-                    const pedestalPosition = {x: 41.535560089506816, y: 970.3654818010983, z: 106.16156305093523};                    
-
-                    let model = modelBank.pedestal;
-                    model.position.copy( pedestalPosition );
-                    model.position.y -= 2;
-                    model.scale.setScalar( 0.4 );
-                    model.children[1].children[0].renderOrder = 1;
-
-                    let count = 0;
-                    setInterval(() => {
-                        model.children[1].rotation.y += 0.005;
-                        model.children[1].position.y = sin(count) * 0.2;
-                        count += random(0.02, 0.05);
-                    }, 1000/60)
-
-                    this.scene.add( model );
-
                     app.loaded = true;            
                     app.start();
                     resolve();
@@ -243,21 +227,13 @@ function setup() {
 
 function keyPressed( e ){
 
-    if ( app.running && e.code == 'KeyC'){
-        player.camera.fov = 21;
-        player.mouseSensitivity *= 0.5;
-        windowResized();
-    }
+    if ( app.running && e.code == 'KeyC') uiController.zoom( true );
 
 }
 
 function keyReleased( e ){
     
-    if ( app.running && e.code == 'KeyC'){
-        player.camera.fov = 70;
-        player.mouseSensitivity *= 2;
-        windowResized();
-    }
+    if ( app.running && e.code == 'KeyC') uiController.zoom( false );
 
 }
 
@@ -322,14 +298,17 @@ function drawHud() {
 	noStroke();
 	fill( 200, 200 );
     textAlign(LEFT);
-	text( "WASD", width * 0.01, height * 0.90 );
-	text( "- move", width * 0.05, height * 0.90 );
+	text( "WASD", width * 0.01, height * 0.88 );
+	text( "- move", width * 0.05, height * 0.88 );
 
-	text( "SHIFT", width * 0.01, height * 0.92 );
-    text( "- sprint", width * 0.05, height * 0.92 );	
+	text( "SHIFT", width * 0.01, height * 0.90 );
+    text( "- sprint", width * 0.05, height * 0.90 );	
 
-	text( "SPACE", width * 0.01, height * 0.94 );
-	text( "- jump", width * 0.05, height * 0.94 );
+	text( "SPACE", width * 0.01, height * 0.92 );
+	text( "- jump", width * 0.05, height * 0.92 );
+
+    text( "E", width * 0.01, height * 0.94 );
+    text( "- grab", width * 0.05, height * 0.94 );
 
 	text( "C", width * 0.01, height * 0.96 );
     text( "- zoom", width * 0.05, height * 0.96 );
@@ -338,10 +317,8 @@ function drawHud() {
     text( "- remove/add terrain", width * 0.05, height * 0.98 );
 
     const coord = terrainController.getCoordFromPosition( player.position );
-    textAlign(RIGHT);
-    text( `chunk:`, width * 0.99, height * 0.92 );
-    text( `x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.94 );
-    text( `position:`, width * 0.99, height * 0.96 );
+    textAlign(RIGHT);    
+    text( `chunk: x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.96 );
     text( `x: ${floor(player.position.x)} y: ${floor(player.position.y)} z: ${floor(player.position.z)}`, width * 0.99, height * 0.98 );
     
     if ( player ){

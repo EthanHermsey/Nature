@@ -23,7 +23,7 @@ const preloadModels = () => {
 
         GLTFLoader.load( './resources/pedestal/pedestal.gltf', ( model ) => {
     
-            modelBank.pedestal = model.scene.children[2];
+            modelBank.pedestal = model.scene.children[0];
             check();
             
         } );
