@@ -75,8 +75,7 @@ class TerrainController extends VolumetricTerrain{
             this.chunks = {};
 
             const grid = uiController.elements.loadingGrid;
-            const loadingtext = uiController.elements.loadingText;
-            loadingtext.textContent = `loading chunks`;
+            uiController.elements.loadingText.textContent = `loading chunks`;
             
             let max_initial_chunks = 0;
             let num_initial_chunks = 0;
@@ -88,7 +87,7 @@ class TerrainController extends VolumetricTerrain{
                 
                 if ( num_initial_chunks == 0 ) {
 
-                    loadingtext.textContent = `loading resources`;
+                    uiController.elements.loadingText.textContent = `loading player`;
                     resolve();
 
                 }

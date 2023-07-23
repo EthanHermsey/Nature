@@ -23,7 +23,7 @@ class Grass extends CachedInstancedLOD {
     }
 
     addObjects( models ) {
-
+        
         if ( models.grassModel && models.grassModelHigh ) {
 
             this.addLevel( models.grassModelHigh, 15000, 0 );
@@ -39,79 +39,70 @@ class Grass extends CachedInstancedLOD {
 
     loadObjects(){
 
-        const loader = new THREE.ObjectLoader();
         const models = {};
 
-        loader.load( './resources/grass/grass.json', model=>{
+        models.grassModel = modelBank.grass;
+        models.grassModel.geometry.translate( 0, - 0.051, 0 );
+        models.grassModel.geometry.scale( 1.5, 1.5, 1.5 );
 
-            models.grassModel = model.clone();
-            models.grassModel.geometry.translate( 0, - 0.051, 0 );
-            models.grassModel.geometry.scale( 1.5, 1.5, 1.5 );
+        const grassMaterial = new THREE.MeshLambertMaterial( {
+            alphaTest: 0.35,
+            map: new THREE.TextureLoader().load( './resources/grass/grassdiff.png' ),
+            side: THREE.DoubleSide
+        } );
+        grassMaterial.onBeforeCompile = ( shader ) => {
 
-            const grassMaterial = new THREE.MeshLambertMaterial( {
-                alphaTest: 0.35,
-                map: new THREE.TextureLoader().load( './resources/grass/grassdiff.png' ),
-                side: THREE.DoubleSide
-            } );
-            grassMaterial.onBeforeCompile = ( shader ) => {
+            shader.uniforms.time = { value: 0 };
 
-                shader.uniforms.time = { value: 0 };
+            shader.vertexShader = 'uniform float time;\n' +
+                shader.vertexShader.replace(
+                    `#include <begin_vertex>`,
+                    `
+                    vec3 transformed = vec3( position );
+                    if ( transformed.y > 0.5){
+                        transformed.x += sin( time ) * 0.06;
+                        transformed.z += sin( time * 0.9734 ) * 0.04;
+                    }
+                    `
+                );
 
-                shader.vertexShader = 'uniform float time;\n' +
-                    shader.vertexShader.replace(
-                        `#include <begin_vertex>`,
-                        `
-                        vec3 transformed = vec3( position );
-                        if ( transformed.y > 0.5){
-                            transformed.x += sin( time ) * 0.06;
-                            transformed.z += sin( time * 0.9734 ) * 0.04;
-                        }
-                        `
-                    );
+            grassMaterial.userData.shader = shader;
 
-                grassMaterial.userData.shader = shader;
-
-            };
-            models.grassModel.material = grassMaterial;
-            models.grassModel.material.needsUpdate = true;
-
-            this.addObjects( models );
-
-        });
+        };
+        models.grassModel.material = grassMaterial;
+        models.grassModel.material.needsUpdate = true;
 
 
-        loader.load( './resources/grass/grassHigh.json', model=>{
+        
+        models.grassModelHigh = modelBank.grassHigh;
+        models.grassModelHigh.geometry.scale( 0.4, 0.55, 0.4 );
 
-            models.grassModelHigh = model.clone();
-            models.grassModelHigh.geometry.scale( 0.4, 0.55, 0.4 );
+        models.grassModelHigh.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' );
+        models.grassModelHigh.material.map.alphaTest = 0.2;
 
-            model.material.map = new THREE.TextureLoader().load( './resources/grass/grassdiffhigh.png' );
-            model.material.map.alphaTest = 0.2;
+        models.grassModelHigh.material.onBeforeCompile = ( shader ) => {
 
-            models.grassModelHigh.material.onBeforeCompile = ( shader ) => {
+            shader.uniforms.time = { value: 0 };
 
-                shader.uniforms.time = { value: 0 };
+            shader.vertexShader = 'uniform float time;\n' +
+                shader.vertexShader.replace(
+                    `#include <begin_vertex>`,
+                    `
+                    vec3 transformed = vec3( position );
+                    float r = rand( transformed.xz );
+                    if ( transformed.y > 0.5){
+                        transformed.x += sin( time * r ) * 0.06;
+                        transformed.z += sin( time * r * 0.9734 ) * 0.04;
+                    }
+                    `
+                );
 
-                shader.vertexShader = 'uniform float time;\n' +
-                    shader.vertexShader.replace(
-                        `#include <begin_vertex>`,
-                        `
-                        vec3 transformed = vec3( position );
-                        float r = rand( transformed.xz );
-                        if ( transformed.y > 0.5){
-                            transformed.x += sin( time * r ) * 0.06;
-                            transformed.z += sin( time * r * 0.9734 ) * 0.04;
-                        }
-                        `
-                    );
+            models.grassModelHigh.material.userData.shader = shader;
 
-                models.grassModelHigh.material.userData.shader = shader;
+        };
+        models.grassModelHigh.material.needsUpdate = true;
 
-            };
-            models.grassModelHigh.material.needsUpdate = true;
-            this.addObjects( models );
-
-        });
+        this.addObjects( models );
 
     }
 

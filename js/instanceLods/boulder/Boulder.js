@@ -37,16 +37,10 @@ class Boulder extends CachedMesh {
 
     loadObjects(){
          
-        const loader = new THREE.ObjectLoader();
-
-        loader.load( './resources/rocks/rocks.json', model=>{
-
-            this.geometries = model.children.map( child => child.geometry );
-            this.material = model.children[ 0 ].material;            
-            this.material.color = new THREE.Color( 'rgb(180, 180, 180)' );
-            this.material.map.encoding = THREE.sRGBEncoding;
-
-        });        
+        this.geometries = modelBank.boulder.children.map( child => child.geometry );
+        this.material = modelBank.boulder.children[ 0 ].material;            
+        this.material.color = new THREE.Color( 'rgb(180, 180, 180)' );
+        this.material.map.encoding = THREE.sRGBEncoding;
 
     }
 

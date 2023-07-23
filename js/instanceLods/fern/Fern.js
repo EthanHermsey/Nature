@@ -34,49 +34,39 @@ class Fern extends CachedInstancedLOD {
     }
 
     loadObjects(){
-
-        const loader = new THREE.ObjectLoader();
-        const models = {};
-
-        loader.load( './resources/fern/fern.json', model=>{
-
-            // model.scale.set( 0.55, 0.5, 0.55 );
-            model.scale.set( 0.35, 0.3, 0.35 );
-            model.geometry.translate( 0, - 0.2, 0 );
-            model.geometry.boundingSphere.radius = 128;
-            model.material.map.encoding = THREE.sRGBEncoding;
         
-            const mat1 = new THREE.MeshLambertMaterial().copy( model.material );
-            mat1.onBeforeCompile = ( shader ) => {
-        
-                shader.uniforms.time = { value: 0 };
-        
-                shader.vertexShader = 'uniform float time;\n' +
-                    shader.vertexShader.replace(
-                        `#include <begin_vertex>`,
-                        `
-                        vec3 transformed = vec3( position );
-                        float r = rand( uv );
-        
-                        if ( transformed.y > 0.5){
-                            transformed.x += sin( time * r ) * 0.04;
-                            transformed.y -= sin( time * 0.23 * r) * 0.05;
-                            transformed.z += sin( time * 0.9734 * r) * 0.03;
-                        }
-                        `
-                    );
-        
-                mat1.userData.shader = shader;
-        
-            };
-        
-            models.fernModel = model;
-            models.fernModel.material = mat1;
-            models.fernModel.material.needsUpdate = true;
-        
-            this.addObjects( models );
-        
-        });
+        modelBank.fern.scale.set( 0.35, 0.3, 0.35 );
+        modelBank.fern.geometry.translate( 0, - 0.2, 0 );
+        modelBank.fern.geometry.boundingSphere.radius = 128;
+        modelBank.fern.material.map.encoding = THREE.sRGBEncoding;
+    
+        const mat1 = new THREE.MeshLambertMaterial().copy( modelBank.fern.material );
+        mat1.onBeforeCompile = ( shader ) => {
+    
+            shader.uniforms.time = { value: 0 };
+    
+            shader.vertexShader = 'uniform float time;\n' +
+                shader.vertexShader.replace(
+                    `#include <begin_vertex>`,
+                    `
+                    vec3 transformed = vec3( position );
+                    float r = rand( uv );
+    
+                    if ( transformed.y > 0.5){
+                        transformed.x += sin( time * r ) * 0.04;
+                        transformed.y -= sin( time * 0.23 * r) * 0.05;
+                        transformed.z += sin( time * 0.9734 * r) * 0.03;
+                    }
+                    `
+                );
+    
+            mat1.userData.shader = shader;
+    
+        };
+        modelBank.fern.material = mat1;
+        modelBank.fern.material.needsUpdate = true;
+    
+        this.addObjects( { fernModel: modelBank.fern } );
 
     }
 

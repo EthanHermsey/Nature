@@ -32,7 +32,9 @@ const app = {
     startLoading: function( offset, viewDistance ){
 
         return new Promise( async ( resolve ) => {
-    
+
+            if ( !app.loaded ) await preloadModels();
+
             if ( !terrainController ) {
                 
                 await new Promise((resolve) => {
@@ -44,7 +46,7 @@ const app = {
     
                 await terrainController.init( viewDistance );
     
-            }        
+            }
     
             offset = offset || { x: 0, z: 0 };
     
@@ -52,29 +54,24 @@ const app = {
                 terrainController.getChunk( terrainController.getChunkKey( offset ) ),
                 () => {
     
-                    const pedestalPosition = {x: 41.535560089506816, y: 970.3654818010983, z: 106.16156305093523};
-                    new THREE.GLTFLoader()    
-                        .load( './resources/pedestal/pedestal.gltf', ( model ) => {
+                    const pedestalPosition = {x: 41.535560089506816, y: 970.3654818010983, z: 106.16156305093523};                    
 
-                            model = model.scene.children[2];
-                            model.position.copy( pedestalPosition );
-                            model.position.y -= 2;
-                            model.scale.setScalar( 0.4 );
-                            model.children[1].children[0].renderOrder = 1;
+                    let model = modelBank.pedestal;
+                    model.position.copy( pedestalPosition );
+                    model.position.y -= 2;
+                    model.scale.setScalar( 0.4 );
+                    model.children[1].children[0].renderOrder = 1;
 
-                            let count = 0;
-                            setInterval(() => {
-                                model.children[1].rotation.y += 0.005;
-                                model.children[1].position.y = sin(count) * 0.2;
-                                count += random(0.02, 0.05);
-                            }, 1000/60)
+                    let count = 0;
+                    setInterval(() => {
+                        model.children[1].rotation.y += 0.005;
+                        model.children[1].position.y = sin(count) * 0.2;
+                        count += random(0.02, 0.05);
+                    }, 1000/60)
 
-                            this.scene.add( model );
+                    this.scene.add( model );
 
-                        })
-
-
-                    app.loaded = true;                
+                    app.loaded = true;            
                     app.start();
                     resolve();
     
@@ -86,7 +83,7 @@ const app = {
     },
     start: function() {
     
-        app.running= true;
+        app.running = true;
         app.clock.start();
         terrainController.toggleClock(true);
         document.querySelector( 'audio' ).play();        
@@ -97,7 +94,7 @@ const app = {
     
         if ( player.position.length() > 0 ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
     
-        app.running= false;
+        app.running = false;
         app.clock.stop();
         terrainController.toggleClock(false);
         document.querySelector( 'audio' ).pause();
@@ -246,7 +243,7 @@ function setup() {
 
 function keyPressed( e ){
 
-    if ( app.running&& e.code == 'KeyC'){
+    if ( app.running && e.code == 'KeyC'){
         player.camera.fov = 21;
         player.mouseSensitivity *= 0.5;
         windowResized();
@@ -256,7 +253,7 @@ function keyPressed( e ){
 
 function keyReleased( e ){
     
-    if ( app.running&& e.code == 'KeyC'){
+    if ( app.running && e.code == 'KeyC'){
         player.camera.fov = 70;
         player.mouseSensitivity *= 2;
         windowResized();
@@ -266,7 +263,7 @@ function keyReleased( e ){
 
 function onMouseMove( e ) {
 
-	player.mouseMoved( e );
+	if ( app.running ) player.mouseMoved( e );
 
 }
 
@@ -286,24 +283,28 @@ function onMouseMove( e ) {
 
 function render() {
 
-	if ( app.running) requestAnimationFrame( render );
+	if ( app.running ){
 
-	let delta = app.clock.getDelta();
+        requestAnimationFrame( render );
 
-	// update player controller
-	player.update( delta );
+        let delta = app.clock.getDelta();
+    
+        // update player controller
+        player.update( delta );
+    
+        // animate terrain
+        terrainController.animate( delta );	
+    
+        // draw text on screen and crosshair
+        drawHud();
+    
+        // update fps counter
+        stats.update();
+    
+        //render scene
+        app.renderer.render( app.scene, player.camera );
 
-	// animate terrain
-    terrainController.animate( delta );	
-
-    // draw text on screen and crosshair
-	drawHud();
-
-	// update fps counter
-	stats.update();
-
-	//render scene
-	app.renderer.render( app.scene, player.camera );
+    } 
 
 }
 
