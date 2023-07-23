@@ -7,14 +7,14 @@ class Player {
 		this.object = new THREE.Object3D();
 		this.object.rotation.order = "YXZ";
 		this.object.frustumCulled = false;
-        scene.add( this.object );
+        app.scene.add( this.object );
 
         this.cameraRigPosition = new THREE.Vector3(0, 4.5, 0);
 		this.cameraRig = new THREE.Object3D();
 		this.cameraRig.rotation.order = "YXZ";
 		this.camera = new THREE.PerspectiveCamera(
 			70,
-			windowWidth / windowHeight,
+			window.innerWidth / window.innerHeight,
 			0.1,
 			10000
 		);
@@ -49,6 +49,7 @@ class Player {
 		this.gravity = 1.5;
 		this.jumpStrength = 0.55;
 		this.bouncyness = 0.1;
+		this.defaultMouseSensitivity = 0.0016;
 		this.mouseSensitivity = 0.0016;
 		this.grounded = true;
 
@@ -125,22 +126,23 @@ class Player {
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
             this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
             this.shadowLight.target = new THREE.Object3D();
-            scene.add( this.shadowLight.target );
+            app.scene.add( this.shadowLight.target );
 
             this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
             this.shadowLight.target.position.copy( this.position );
     
+            this.defaultShadowLightFar = 800;
             this.shadowLight.castShadow = true;
             this.shadowLight.shadow.mapSize.width = 1024;
             this.shadowLight.shadow.mapSize.height = 1024;
             this.shadowLight.shadow.camera.near = 1;
-            this.shadowLight.shadow.camera.far = 800;
+            this.shadowLight.shadow.camera.far = this.defaultShadowLightFar;
             this.shadowLight.shadow.camera.top = - 1000;
             this.shadowLight.shadow.camera.bottom = 1000;
             this.shadowLight.shadow.camera.left = - 1000;
             this.shadowLight.shadow.camera.right = 1000;
             this.shadowLight.shadow.bias = -0.002;
-            scene.add( this.shadowLight );
+            app.scene.add( this.shadowLight );
             this.cameraTimer = 0;
 
                 
@@ -161,7 +163,7 @@ class Player {
             this.skyBox.material.map.mapping = THREE.EquirectangularRefractionMapping;
             this.skyBox.material.map.encoding = THREE.sRGBEncoding;
     
-            scene.add( this.skyBox );    
+            app.scene.add( this.skyBox );    
 
         } else {
 
@@ -219,8 +221,8 @@ class Player {
 
         const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
         
-		raycaster.set( rigPosition, v );
-		let intersectdir = raycaster.intersectObjects( terrainController.castables );
+		app.raycaster.set( rigPosition, v );
+		let intersectdir = app.raycaster.intersectObjects( terrainController.castables );
 
 		if ( intersectdir.length > 0 ) {
 
@@ -425,29 +427,29 @@ class Player {
 		let d = new THREE.Vector3();
 
 		//x axis
-		if ( keyIsDown( key.up ) ) {
+		if ( keyIsDown( app.key.up ) ) {
 
 			d.z -= 1;
 
-		} else if ( keyIsDown( key.down ) ) {
+		} else if ( keyIsDown( app.key.down ) ) {
 
 			d.z += 1;
 
 		}
 
 		//z axis
-		if ( keyIsDown( key.left ) ) {
+		if ( keyIsDown( app.key.left ) ) {
 
 			d.x -= 1;
 
-		} else if ( keyIsDown( key.right ) ) {
+		} else if ( keyIsDown( app.key.right ) ) {
 
 			d.x += 1;
 
 		}
 
 		//y axis up
-		if ( keyIsDown( key.space ) ) {
+		if ( keyIsDown( app.key.space ) ) {
 
 			if ( this.flyMode == false ) {
 
@@ -469,7 +471,7 @@ class Player {
 		//y axis down
 		if ( this.flyMode == true || this.godMode == true) {
 
-			if ( keyIsDown( key.shift ) ) {
+			if ( keyIsDown( app.key.shift ) ) {
 
 				//change position, no gravity
 				d.y -= 1;
@@ -485,7 +487,7 @@ class Player {
 			d.setLength( this.walkSpeed * delta );
 
 			//add sprint only when shift key is pressed
-			if ( keyIsDown( key.shift ) ) d.multiplyScalar( this.sprintSpeedMultiplier );
+			if ( keyIsDown( app.key.shift ) ) d.multiplyScalar( this.sprintSpeedMultiplier );
 
 		}
 
@@ -552,9 +554,9 @@ class Player {
 
 	getCameraIntersect() {
 
-		raycaster.setFromCamera( new THREE.Vector2(), this.camera );
+		app.raycaster.setFromCamera( new THREE.Vector2(), this.camera );
 
-		let intersects = raycaster.intersectObjects( terrainController.castables, true );
+		let intersects = app.raycaster.intersectObjects( terrainController.castables, true );
 
 		this.intersectPoint = null;
 
@@ -575,8 +577,8 @@ class Player {
 		let downPos = point.clone();
 		downPos.y += this.height * 0.5 - this.vDown;
 
-		raycaster.set( downPos, scene.down );
-		let intersectDown = raycaster.intersectObjects( terrainController.castables, true );
+		app.raycaster.set( downPos, app.scene.down );
+		let intersectDown = app.raycaster.intersectObjects( terrainController.castables, true );
 
 
 		if ( intersectDown.length > 0 ) {
@@ -596,8 +598,8 @@ class Player {
 		let dirNormal;
 		let dirPos = this.position.clone();
 
-		raycaster.set( dirPos, direction.normalize() );
-		let intersectdir = raycaster.intersectObjects( terrainController.castables );
+		app.raycaster.set( dirPos, direction.normalize() );
+		let intersectdir = app.raycaster.intersectObjects( terrainController.castables );
 
 		if ( intersectdir.length > 0 ) {
 

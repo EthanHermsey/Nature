@@ -18,7 +18,6 @@
 	<script language="javascript" type="text/javascript" src="./libraries/raycast-bhv/MeshBVH.js"></script>
 	<script language="javascript" type="text/javascript" src="./libraries/raycast-bhv/MeshBVHNode.js"></script>
 
-	<script language="javascript" type="text/javascript" src="./libraries/THREEx.FullScreen.js"></script>
 	<script language="javascript" type="text/javascript" src="./libraries/MeshSurfaceSampler.js"></script>	
 	<script language="javascript" type="text/javascript" src="./libraries/BufferGeometryUtil.js"></script>
 	<script language="javascript" type="text/javascript" src="./libraries/GLTFLoader.js"></script>
@@ -47,6 +46,7 @@
 	<script language="javascript" type="text/javascript" src="./js/terrain/Material.js"></script>
 	<script language="javascript" type="text/javascript" src="./js/terrain/TerrainController.js"></script>
 	<script language="javascript" type="text/javascript" src="./js/player/PlayerController.js"></script>
+	<script language="javascript" type="text/javascript" src="./js/ui/UIController.js"></script>
 
 	<script language="javascript" type="text/javascript" src="./main.js"></script>
 
@@ -61,7 +61,7 @@
             <div id="blur"></div>
         </div>           
 
-        <div id="loading-container" class="hidden">            
+        <div id="loading-content" class="hidden">            
             <div id="loading-grid"></div>
             <div id="loading-message">
                 <img id="loading-img" src="./resources/loading.gif"/>
@@ -78,26 +78,59 @@
                 <h1 id="title">nature</h1>
             </div>           
             <div id="button-container">
-                <button id='load-button' class="hidden" onclick="loadFromStorage()">continue</button>
-                <button id='settings-button' onclick="showSettings(true)">options</button>
-                <button id='start-button' onclick="loadNew()">start</button>
+                <button id='continue-button' class="hidden">continue</button>
+                <button id='start-button'>start</button>
+                <button id='settings-button'>options</button>
             </div>
         </div>
 
         <div id="settings-content" class="hidden">
-            <div id="view-distance-container">
-                <div class="slidecontainer">
-                    <p>detailed</p>
-                    <input type="range" min="4" max="6" value="6" class="slider" id="viewDistance">
+            <div id="settings-container">
+                <div id="view-distance-container" class="selector-container">
+                    <p>view distance</p>
+                    <div class="selector" id="view-detail">
+                        <input type="radio" name="view-detail" id="view-detail-4" value="4">
+                        <label for="view-detail-4">4</label>
+                        <input type="radio" name="view-detail" id="view-detail-5" value="5">
+                        <label for="view-detail-5">5</label>
+                        <input type="radio" name="view-detail" id="view-detail-6" value="6" checked>
+                        <label for="view-detail-6">6</label>
+                        <input type="radio" name="view-detail" id="view-detail-7" value="7">
+                        <label for="view-detail-7">7</label>
+                    </div>
+                    <div class="selector" id="view-distance">
+                        <input type="radio" name="view-distance" id="view-distance-0" value="0">
+                        <label for="view-distance-0">0</label>
+                        <input type="radio" name="view-distance" id="view-distance-2" value="2">
+                        <label for="view-distance-2">2</label>
+                        <input type="radio" name="view-distance" id="view-distance-4" value="4" checked>
+                        <label for="view-distance-4">4</label>
+                        <input type="radio" name="view-distance" id="view-distance-6" value="6">
+                        <label for="view-distance-6">6</label>
+                        <input type="radio" name="view-distance" id="view-distance-8" value="8">
+                        <label for="view-distance-8">8</label>
+                        <input type="radio" name="view-distance" id="view-distance-10" value="10">
+                        <label for="view-distance-10">10</label>                    
+                    </div>
+                </div>
+                <div id="shadow-container" class="selector-container">
+                    <p>shadows</p>
+                    <div class="selector" id="shadows">
+                        <input type="radio" name="shadows" id="shadow-off" value="0">
+                        <label for="shadow-off">off</label>
+                        <input type="radio" name="shadows" id="shadow-min" value="1" checked>
+                        <label for="shadow-min">on</label>
+                    </div>
                 </div>
                 <div class="slidecontainer">
-                    <p>distant</p>
-                    <input type="range" min="0" max="10" step="2" value="4" class="slider" id="farViewDistance">
+                    <p>mouse sensitivity</p>
+                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider" id="mouse_sensitivity">
+                    <p>0.5</p>
                 </div>
             </div>
-            <button id='settings-button' onclick="showSettings(false)">back</button>
+            <button id='back-button'>back</button>
         </div>
-        
+
     </div>
     <div id="three-div"></div>
     <div id="p5-div"></div>

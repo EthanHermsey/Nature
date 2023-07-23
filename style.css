@@ -37,6 +37,7 @@ html {
     background: url('./resources/banner.png');
     background-size: cover;
     background-position: center;
+    background-position-y: 90%;
     z-index: -1;
 }
 
@@ -45,6 +46,8 @@ html {
     inset: 0;
     backdrop-filter: blur(8px);
 }
+
+
 
 
 
@@ -75,6 +78,7 @@ html {
 }
 
 #title {
+    margin: 12px;
     width: 100%;
     text-align: center;
     font-weight: bold;
@@ -89,9 +93,10 @@ html {
     gap: 20px;
 }
 
-#load-button,
+#continue-button,
 #settings-button,
-#start-button {
+#start-button,
+#back-button {
     padding: 8px;
     width: 300px;
     font-size: 2em;
@@ -103,28 +108,32 @@ html {
     border: outset 3px rgb(216, 216, 216);
 }
 
-#load-button {
+#continue-button {
     width: 340px;
+    margin-bottom: 12px;
 }
 
 #start-button.new,
-#settings-button {
+#settings-button,
+#back-button {
     font-size: 1.72em;
     padding-top: 2px;
     padding-bottom: 2px;
     width: 280px;
 }
 
-#load-button:hover,
+#continue-button:hover,
 #settings-button:hover,
+#back-button:hover,
 #start-button:hover {
     color: rgb(245, 245, 245);
     border: outset 3px rgb(245, 245, 245);
     background: #fff4;
 }
 
-#load-button:active,
+#continue-button:active,
 #settings-button:active,
+#back-button:active,
 #start-button:active {
     color: rgb(216, 216, 216);
     border: inset 3px rgb(216, 216, 216);
@@ -147,62 +156,138 @@ html {
 
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
 }
 
+#settings-container {
+    width: 500px;
+    margin-top: 35vh;
+    margin-bottom: 10vh;
+}
 
-/* 
-#view-distance-container {
+#shadow-container .selector label {
+    flex: 1;
+}
+
+
+
+
+.selector-container {
+    width: 100%;
+    margin-bottom: 20px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 }
+
+.selector-container p {
+    color: white;
+    width: 150px;
+    margin: 5px;
+}
+
+.selector {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.selector input {
+    display: none;
+}
+
+.selector label {
+    padding: 12px;
+    color: #fffc;
+    border: 2px white solid;
+    border-width: 2px 0 2px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.selector label:hover {
+    color: #ffff;
+}
+
+.selector label:first-of-type {
+    border-radius: 4px 0 0 4px;
+    border-width: 2px 0 2px 2px;
+}
+
+.selector label:last-of-type {
+    border-radius: 0 4px 4px 0;
+    border-width: 2px 2px 2px 0;
+}
+
+.selector input:checked+label {
+    background-color: #fff6;
+}
+
+.selector input:checked+label:hover {
+    background-color: #fff7;
+}
+
 
 
 .slidecontainer {
     position: relative;
     width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
-
 .slider {
+    flex: 1;
     -webkit-appearance: none;
     appearance: none;
-    width: 100%;
-    height: 25px;
-    background: #d3d3d3;
+    height: 4px;
+    border-radius: 2px;
+    background: white;
     outline: none;
-    opacity: 0.7;
+    opacity: 0.8;
     -webkit-transition: .2s;
     transition: opacity .2s;
 }
+
 .slidecontainer p {
-    position: absolute;
     margin: 5px;
-    z-index: 9;
     user-select: none;
-    pointer-events: none;
+    color: white;
+    width: 150px;
 }
+
+.slidecontainer p:nth-child(3) {
+    width: 40px;
+    text-align: center;
+}
+
 .slider:hover {
     opacity: 1;
 }
+
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 25px;
-    height: 25px;
-    background: #04AA6D;
+    width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    background: #fff;
     cursor: pointer;
 }
+
+.slider::-webkit-slider-thumb,
 .slider::-moz-range-thumb {
     width: 25px;
     height: 25px;
-    background: #04AA6D;
+    border-radius: 4px;
+    background: #fff;
     cursor: pointer;
 }
-*/
 
 
 
@@ -210,7 +295,13 @@ html {
 
 
 
-#loading-container {
+
+
+
+
+
+
+#loading-content {
     position: relative;
     height: 100vh;
     width: 100vw;
@@ -223,8 +314,8 @@ html {
 
 #loading-grid {
     margin-top: 10vh;
-    width: 60vh;
-    height: 60vh;
+    width: 50vh;
+    height: 50vh;
 
     display: grid;
     grid-template-columns: repeat(10, calc(10%));

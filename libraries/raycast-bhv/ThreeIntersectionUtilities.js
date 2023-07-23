@@ -39,9 +39,9 @@ function checkIntersection( object, material, raycaster, ray, pA, pB, pC, point 
 	intersectionPointWorld.copy( point );
 	intersectionPointWorld.applyMatrix4( object.matrixWorld );
 
-	var distance = raycaster.ray.origin.distanceTo( intersectionPointWorld );
+	var distance = app.raycaster.ray.origin.distanceTo( intersectionPointWorld );
 
-	if ( distance < raycaster.near || distance > raycaster.far ) return null;
+	if ( distance < app.raycaster.near || distance > app.raycaster.far ) return null;
 
 	return {
 		distance: distance,

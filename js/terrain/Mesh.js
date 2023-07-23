@@ -77,7 +77,7 @@ const Mesh = async ( generatedSurface, chunk ) => {
     topgeo.setAttribute( 'position', new THREE.Float32BufferAttribute( topvertices, 3 ) );				
     topgeo.computeVertexNormals();
 
-    //create new mesh with preloaded material
+    //create new mesh with preapp.loadedmaterial
     chunk.mesh = new THREE.Mesh( geo, chunk.terrain.material );
     chunk.mesh.scale.set( terrainController.terrainScale.x, terrainController.terrainScale.y, terrainController.terrainScale.z );
     chunk.mesh.raycast = acceleratedRaycast;

@@ -1,33 +1,113 @@
-let running = false;
-let loaded = false;
-const clock = new THREE.Clock( false );
-const scene = new THREE.Scene();
-scene.down = new THREE.Vector3( 0, - 1, 0 );
-const renderer = new THREE.WebGLRenderer( {
-	antialias: true,
-	logarithmicDepthBuffer: true
-} );
-const raycaster = new THREE.Raycaster();
-raycaster.firstHitOnly = true;
 
-//chunks
-let terrainController;
-const terrainSeed = 32921; //is very nice
-// const terrainSeed = Math.floor( Math.random() * 99999 );
 
-//player
-let player;
+                                
+//  .oooo.   oo.ooooo.  oo.ooooo.  
+// `P  )88b   888' `88b  888' `88b 
+//  .oP"888   888   888  888   888 
+// d8(  888   888   888  888   888 
+// `Y888""8o  888bod8P'  888bod8P' 
+//            888        888       
+//           o888o      o888o   
+const app = {
+    loaded: false,
+    running: false,
+    clock: new THREE.Clock( false ),
+    scene: new THREE.Scene(),
+    renderer: new THREE.WebGLRenderer( {
+        antialias: true,
+        logarithmicDepthBuffer: true
+    } ),
+    raycaster: new THREE.Raycaster(),
+    terrainSeed: 32921, //is very nice
+    // const terrainSeed = Math.floor( Math.random() * 99999 );
+    key: {
+        up: 87,
+        down: 83,
+        left: 65,
+        right: 68,
+        shift: 16,
+        space: 32,
+        flyMode: 70
+    },
+    startLoading: function( offset, viewDistance ){
 
-//input key codes
-const key = {
-	up: 87,
-	down: 83,
-	left: 65,
-	right: 68,
-	shift: 16,
-	space: 32,
-	flyMode: 70
+        return new Promise( async ( resolve ) => {
+    
+            if ( !terrainController ) {
+                
+                await new Promise((resolve) => {
+                    terrainController = new TerrainController( offset, viewDistance, app.terrainSeed, () => resolve() );
+                    app.scene.add( terrainController );                
+                })
+                
+            } else {
+    
+                await terrainController.init( viewDistance );
+    
+            }        
+    
+            offset = offset || { x: 0, z: 0 };
+    
+            player.init(
+                terrainController.getChunk( terrainController.getChunkKey( offset ) ),
+                () => {
+    
+                    app.loaded = true;                
+                    app.start();
+                    resolve();
+    
+                }
+            );
+    
+        })
+    
+    },
+    start: function() {
+    
+        app.running= true;
+        app.clock.start();
+        terrainController.toggleClock(true);
+        document.querySelector( 'audio' ).play();        
+        render();
+        
+    },
+    stop: function(){
+    
+        if ( player.position.length() > 0 ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
+    
+        app.running= false;
+        app.clock.stop();
+        terrainController.toggleClock(false);
+        document.querySelector( 'audio' ).pause();
+    
+    }
 };
+
+
+
+//            oooo                                           
+//            `888                                           
+// oo.ooooo.   888   .oooo.   oooo    ooo  .ooooo.  oooo d8b 
+//  888' `88b  888  `P  )88b   `88.  .8'  d88' `88b `888""8P 
+//  888   888  888   .oP"888    `88..8'   888ooo888  888     
+//  888   888  888  d8(  888     `888'    888    .o  888     
+//  888bod8P' o888o `Y888""8o     .8'     `Y8bod8P' d888b    
+//  888                       .o..P'                         
+// o888o                      `Y8P'                       
+const player = new Player();
+
+
+
+
+
+//     .                                          o8o                .oooooo.                             .                      oooo  oooo                     
+//   .o8                                          `"'               d8P'  `Y8b                          .o8                      `888  `888                     
+// .o888oo  .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.   888           .ooooo.  ooo. .oo.   .o888oo oooo d8b  .ooooo.   888   888   .ooooo.  oooo d8b 
+//   888   d88' `88b `888""8P `888""8P `P  )88b  `888  `888P"Y88b  888          d88' `88b `888P"Y88b    888   `888""8P d88' `88b  888   888  d88' `88b `888""8P 
+//   888   888ooo888  888      888      .oP"888   888   888   888  888          888   888  888   888    888    888     888   888  888   888  888ooo888  888     
+//   888 . 888    .o  888      888     d8(  888   888   888   888  `88b    ooo  888   888  888   888    888 .  888     888   888  888   888  888    .o  888     
+//   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o  `Y8bood8P'  `Y8bod8P' o888o o888o   "888" d888b    `Y8bod8P' o888o o888o `Y8bod8P' d888b    
+let terrainController;
 
 
 
@@ -81,25 +161,22 @@ function setup() {
 
 	};
 
-    const position = localStorage.getItem('position');
-    if ( position ){
-        document.getElementById( 'load-button' ).classList.remove( 'hidden' );
-        document.getElementById( 'start-button' ).textContent = 'new';
-        document.getElementById( 'start-button' ).classList.add('new');
-    };
+    //setting scene and raycaster
+    app.scene.down = new THREE.Vector3( 0, - 1, 0 );
+    app.raycaster.firstHitOnly = true;
 
-    document.getElementById( 'load-button' ).addEventListener('click', setFullscreen, true);
-    document.getElementById( 'start-button' ).addEventListener('click', setFullscreen, true);
+    //uitController
+    uiController = new UIController();
 
 	//THREE Renderer
-    renderer.physicallyCorrectLights = true;
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = 2.3;
-	renderer.shadowMap.enabled = true;
-	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-	renderer.setSize( windowWidth, windowHeight );
-	document.getElementById( 'three-div' ).appendChild( renderer.domElement );
+    app.renderer.physicallyCorrectLights = true;
+    app.renderer.outputEncoding = THREE.sRGBEncoding;
+    app.renderer.toneMapping = THREE.ReinhardToneMapping;
+    app.renderer.toneMappingExposure = 2.3;
+	app.renderer.shadowMap.enabled = true;
+	app.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	app.renderer.setSize( windowWidth, windowHeight );
+	uiController.elements.threeDiv.appendChild( app.renderer.domElement );
 
 
 	//fps counter
@@ -115,13 +192,10 @@ function setup() {
 
 	//lights
 	let amb = new THREE.AmbientLight( "rgb(240,240,240)", 0.22 );
-	scene.add( amb );
+	app.scene.add( amb );
 
 	//fog
-	scene.fog = new THREE.FogExp2( 'lightgrey', 0.0004 );
-
-    //player!
-    player = new Player();
+	app.scene.fog = new THREE.FogExp2( 'lightgrey', 0.0004 );
 
 }
 
@@ -150,7 +224,7 @@ function setup() {
 
 function keyPressed( e ){
 
-    if ( running && e.code == 'KeyC'){
+    if ( app.running&& e.code == 'KeyC'){
         player.camera.fov = 21;
         player.mouseSensitivity *= 0.5;
         windowResized();
@@ -160,7 +234,7 @@ function keyPressed( e ){
 
 function keyReleased( e ){
     
-    if ( running && e.code == 'KeyC'){
+    if ( app.running&& e.code == 'KeyC'){
         player.camera.fov = 70;
         player.mouseSensitivity *= 2;
         windowResized();
@@ -174,15 +248,6 @@ function onMouseMove( e ) {
 
 }
 
-function pointerLockChangeCallback() {
-
-	if ( !document.pointerLockElement ) {
-
-        stop();
-
-	}
-
-}
 
 
 
@@ -199,9 +264,9 @@ function pointerLockChangeCallback() {
 
 function render() {
 
-	if ( running ) requestAnimationFrame( render );
+	if ( app.running) requestAnimationFrame( render );
 
-	let delta = clock.getDelta();
+	let delta = app.clock.getDelta();
 
 	// update player controller
 	player.update( delta );
@@ -216,166 +281,7 @@ function render() {
 	stats.update();
 
 	//render scene
-	renderer.render( scene, player.camera );
-
-}
-
-
-
-
-
-
-
-
-
-//  .o88o.                                       .    o8o
-//  888 `"                                     .o8    `"'
-// o888oo  oooo  oooo  ooo. .oo.    .ooooo.  .o888oo oooo   .ooooo.  ooo. .oo.    .oooo.o
-//  888    `888  `888  `888P"Y88b  d88' `"Y8   888   `888  d88' `88b `888P"Y88b  d88(  "8
-//  888     888   888   888   888  888         888    888  888   888  888   888  `"Y88b.
-//  888     888   888   888   888  888   .o8   888 .  888  888   888  888   888  o.  )88b
-// o888o    `V88V"V8P' o888o o888o `Y8bod8P'   "888" o888o `Y8bod8P' o888o o888o 8""888P'
-
-
-function showSettings( show ){
-    document.getElementById('settings-content').classList.toggle( 'hidden', !show );
-    document.getElementById('menu-content').classList.toggle( 'hidden', show );
-}
-
-
-function windowResized() {
-    
-    resizeCanvas( windowWidth, windowHeight );
-    
-	renderer.setSize( windowWidth, windowHeight );
-	player.camera.aspect = windowWidth / windowHeight;
-	player.camera.updateProjectionMatrix();
-    
-}
-
-function setFullscreen( e ){
-
-    THREEx.FullScreen.request();
-    setTimeout(()=>{
-        ((e) => {
-            renderer.domElement.requestPointerLock();
-            if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', pointerLockChangeCallback, false );
-        })(e)
-    }, 400);
-
-}
-
-function loadFromStorage(){
-
-    if ( loaded ){
-                    
-        start( true );
-
-    } else {
-
-        const {position, offset} = JSON.parse(localStorage.getItem('position'));
-        startLoading( offset )
-            .then(() => {
-                player.position.fromArray( position );
-                player.position.y += 10;
-                terrainController.updateInstancedObjects();
-            });
-
-    }
-
-}
-
-function loadNew(){
-    startLoading()
-        .then(() => {
-            terrainController.updateInstancedObjects();
-        });
-}
-
-
-function startLoading( offset ){
-
-    return new Promise( async ( resolve ) => {
-
-        document.getElementById( 'menu-content' ).classList.add( 'hidden' );
-        document.getElementById( 'loading-container' ).classList.remove( 'hidden' );                
-        document.getElementById( 'loading-img' ).classList.add( 'hidden' );
-
-        if ( !offset ){
-            const db = new DB('grid-data');
-            db.clear();
-        }
-
-        if ( !terrainController ) {
-            
-            await new Promise((resolve) => {
-                terrainController = new TerrainController( offset, terrainSeed, () => resolve() );
-                scene.add( terrainController );                
-            })
-            
-        } else {
-
-            await terrainController.init();
-
-        }        
-            
-        document.getElementById( 'loading-img' ).classList.remove( 'hidden' );
-
-        offset = offset || { x: 0, z: 0 };
-
-        player.init(
-            terrainController.getChunk( terrainController.getChunkKey( offset ) ),
-            () => {
-
-                loaded = true;                
-                start();
-                resolve();
-
-            }
-        );
-
-    })
-
-}
-
-function start( userEvent ) {
-
-    document.addEventListener( "mousemove", onMouseMove, false );
-    if ( userEvent ){
-        THREEx.FullScreen.request();
-        renderer.domElement.requestPointerLock();
-    }
-
-    if ( 'pointerLockElement' in document ) document.addEventListener( 'pointerlockchange', pointerLockChangeCallback, false );
-
-    running = true;
-	clock.start();
-    terrainController.toggleClock(true);
-	document.querySelector( 'audio' ).play();
-	document.getElementById( 'main-menu' ).classList.add( 'hidden' );
-	render();
-    
-}
-
-function stop(){
-
-    THREEx.FullScreen.cancel();
-    document.removeEventListener( "mousemove", onMouseMove, false );
-
-    document.getElementById( 'main-menu' ).classList.remove( 'hidden' );
-    document.getElementById( 'menu-content' ).classList.remove( 'hidden' );
-    document.getElementById( 'loading-container' ).classList.add( 'hidden' );
-    document.getElementById( 'load-button' ).classList.remove( 'hidden' );
-    document.getElementById( 'start-button' ).textContent = 'new';
-
-    if ( player.position.length() > 0 ) localStorage.setItem('position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
-
-    if ( 'pointerLockElement' in document ) document.removeEventListener( 'pointerlockchange', pointerLockChangeCallback, false );		
-
-    running = false;
-    clock.stop();
-    terrainController.toggleClock(false);
-    document.querySelector( 'audio' ).pause();
+	app.renderer.render( app.scene, player.camera );
 
 }
 
@@ -391,22 +297,22 @@ function drawHud() {
 	ellipse( width / 2, height / 2, min( width, height ) * 0.025 );
     
 	noStroke();
-	fill( 180, 200 );
+	fill( 200, 200 );
     textAlign(LEFT);
-	text( "WASD", width * 0.01, height * 0.92 );
-	text( "- move", width * 0.05, height * 0.92 );
+	text( "WASD", width * 0.01, height * 0.90 );
+	text( "- move", width * 0.05, height * 0.90 );
 
-	text( "SHIFT", width * 0.01, height * 0.94 );
-    text( "- sprint", width * 0.05, height * 0.94 );	
+	text( "SHIFT", width * 0.01, height * 0.92 );
+    text( "- sprint", width * 0.05, height * 0.92 );	
 
-	text( "SPACE", width * 0.01, height * 0.96 );
-	text( "- jump", width * 0.05, height * 0.96 );
+	text( "SPACE", width * 0.01, height * 0.94 );
+	text( "- jump", width * 0.05, height * 0.94 );
 
-	text( "C", width * 0.01, height * 0.98 );
-    text( "- zoom", width * 0.05, height * 0.98 );
+	text( "C", width * 0.01, height * 0.96 );
+    text( "- zoom", width * 0.05, height * 0.96 );
 
-	text( "MOUSE", width * 0.01, height * 1 );
-    text( "- remove/add terrain", width * 0.05, height * 1 );
+	text( "MOUSE", width * 0.01, height * 0.98 );
+    text( "- remove/add terrain", width * 0.05, height * 0.98 );
 
     const coord = terrainController.getCoordFromPosition( player.position );
     textAlign(RIGHT);
@@ -431,7 +337,6 @@ function drawHud() {
         textAlign(CENTER);
         text( str, width * 0.57, height * 0.05 );
 
-    }
-        
+    }        
     
 }

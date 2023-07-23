@@ -2,15 +2,15 @@
 
 class TerrainController extends VolumetricTerrain{
 
-	constructor( offset, seed, callback ) {
+	constructor( offset, viewDistance, seed, callback ) {
 		
         super(
             {
                 gridSize: { x: 16, y: 256, z: 16 },
                 terrainScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
-                viewDistance: 4,
-                farViewDistance: 2,
+                viewDistance: viewDistance.viewDetail,
+                farViewDistance: viewDistance.viewDistance,
                 seed: seed,
                 fps: 10,
                 material: terrainMaterial,
@@ -58,7 +58,13 @@ class TerrainController extends VolumetricTerrain{
     //   888   888   888   888    888   
     //   888   888   888   888    888 . 
     //  o888o o888o o888o o888o   "888" 
-    init() {
+    init( viewDistance ) {
+
+        if ( viewDistance ){
+            this.viewDistance = viewDistance.viewDetail || 4;
+            this.farViewDistance = viewDistance.viewDistance || 2;
+            this.totalViewDistance =  this.viewDistance + this.farViewDistance;
+        }
 
         return new Promise( resolve =>{
 
@@ -68,8 +74,8 @@ class TerrainController extends VolumetricTerrain{
             }
             this.chunks = {};
 
-            const grid = document.getElementById('loading-grid');
-            const loadingtext = document.getElementById( 'loading-text' );
+            const grid = uiController.elements.loadingGrid;
+            const loadingtext = uiController.elements.loadingText;
             loadingtext.textContent = `loading chunks`;
             
             let max_initial_chunks = 0;

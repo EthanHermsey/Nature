@@ -7,7 +7,7 @@ class Fern extends CachedInstancedLOD {
         this.terrain = terrain;
         this.viewDistance = viewDistance;
         this.loadObjects();
-        scene.add( this );
+        app.scene.add( this );
 
     }
 
@@ -97,7 +97,7 @@ class Fern extends CachedInstancedLOD {
             do {
 
                 surfaceSampler.sample( _position, _normal );
-                d = 1.0 - scene.up.dot( _normal );
+                d = 1.0 - app.scene.up.dot( _normal );
                 terrainHeight = chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) );
                 tries--;
 
@@ -113,7 +113,7 @@ class Fern extends CachedInstancedLOD {
                 dummy.position
                     .copy( chunk.position )
                     .add( _position.multiply( this.terrain.terrainScale ) );
-                dummy.quaternion.setFromUnitVectors( scene.up, _normal );
+                dummy.quaternion.setFromUnitVectors( app.scene.up, _normal );
                 dummy.rotateY( Math.random() * Math.PI );
                 dummy.updateMatrix();
     

@@ -40,7 +40,7 @@ class Fog extends CachedPoints {
         this.terrain = terrain;
         this.viewDistance = viewDistance;
         this.positionBuffer = []; 
-        scene.add( this );
+        app.scene.add( this );
 
     }
 

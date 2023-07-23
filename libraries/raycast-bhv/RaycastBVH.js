@@ -15,9 +15,9 @@ function acceleratedRaycast( raycaster, intersects ) {
 		if ( this.material === undefined ) return;
 
 		tmpInverseMatrix.copy( this.matrixWorld ).invert();
-		ray.copy( raycaster.ray ).applyMatrix4( tmpInverseMatrix );
+		ray.copy( app.raycaster.ray ).applyMatrix4( tmpInverseMatrix );
 
-		if ( raycaster.firstHitOnly === true ) {
+		if ( app.raycaster.firstHitOnly === true ) {
 
 			const res = this.geometry.boundsTree.raycastFirst( this, raycaster, ray );
 			if ( res ) intersects.push( res );

@@ -11,7 +11,7 @@ class Boulder extends CachedMesh {
         this.receiveShadow = true;
         this.castShadow = true;
         this.raycast = acceleratedRaycast;
-        scene.add( this );
+        app.scene.add( this );
 
         this.loadObjects();
 
@@ -138,7 +138,7 @@ class Boulder extends CachedMesh {
 
 			//check to see if slope is steep enough
 			//check to see if not underground
-			const d = scene.up.dot( n );
+			const d = app.scene.up.dot( n );
             const inRange = d > 0.55 && d < 0.68;
 
 			if ( inRange && 
@@ -226,7 +226,7 @@ class Boulder extends CachedMesh {
             if ( verts.length > 6 ) {
 
                 //dummy rotation
-				dummy.quaternion.setFromUnitVectors( scene.up, n );
+				dummy.quaternion.setFromUnitVectors( app.scene.up, n );
 				dummy.rotateY( Math.random() * Math.PI );
 				if ( Math.random() > 0.6 ) dummy.rotateX( Math.PI );
 

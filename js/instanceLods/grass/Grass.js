@@ -7,7 +7,7 @@ class Grass extends CachedInstancedLOD {
         this.terrain = terrain;
         this.viewDistance = viewDistance;        
         this.loadObjects();
-        scene.add( this );
+        app.scene.add( this );
 
     }
 
@@ -131,7 +131,7 @@ class Grass extends CachedInstancedLOD {
             let tries = 20;
 			do {
                 surfaceSampler.sample( _position, _normal );
-				d = 1.0 - scene.up.dot( _normal );
+				d = 1.0 - app.scene.up.dot( _normal );
                 terrainHeight = chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) );
                 tries--;
 			} while ( tries > 0 && ( d < 0 || d > 0.12 || _position.y < terrainHeight ) );
@@ -147,7 +147,7 @@ class Grass extends CachedInstancedLOD {
                 dummy.position
                     .copy( chunk.position )
                     .add( _position.multiply( this.terrain.terrainScale ) );
-                dummy.quaternion.setFromUnitVectors( scene.up, _normal );
+                dummy.quaternion.setFromUnitVectors( app.scene.up, _normal );
                 dummy.rotateY( Math.random() * Math.PI );
                 dummy.updateMatrix();
     

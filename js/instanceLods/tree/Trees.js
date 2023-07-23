@@ -10,8 +10,8 @@ class Trees extends Cached {
 
         this.tree = new Tree( this.terrain );
         this.tree1 = new Tree1( this.terrain );        
-        scene.add( this.tree );
-        scene.add( this.tree1 );
+        app.scene.add( this.tree );
+        app.scene.add( this.tree1 );
 
     }
 
@@ -100,7 +100,7 @@ class Trees extends Cached {
                 geo.attributes.normal.array[ i + 1 ],
                 geo.attributes.normal.array[ i + 2 ]
             );
-            const d = 1.0 - scene.up.dot( n );
+            const d = 1.0 - app.scene.up.dot( n );
 
             let wp = v.clone()
                 .multiply( this.terrain.terrainScale )

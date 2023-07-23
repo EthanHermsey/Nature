@@ -15,7 +15,7 @@ grasstex.encoding = THREE.sRGBEncoding
 
 const terrainMaterial = new THREE.MeshLambertMaterial( {
     dithering: true,
-    map: rocktex // enables UV's in shader
+    map: rocktex, // enables UV's in shader    
 } );
 terrainMaterial.onBeforeCompile = ( shader ) => {
     
