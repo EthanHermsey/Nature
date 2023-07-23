@@ -105,15 +105,15 @@ class UIController{
     loadSettings(){
 
         
-        const shadows = Number( this.elements.shadows.querySelector('input:checked').value );
+        const shadows = this.elements.shadows.querySelector('input:checked').value;
         const mouseSensitivity = Number( this.elements.mouseSensitivity.value );
         
         switch( shadows ){
 
-            case 0:
+            case 'off':
                 player.shadowLight.shadow.camera.far = 2;
                 break;
-            case 1:
+            case 'on':
                 player.shadowLight.shadow.camera.far = player.defaultShadowLightFar;
                 break;
 
@@ -148,10 +148,10 @@ class UIController{
             
             for(let option of shadowsOptions) option.checked = false;
 
-            document.getElementById('view-detail-' + options.viewDetail).checked = true;
-            document.getElementById('view-distance-' + options.viewDistance).checked = true;
-            document.getElementById('shadow-' + ( options.shadows ? 'off' : 'on' ) ).checked = true;
-
+            document.getElementById( 'view-detail-' + options.viewDetail ).checked = true;
+            document.getElementById( 'view-distance-' + options.viewDistance ).checked = true;
+            document.getElementById( 'shadow-' + options.shadows ).checked = true;
+            
             this.elements.mouseSensitivity.value = options.mouseSensitivity;
             this.updateValueLabel({target: this.elements.mouseSensitivity });
 
@@ -163,7 +163,7 @@ class UIController{
 
         const viewDetail = Number( this.elements.viewDetail.querySelector('input:checked').value );
         const viewDistance = Number( this.elements.viewDistance.querySelector('input:checked').value );        
-        const shadows = Number( this.elements.shadows.querySelector('input:checked').value );
+        const shadows = this.elements.shadows.querySelector('input:checked').value;
         const mouseSensitivity = Number( this.elements.mouseSensitivity.value );
         localStorage.setItem( 'options', JSON.stringify( { viewDetail, viewDistance, shadows, mouseSensitivity } ) );
 

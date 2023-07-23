@@ -44,7 +44,7 @@ html {
 #blur {
     position: absolute;
     inset: 0;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
 }
 
 

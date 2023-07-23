@@ -15,7 +15,7 @@
 <!-- {"position":[2752.7925935303933,1027.3258721815296,-1328.781806245274],"offset":{"x":19,"z":-10}} -->
 
 
-   !!!  NEE   !!!
+   
    
 - efficiently save/load from db ( alleen changed, mischien alleen changed indexes..)
     db -> nature-grids
@@ -25,3 +25,5 @@
     bij aanpassen grid -> elke aangepastte positie opslaan in objectstore in db
 
     bij genereren van chunk -> getall van objectstore -> overschrijven in grid
+
+    extra array met aangepastte indices, zodat er geen vegetation groeit?
