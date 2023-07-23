@@ -61,8 +61,8 @@ class TerrainController extends VolumetricTerrain{
     init( viewDistance ) {
 
         if ( viewDistance ){
-            this.viewDistance = viewDistance.viewDetail || 4;
-            this.farViewDistance = viewDistance.viewDistance || 2;
+            this.viewDistance = viewDistance.viewDetail;
+            this.farViewDistance = viewDistance.viewDistance;
             this.totalViewDistance =  this.viewDistance + this.farViewDistance;
         }
 

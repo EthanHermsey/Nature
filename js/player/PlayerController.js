@@ -87,38 +87,37 @@ class Player {
 
         if ( !this.model){
 
-            let loader = new THREE.GLTFLoader();
+            new THREE.GLTFLoader()
+                .load( './resources/model/knight.gltf', ( model ) => {
     
-            loader.load( './resources/model/knight.gltf', ( model ) => {
-    
-                this.model = model.scene.children[ 0 ];
-                this.model.mixer = new THREE.AnimationMixer( this.model );
-                this.model.animations = {
-                    idle: this.model.mixer.clipAction( model.animations[ 0 ] ),
-                    running: this.model.mixer.clipAction( model.animations[ 1 ] )
-                };
-                this.model.animations.idle.play();
-    
-                for( let child of this.model.children ){    
+                    this.model = model.scene.children[ 0 ];
+                    this.model.mixer = new THREE.AnimationMixer( this.model );
+                    this.model.animations = {
+                        idle: this.model.mixer.clipAction( model.animations[ 0 ] ),
+                        running: this.model.mixer.clipAction( model.animations[ 1 ] )
+                    };
+                    this.model.animations.idle.play();
+        
+                    for( let child of this.model.children ){    
 
-                    child.frustumCulled = false;    
-                    
-                };
+                        child.frustumCulled = false;    
+                        
+                    };
 
-                this.model.children[ 1 ].material.metalness = 0.0;
-                this.model.children[ 1 ].material.roughness = 0.85;
-                this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
-                    .load( './resources/model/n.png' );
-                this.model.scale.multiplyScalar( this.height * 0.9 );
-                this.model.position.y -= this.height;
-                this.model.rotation.order = "YXZ";
-                this.model.rotation.y = Math.PI;
+                    this.model.children[ 1 ].material.metalness = 0.0;
+                    this.model.children[ 1 ].material.roughness = 0.85;
+                    this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
+                        .load( './resources/model/n.png' );
+                    this.model.scale.multiplyScalar( this.height * 0.9 );
+                    this.model.position.y -= this.height;
+                    this.model.rotation.order = "YXZ";
+                    this.model.rotation.y = Math.PI;
 
-                this.object.add( this.model );
+                    this.object.add( this.model );
 
-                resolve();
-    
-            } );
+                    resolve();
+        
+                } );
     
     
             //add shadowlight. This position is updated in the update function

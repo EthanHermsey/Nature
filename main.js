@@ -52,6 +52,28 @@ const app = {
                 terrainController.getChunk( terrainController.getChunkKey( offset ) ),
                 () => {
     
+                    const pedestalPosition = {x: 41.535560089506816, y: 970.3654818010983, z: 106.16156305093523};
+                    new THREE.GLTFLoader()    
+                        .load( './resources/pedestal/pedestal.gltf', ( model ) => {
+
+                            model = model.scene.children[2];
+                            model.position.copy( pedestalPosition );
+                            model.position.y -= 2;
+                            model.scale.setScalar( 0.4 );
+                            model.children[1].children[0].renderOrder = 1;
+
+                            let count = 0;
+                            setInterval(() => {
+                                model.children[1].rotation.y += 0.005;
+                                model.children[1].position.y = sin(count) * 0.2;
+                                count += random(0.02, 0.05);
+                            }, 1000/60)
+
+                            this.scene.add( model );
+
+                        })
+
+
                     app.loaded = true;                
                     app.start();
                     resolve();
