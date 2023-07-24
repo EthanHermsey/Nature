@@ -30,12 +30,12 @@ class Chunk extends VolumetricChunk{
 		if ( this.lodLevel == 1 ) {
 
 			if ( this.mesh ) this.terrain.add( this.mesh );
-            if ( this.farMesh ) this.terrain.remove( this.farMesh );
+            if ( this.LODMesh ) this.terrain.remove( this.LODMesh );
 
 		} else {
             
 			if ( this.mesh ) this.terrain.remove( this.mesh );
-			if ( this.farMesh ) this.terrain.add( this.farMesh );
+			if ( this.LODMesh ) this.terrain.add( this.LODMesh );
 
 		}
 
@@ -50,10 +50,10 @@ class Chunk extends VolumetricChunk{
 
 		super.dispose();
 
-        if ( this.farMesh ) {
-            this.farMesh.geometry.dispose();
-            this.terrain.remove( this.farMesh );
-            this.farMesh = undefined;
+        if ( this.LODMesh ) {
+            this.LODMesh.geometry.dispose();
+            this.terrain.remove( this.LODMesh );
+            this.LODMesh = undefined;
         }
 
 	}

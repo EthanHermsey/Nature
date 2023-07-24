@@ -1,7 +1,7 @@
 
-- gems om te verzamelen    
+- meshWorker incl surfacenets, geeft attributes: indices positions underground voor mesh en LODMesh  
 
-- effectcomposer toevoegen met AO, fxaa, tonemap + gamma?
+- pedstal: particles as highlight    
 
 - multi
     spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen

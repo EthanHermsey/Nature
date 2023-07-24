@@ -15,7 +15,7 @@ class TerrainController extends VolumetricTerrain{
                 fps: 10,
                 material: terrainMaterial,
                 workers: 4,
-                workerScript: './js/terrain/worker/GridWorker.js',
+                workerScript: './js/terrain/gridworker/GridWorker.js',
                 meshFactory: Mesh,
                 chunkClass: Chunk,
                 db: false                   ////////////////////////////////    <<-------------------------------

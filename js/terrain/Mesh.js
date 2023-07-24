@@ -92,13 +92,13 @@ const Mesh = async ( generatedSurface, chunk ) => {
     chunk.mesh.matrixAutoUpdate = false;
     chunk.mesh.name = "terrain";
 
-    chunk.farMesh = new THREE.Mesh( topgeo, chunk.terrain.material );
-    chunk.farMesh.scale.set( terrainController.terrainScale.x, terrainController.terrainScale.y, terrainController.terrainScale.z );
-    chunk.farMesh.position.x = chunk.position.x;
-    chunk.farMesh.position.z = chunk.position.z;
+    chunk.LODMesh = new THREE.Mesh( topgeo, chunk.terrain.material );
+    chunk.LODMesh.scale.set( terrainController.terrainScale.x, terrainController.terrainScale.y, terrainController.terrainScale.z );
+    chunk.LODMesh.position.x = chunk.position.x;
+    chunk.LODMesh.position.z = chunk.position.z;
 
-    chunk.farMesh.updateWorldMatrix();
-    chunk.farMesh.matrixAutoUpdate = false;
-    chunk.farMesh.name = "terrainTop";
+    chunk.LODMesh.updateWorldMatrix();
+    chunk.LODMesh.matrixAutoUpdate = false;
+    chunk.LODMesh.name = "terrainTop";
 
 }

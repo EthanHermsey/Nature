@@ -102,7 +102,7 @@ class Pedestal extends CachedMesh {
 
         if ( this.pedestalPositions[ chunk.chunkKey ] ){
             
-            const surfaceSampler = new THREE.MeshSurfaceSampler( chunk.farMesh ).build();
+            const surfaceSampler = new THREE.MeshSurfaceSampler( chunk.LODMesh ).build();
             const _position = new THREE.Vector3();
             const _normal = new THREE.Vector3();
 
