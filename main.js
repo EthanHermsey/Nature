@@ -39,7 +39,12 @@ const app = {
             if ( !terrainController ) {
                 
                 await new Promise((resolve) => {
-                    terrainController = new TerrainController( offset, viewDistance, app.terrainSeed, () => resolve() );
+                    terrainController = new TerrainController( 
+                        offset, 
+                        viewDistance, 
+                        app.terrainSeed, 
+                        () => resolve() 
+                    );
                     app.scene.add( terrainController );                
                 })
                 
@@ -135,6 +140,7 @@ function setup() {
 	noLoop();
     textFont("'Fira Sans', sans-serif");
 	textSize( width * 0.009 );
+    noiseSeed( app.terrainSeed );
 
 	const birdSound = document.querySelector( 'audio' );
 	birdSound.volume = 0.2;
@@ -179,6 +185,7 @@ function setup() {
 	app.renderer.shadowMap.enabled = true;
 	app.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	app.renderer.setSize( windowWidth, windowHeight );
+    app.renderer.setClearColor( 'rgb(48, 48, 48)');
 	uiController.elements.threeDiv.appendChild( app.renderer.domElement );
 
 
@@ -198,7 +205,7 @@ function setup() {
 	app.scene.add( amb );
 
 	//fog
-	app.scene.fog = new THREE.FogExp2( 'lightgrey', 0.0004 );
+	app.scene.fog = new THREE.FogExp2( 'rgb(240, 240, 255)', 0.00055 );
 
 }
 

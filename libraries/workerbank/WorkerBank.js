@@ -1,12 +1,14 @@
 class WorkerBank{
 
-    constructor(script, init_value, num_workers){
+    constructor(script, worker_options, num_workers){
+        
+        if ( !script ) throw new Error('WorkerScript not provided');
         
         this.bank = [];
         this.queue = [];
 
         for(let i = 0; i < num_workers; i++){
-            this.bank[i] = new WorkerBankWorker(script || './libraries/workerbank/defaultworker.js', init_value);
+            this.bank[i] = new WorkerBankWorker(script, worker_options);
         }    
     }
     
@@ -39,11 +41,11 @@ class WorkerBank{
 
 class WorkerBankWorker extends Worker{
 
-    constructor(script, init_value){
+    constructor(script, worker_options){
 
         super(script);
         this.working = false;
-        this.postMessage( init_value );
+        this.postMessage( { options: worker_options } );
 
     }
 

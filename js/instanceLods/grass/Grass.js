@@ -19,6 +19,11 @@ class Grass extends CachedInstancedLOD {
             this.levels[0].object[0].material.userData.shader.uniforms.time.value += delta * r;
             
         }
+        if ( this.levels[1].object[0].material.userData.shader ) {
+            
+            this.levels[1].object[0].material.userData.shader.uniforms.time.value += delta * r;
+            
+        }
         
     }
 

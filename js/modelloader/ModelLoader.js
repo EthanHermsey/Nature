@@ -21,7 +21,7 @@ const preloadModels = () => {
 
         } );
 
-        GLTFLoader.load( './resources/pedestal/pedestal.gltf', ( model ) => {
+        GLTFLoader.load( './resources/pedestal/archedPedestal.gltf', ( model ) => {
     
             modelBank.pedestal = model.scene.children[0];
             check();

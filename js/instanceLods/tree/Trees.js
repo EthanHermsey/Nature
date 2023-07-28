@@ -75,7 +75,8 @@ class Trees extends Cached {
 
     generateData( chunk ){
         
-        const mesh = chunk.mesh;        
+        const mesh = chunk.mesh;
+        if ( !mesh ) console.log(chunk)
         const geo = mesh.geometry;
         const dummy = new THREE.Object3D();
 

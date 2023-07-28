@@ -72,8 +72,6 @@ class UIController{
                 });
     
         }
-
-        this.saveOptions();
     
     }
     
@@ -91,8 +89,6 @@ class UIController{
                 this.showGame( true );
 
             });
-
-        this.saveOptions();
 
     }
 
@@ -198,6 +194,8 @@ class UIController{
     showSettings( show ){
         this.elements.settingsContent.classList.toggle( 'hidden', !show );
         this.elements.menuContent.classList.toggle( 'hidden', show );
+
+        if ( !show  ) this.saveOptions();
     }
     
     showGame( show ){

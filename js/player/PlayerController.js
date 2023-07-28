@@ -37,10 +37,10 @@ class Player {
         this.grabbingGem = false;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.03;
-		this.brushRadius = 4;
+		this.terrainAdjustStrength = 0.05;
+		this.brushRadius = 5;
 		this.buildTimer = 0;
-		this.maxBuildTime = 0.15;
+		this.maxBuildTime = 0.05;
 		this.maxBuildDistance = 450;
 		
 
@@ -199,7 +199,6 @@ class Player {
 		if ( ++ this.cameraTimer > 200 ) {
 
 			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-            this.shadowLight.intensity = this.shadowLight.position.y < 1200 ? 0 : this.shadowLightIntensity;
 			this.shadowLight.target.position.copy( this.position );
 			this.cameraTimer = 0;
 
@@ -528,6 +527,56 @@ class Player {
 
 
 
+    
+
+
+	//                 .o8      o8o                          .
+	//                "888      `"'                        .o8
+	//  .oooo.    .oooo888     oooo oooo  oooo   .oooo.o .o888oo
+	// `P  )88b  d88' `888     `888 `888  `888  d88(  "8   888
+	//  .oP"888  888   888      888  888   888  `"Y88b.    888
+	// d8(  888  888   888      888  888   888  o.  )88b   888 .
+	// `Y888""8o `Y8bod88P"     888  `V88V"V8P' 8""888P'   "888"
+	//                          888
+	//                      .o. 88P
+	//                      `Y888P
+	//     .                                          o8o
+	//   .o8                                          `"'
+	// .o888oo  .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.
+	//   888   d88' `88b `888""8P `888""8P `P  )88b  `888  `888P"Y88b
+	//   888   888ooo888  888      888      .oP"888   888   888   888
+	//   888 . 888    .o  888      888     d8(  888   888   888   888
+	//   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
+
+
+
+
+	adjustTerrain( delta ) {
+
+        // this.buildTimer > this.maxBuildTime &&
+        if ( terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
+
+			//exit if building too close by, or too far.
+			let d = this.intersectPoint.point.distanceTo( this.position );
+			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
+
+			//get the gridposition of the cameraIntersect.point and adjust value.
+			this.gridPosition = this.intersectPoint.point.clone()
+				.sub( this.intersectPoint.object.position )
+				.divide( terrainController.terrainScale )
+				.round();
+			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
+
+			//tell chunk to change the terrain
+			this.intersectPoint.object.chunk.adjust( this.gridPosition, this.brushRadius, val, true );
+            terrainController.updateInstancedObjects();
+
+		}
+
+	}
+
+
+
 
 
 	//                                                                 .
@@ -644,53 +693,13 @@ class Player {
 
 
 
-
-
-	//                 .o8      o8o                          .
-	//                "888      `"'                        .o8
-	//  .oooo.    .oooo888     oooo oooo  oooo   .oooo.o .o888oo
-	// `P  )88b  d88' `888     `888 `888  `888  d88(  "8   888
-	//  .oP"888  888   888      888  888   888  `"Y88b.    888
-	// d8(  888  888   888      888  888   888  o.  )88b   888 .
-	// `Y888""8o `Y8bod88P"     888  `V88V"V8P' 8""888P'   "888"
-	//                          888
-	//                      .o. 88P
-	//                      `Y888P
-	//     .                                          o8o
-	//   .o8                                          `"'
-	// .o888oo  .ooooo.  oooo d8b oooo d8b  .oooo.   oooo  ooo. .oo.
-	//   888   d88' `88b `888""8P `888""8P `P  )88b  `888  `888P"Y88b
-	//   888   888ooo888  888      888      .oP"888   888   888   888
-	//   888 . 888    .o  888      888     d8(  888   888   888   888
-	//   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
-
-
-
-
-	adjustTerrain() {
-
-		if ( this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
-
-			//exit if building too close by, or too far.
-			let d = this.intersectPoint.point.distanceTo( this.position );
-			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
-
-			//get the gridposition of the cameraIntersect.point and adjust value.
-			let gridPosition = this.intersectPoint.point.clone()
-				.sub( this.intersectPoint.object.position )
-				.divide( terrainController.terrainScale )
-				.round();
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
-
-			//tell chunk to change the terrain
-			this.intersectPoint.object.chunk.adjust( gridPosition, this.brushRadius, val, true );
-            terrainController.updateInstancedObjects();
-
-		}
-
-	}
-
-
+                                                                         
+                                                                     
+    // oooo d8b  .ooooo.  ooo. .oo.  .oo.    .ooooo.  oooo    ooo  .ooooo.  
+    // `888""8P d88' `88b `888P"Y88bP"Y88b  d88' `88b  `88.  .8'  d88' `88b 
+    //  888     888ooo888  888   888   888  888   888   `88..8'   888ooo888 
+    //  888     888    .o  888   888   888  888   888    `888'    888    .o 
+    // d888b    `Y8bod8P' o888o o888o o888o `Y8bod8P'     `8'     `Y8bod8P' 
 
     remove(){
 

@@ -10,20 +10,20 @@ class TerrainController extends VolumetricTerrain{
                 terrainScale: { x: 10, y: 10, z: 10 },
                 currentCoord: offset,
                 viewDistance: viewDistance.viewDetail,
-                farViewDistance: viewDistance.viewDistance,
-                seed: seed,
-                fps: 10,
+                farViewDistance: viewDistance.viewDistance,                
+                fps: 24,
                 material: terrainMaterial,
-                workers: 4,
-                workerScript: './js/terrain/gridworker/GridWorker.js',
-                meshFactory: Mesh,
+                workers: 6,
+                gridWorkerScript: './js/terrain/gridworker/GridWorker.js',
+                meshWorkerScript: './js/terrain/meshworker/MeshWorker.js',
+                gridWorkerOptions: { terrainSeed: seed },
                 chunkClass: Chunk,
                 db: false                   ////////////////////////////////    <<-------------------------------
             },
             ()=>{
 
                 this.instancedObjectViewDistance = 16;                
-                this.grassViewDistance = 4;
+                this.grassViewDistance = 6;
                 this.grassHighViewDistance = 2;                
                 this.fernViewDistance = 3;
                 this.fogViewDistance = 6;
@@ -31,6 +31,7 @@ class TerrainController extends VolumetricTerrain{
                 this.treeHighViewDistance = 4;
                 this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
                 this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
+                this.updating = false;
 
                 this.instancedObjects = {
                     "Grass": new Grass( this, this.grassViewDistance ),
@@ -83,6 +84,7 @@ class TerrainController extends VolumetricTerrain{
             const LOAD_INITIAL_TERRAIN = async ( chunk ) => {
 
                 this.chunks[ chunk.chunkKey ] = chunk;                
+                this.chunks[ chunk.chunkKey ].flipMesh();                
                 num_initial_chunks--;
                 document.getElementById( chunk.chunkKey ).classList.add('active');
                 
@@ -172,13 +174,63 @@ class TerrainController extends VolumetricTerrain{
 	//             o888o                                          
 	async update() {
 		
-        await super.update( player.position );
+        if ( this.updating == true) return; //this is to make sure that all neighboring chunks update before showing them
 
-        // //set birdsound volume
-        let chunk = this.chunks[ this.getChunkKey( this.currentCoord ) ];
-        let treeAmount = chunk.modelMatrices[ 'tree' ] ? chunk.modelMatrices[ 'tree' ].length + chunk.modelMatrices[ 'tree1' ].length : 0;
-        document.querySelector( 'audio' ).setVolume( map( treeAmount, 10, 35, 0.0, 0.3, true ), 2.5 );        
+        this.updating = true;
 
+        await super.update( player.position, ( data ) => {
+            
+            if ( data.length > 0 ) {
+
+                for( let chunkKey of data ){
+                    
+                    this.chunks[ chunkKey ].flipMesh();
+
+                }
+            }
+
+            this.updating = false;
+            
+        });
+
+        // get terrain height
+        const chunkKey = this.getChunkKey( this.currentCoord );
+        const chunk = this.chunks[ chunkKey ];
+        const gridPosition = player.position.clone()
+        .sub( chunk.position )
+        .divide( this.terrainScale )
+        .round();
+        const terrainHeight = chunk.getTerrainHeight(gridPosition.x, gridPosition.z);
+        const underground = player.position.y < terrainHeight * this.terrainScale.y * 0.9;            
+        
+        if ( underground ) document.querySelector( 'audio' ).setVolume( 0, 1 );
+        
+        player.skyBox.visible = !underground;
+
+        player.shadowLight.intensity = ( 
+            underground && player.shadowLight.intensity > 0
+        ) ? ( 
+            player.shadowLight.intensity - 0.1 
+        ) : ( 
+            (player.shadowLight.intensity < 1 && !underground ) ? (
+                player.shadowLight.intensity + 0.1 
+            ) : (
+                player.shadowLight.intensity
+            )
+        );
+
+        app.renderer.toneMappingExposure = ( 
+            underground && app.renderer.toneMappingExposure > 1.5
+        ) ? ( 
+            app.renderer.toneMappingExposure - 0.1 
+        ) : ( 
+            (app.renderer.toneMappingExposure < 1 && !underground ) ? (
+                app.renderer.toneMappingExposure + 0.1 
+            ) : (
+                app.renderer.toneMappingExposure
+            )
+        );
+        
 	}
 
     updatecurrentCoord( currentCoord, newChunks ){
@@ -187,8 +239,14 @@ class TerrainController extends VolumetricTerrain{
         this.updateInstancedObjects();   
         
         if ( newChunks ) {
+            
             this.updateChunkLODs();
             this.updateInstancedObjects( true );
+
+            const chunkKey = this.getChunkKey( this.currentCoord );
+            const treeAmount = ( this.instancedObjects.Tree.cachedData[ chunkKey ]?.tree.length || 0 );
+            const birdVolume = map( treeAmount, 3, 15, 0.0, 0.3, true );
+            document.querySelector( 'audio' ).setVolume( birdVolume, 2.5 );
         }
     }
 
@@ -244,7 +302,8 @@ class TerrainController extends VolumetricTerrain{
                         x: ( playerCoord?.x || 0 ) + x, 
                         z: ( playerCoord?.z || 0 ) + z, 
                     };
-                    const chunk = this.chunks[ this.getChunkKey( chunkCoord ) ];
+                    const key = this.getChunkKey( chunkCoord );
+                    const chunk = this.chunks[ key ];
 
                     if ( chunk ) this.instancedObjects[ chunkKey ].addChunk( chunk, x, z );
 

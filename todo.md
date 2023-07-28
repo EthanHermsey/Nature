@@ -1,7 +1,6 @@
 
-- meshWorker incl surfacenets, geeft attributes: indices positions underground voor mesh en LODMesh  
-
-- pedstal: particles as highlight    
+- doordat mesh in worker is, zit er update verschil in neighbors. misschien alle afgemaaktte meshes per batch releasen?
+    - alleen als updatechunks.length 0 is? Zo was het eerder geloof ik
 
 - multi
     spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen

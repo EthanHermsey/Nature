@@ -1,4 +1,4 @@
-class CachedMesh extends THREE.Mesh{
+class CachedMesh extends THREE.Mesh {
 
     constructor( geometry, material ){
 
