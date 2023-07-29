@@ -206,7 +206,7 @@ function setup() {
 	app.scene.add( amb );
 
 	//fog
-	app.scene.fog = new THREE.FogExp2( 'rgb(240, 240, 255)', 0.00055 );
+	app.scene.fog = new THREE.FogExp2( 'rgb(240, 240, 255)', 0.00045 );
 
 }
 

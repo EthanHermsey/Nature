@@ -146,12 +146,11 @@ class Player {
             //add a skybox. This position is updated in the update function
             this.skyBox = new THREE.Mesh(
                 new THREE.SphereGeometry(
-                    startChunk.terrain.chunkSize * 2 * ( startChunk.terrain.viewDistance + startChunk.terrain.farViewDistance + 2 ),
+                    startChunk.terrain.chunkSize * 2 * Math.min( startChunk.terrain.viewDistance + startChunk.terrain.farViewDistance + 2, 10 ),
                     64,
                     64
                 ),
                 new THREE.MeshBasicMaterial( {
-                    fog: false,
                     map: new THREE.TextureLoader().load( './resources/background.jpg' ),
                     side: THREE.BackSide
                 } )
@@ -265,8 +264,6 @@ class Player {
         return new Promise( resolve => {
 
             //get cameraDirection (player aim direction);
-            let cd = new THREE.Vector3();
-            this.camera.getWorldDirection( cd );
             let playerEuler = new THREE.Euler( 0, this.cameraRig.rotation.y, 0, 'YXZ' );
 
             //get keyinput and rotate to camera direction (y axis rotation )
@@ -560,15 +557,10 @@ class Player {
 			let d = this.intersectPoint.point.distanceTo( this.position );
 			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
 
-			//get the gridposition of the cameraIntersect.point and adjust value.
-			this.gridPosition = this.intersectPoint.point.clone()
-				.sub( this.intersectPoint.object.position )
-				.divide( terrainController.terrainScale )
-				.round();
 			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
 
 			//tell chunk to change the terrain
-			this.intersectPoint.object.chunk.adjust( this.gridPosition, this.brushRadius, val, true );
+			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, true );
             terrainController.updateInstancedObjects();
 
 		}

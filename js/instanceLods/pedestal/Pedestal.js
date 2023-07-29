@@ -140,7 +140,7 @@ class Pedestal extends CachedMesh {
                 mesh.children[2].raycast = acceleratedRaycast;
 
                 mesh.smoke = new Smoke();
-                for ( let i = 0; i < 2000; i++ ) mesh.smoke.animate(0.01);
+                for ( let i = 0; i < 200; i++ ) mesh.smoke.animate(0.01);
                 mesh.smoke.position.y += 30;                
                 mesh.smoke.rotation.y = mesh.rotation.y * -1;
                 mesh.add( mesh.smoke );

@@ -201,9 +201,20 @@ class VolumetricChunk{
 	// "Y88888P'
 
 
+    adjust( center, radius, value ){
 
+        if ( this.terrain.updating !== false ) return;
 
-	async adjust( center, radius, val, checkNeighbors ) {
+        center = center
+            .sub( this.mesh.position )
+            .divide( this.terrain.terrainScale )
+            .round();
+
+        this.adjustGrid( center, radius, value, true )
+
+    }
+
+	async adjustGrid( center, radius, val, checkNeighbors = false ) {
 
 			//square loop around a sphere brush
 			let loopRadius = radius;
@@ -284,14 +295,14 @@ class VolumetricChunk{
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x - 1, z: this.offset.z } );
 			let nCenter = center.clone();
 			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		} else if ( this.terrain.gridSize.x - center.x <= radius ) {
 
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x + 1, z: this.offset.z } );
 			let nCenter = center.clone();
 			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		}
 
@@ -301,7 +312,7 @@ class VolumetricChunk{
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x, z: this.offset.z - 1 } );
 			let nCenter = center.clone();
 			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 
 		} else if ( this.terrain.gridSize.z - center.z <= radius ) {
@@ -309,7 +320,7 @@ class VolumetricChunk{
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x, z: this.offset.z + 1 } );
 			let nCenter = center.clone();
 			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		}
 
@@ -320,7 +331,7 @@ class VolumetricChunk{
 			let nCenter = center.clone();
 			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
 			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		}
 		if ( this.terrain.gridSize.x - center.x < radius && this.terrain.gridSize.z - center.z <= radius ) {
@@ -329,7 +340,7 @@ class VolumetricChunk{
 			let nCenter = center.clone();
 			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
 			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		}
 		if ( center.x < radius && this.terrain.gridSize.x - center.z <= radius ) {
@@ -338,7 +349,7 @@ class VolumetricChunk{
 			let nCenter = center.clone();
 			nCenter.x += this.terrain.gridSize.x - CHUNK_OVERLAP;
 			nCenter.z = nCenter.z - this.terrain.gridSize.z + CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		}
 		if ( this.terrain.gridSize.x - center.x < radius && center.z <= radius ) {
@@ -347,7 +358,7 @@ class VolumetricChunk{
 			let nCenter = center.clone();
 			nCenter.x = nCenter.x - this.terrain.gridSize.x + CHUNK_OVERLAP;
 			nCenter.z += this.terrain.gridSize.z - CHUNK_OVERLAP;
-			this.terrain.chunks[ nChunk ].adjust( nCenter, radius, val );
+			this.terrain.chunks[ nChunk ].adjustGrid( nCenter, radius, val );
 
 		}
 

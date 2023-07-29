@@ -5,7 +5,7 @@ class Smoke extends THREE.Points {
 
         let fogGeo = new THREE.BufferGeometry();
 		let fogMat = new THREE.PointsMaterial({
-            color: 'rgb(5, 40, 5)',
+            color: 'rgb(60, 5, 5)',
             size: 3,
             transparent: true,
             opacity: 0.8,
