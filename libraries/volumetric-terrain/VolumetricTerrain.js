@@ -13,7 +13,8 @@ class VolumetricTerrain extends THREE.Object3D {
         this.currentCoord = options.currentCoord || {x: 0, z: 0};
 		this.chunks = {};
 		this.chunkBuildQueue = {};
-		this.castables = [];		
+		this.castables = [];
+        this.updating = false;	
 		
         this.gridSize = options.gridSize || { x: 16, y: 256, z: 16 };
         this.terrainScale = options.terrainScale || { x: 5, y: 5, z: 5 };
@@ -133,6 +134,10 @@ class VolumetricTerrain extends THREE.Object3D {
 
 	async update( position, updateCallback ) {
 
+        if ( this.updating ) return;
+
+        this.updating = true;
+
         //create array of promises
         let updatedChunk = false;
         const promises = [];
@@ -181,8 +186,8 @@ class VolumetricTerrain extends THREE.Object3D {
 		}
 
 
-        await Promise.all( promises ).then( data => updateCallback( data ));
-
+        await Promise.all( promises ).then( data => updateCallback( data ) );
+        
         if ( ! this.currentCoord ||
                 updatedChunk === true ||
                 this.currentCoord.x != currentCoord.x ||
@@ -191,6 +196,8 @@ class VolumetricTerrain extends THREE.Object3D {
             this.updatecurrentCoord( currentCoord, !updatedChunk );
 
         }
+
+        this.updating = false;
 
 	}
 

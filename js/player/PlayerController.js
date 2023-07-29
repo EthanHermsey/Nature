@@ -118,7 +118,7 @@ class Player {
     
     
             //add shadowlight. This position is updated in the update function
-            this.shadowLightIntensity = 0.65;
+            this.shadowLightIntensity = 0.55;
             this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar(5);
             this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
             this.shadowLight.target = new THREE.Object3D();

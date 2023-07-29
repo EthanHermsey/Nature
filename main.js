@@ -181,7 +181,8 @@ function setup() {
     app.renderer.physicallyCorrectLights = true;
     app.renderer.outputEncoding = THREE.sRGBEncoding;
     app.renderer.toneMapping = THREE.ReinhardToneMapping;
-    app.renderer.toneMappingExposure = 2.3;
+    app.renderer.toneMappingExposure = 2.2;
+    app.renderer.toneMappingExposureMax = 2.2;
 	app.renderer.shadowMap.enabled = true;
 	app.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	app.renderer.setSize( windowWidth, windowHeight );
@@ -201,7 +202,7 @@ function setup() {
 
 
 	//lights
-	let amb = new THREE.AmbientLight( "rgb(240,240,240)", 0.22 );
+	let amb = new THREE.AmbientLight( "rgb(240,240,240)", 0.45 );
 	app.scene.add( amb );
 
 	//fog

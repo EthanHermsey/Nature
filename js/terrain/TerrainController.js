@@ -30,8 +30,7 @@ class TerrainController extends VolumetricTerrain{
                 this.treeViewDistance = 16;
                 this.treeHighViewDistance = 4;
                 this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
-                this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
-                this.updating = false;
+                this.upperBoulderHeightLimit = this.gridSize.y * 0.55;                
 
                 this.instancedObjects = {
                     "Grass": new Grass( this, this.grassViewDistance ),
@@ -174,10 +173,6 @@ class TerrainController extends VolumetricTerrain{
 	//             o888o                                          
 	async update() {
 		
-        if ( this.updating == true) return; //this is to make sure that all neighboring chunks update before showing them
-
-        this.updating = true;
-
         await super.update( player.position, ( data ) => {
             
             if ( data.length > 0 ) {
@@ -188,12 +183,10 @@ class TerrainController extends VolumetricTerrain{
 
                 }
             }
-
-            this.updating = false;
             
         });
 
-        // get terrain height
+        // check if player is undergorund
         const chunkKey = this.getChunkKey( this.currentCoord );
         const chunk = this.chunks[ chunkKey ];
         const gridPosition = player.position.clone()
@@ -203,10 +196,13 @@ class TerrainController extends VolumetricTerrain{
         const terrainHeight = chunk.getTerrainHeight(gridPosition.x, gridPosition.z);
         const underground = player.position.y < terrainHeight * this.terrainScale.y * 0.9;            
         
+        // mute bird sound
         if ( underground ) document.querySelector( 'audio' ).setVolume( 0, 1 );
         
+        //render grey background in caves
         player.skyBox.visible = !underground;
 
+        //lower light intensity
         player.shadowLight.intensity = ( 
             underground && player.shadowLight.intensity > 0
         ) ? ( 
@@ -219,12 +215,13 @@ class TerrainController extends VolumetricTerrain{
             )
         );
 
+        //lower exposure
         app.renderer.toneMappingExposure = ( 
             underground && app.renderer.toneMappingExposure > 1.5
         ) ? ( 
             app.renderer.toneMappingExposure - 0.1 
         ) : ( 
-            (app.renderer.toneMappingExposure < 1 && !underground ) ? (
+            ( !underground && app.renderer.toneMappingExposure < app.renderer.toneMappingExposureMax ) ? (
                 app.renderer.toneMappingExposure + 0.1 
             ) : (
                 app.renderer.toneMappingExposure

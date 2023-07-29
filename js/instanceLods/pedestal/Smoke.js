@@ -5,7 +5,7 @@ class Smoke extends THREE.Points {
 
         let fogGeo = new THREE.BufferGeometry();
 		let fogMat = new THREE.PointsMaterial({
-            color: 'rgb(80, 5, 5)',
+            color: 'rgb(5, 40, 5)',
             size: 3,
             transparent: true,
             opacity: 0.8,
@@ -26,7 +26,7 @@ class Smoke extends THREE.Points {
 
     animate( delta ){
 
-        let addParticle = ++this.count%50 == 0;
+        let addParticle = ++this.count % floor( random( 45, 55 ) ) == 0;
         const vertices = new Float32Array(200*3);
 
         for(let i = 0; i < 200; i++){
