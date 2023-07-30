@@ -1,6 +1,4 @@
-- optimize instancedobject updating
-
-- check digging fps drop throtteling
+- make terrain move instead of player, no more float precision shit
 
 - multi ?
     spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen

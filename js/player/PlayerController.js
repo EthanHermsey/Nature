@@ -9,8 +9,9 @@ class Player {
 		this.object.frustumCulled = false;
 		app.scene.add( this.object );
 
-		this.cameraRigPosition = new THREE.Vector3( 0, 4.5, 0 );
+		this.cameraRigPosition = new THREE.Vector3( 0, 2.05, 0 );
 		this.cameraRig = new THREE.Object3D();
+		this.cameraRig.position.y += 1.05;
 		this.cameraRig.rotation.order = "YXZ";
 		this.camera = new THREE.PerspectiveCamera(
 			70,
@@ -19,12 +20,14 @@ class Player {
 			10000
 		);
 		this.camera.position.x += 1;
-		this.camera.position.y += 4.5;
+		this.camera.position.y += 1;
 		this.camera.position.z += 5.5;
-		this.camera.lookAt( new THREE.Vector3( 1.5, 1.5, - 4 ) );
+		this.camera.lookAt( new THREE.Vector3( 1.5, 1.4, - 4 ) );
 
+		this.cameraOriginalDistance = this.camera.position.length();
 		this.cameraMaxDistance = this.camera.position.length();
-		this.cameradistance = this.cameraMaxDistance;
+		this.cameraDistance = this.cameraMaxDistance;
+
 
 		this.cameraRig.add( this.camera );
 		this.object.add( this.cameraRig );
@@ -118,7 +121,7 @@ class Player {
 
 
 			//add shadowlight. This position is updated in the update function
-			this.shadowLightIntensity = 0.55;
+			this.shadowLightIntensity = 0.57;
 			this.shadowLightOffset = new THREE.Vector3( 30, 80, 0 ).multiplyScalar( 5 );
 			this.shadowLight = new THREE.DirectionalLight( 0xffffff, this.shadowLightIntensity );
 			this.shadowLight.target = new THREE.Object3D();
@@ -211,28 +214,26 @@ class Player {
 		this.camera.getWorldDirection( v );
 		v.multiplyScalar( - 1 );
 
-		const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
+		// const rigPosition = this.object.position.clone().add( this.cameraRigPosition );
 
-		app.raycaster.set( rigPosition, v );
-		let intersectdir = app.raycaster.intersectObjects( terrainController.castables );
+		// app.raycaster.set( rigPosition, v );
+		// let intersectdir = app.raycaster.intersectObjects( terrainController.castables );
 
-		if ( intersectdir.length > 0 ) {
+		// if ( intersectdir.length > 0 ) {
 
-			const distance = rigPosition.distanceTo( intersectdir[ 0 ].point ) * 0.5;
-			if ( distance < this.cameraDistance ) {
+		// 	const distance = rigPosition.distanceTo( intersectdir[ 0 ].point ) * 0.5;
+		// 	if ( distance < this.cameraDistance ) {
 
-				this.cameraDistance = distance;
+		// 		this.cameraDistance = distance;
 
-			} else {
+		// 	}
 
-				this.cameraDistance = min( distance, this.cameraMaxDistance );
+		// }
 
-			}
+		this.cameraDistance = Math.min( this.cameraDistance + ( this.cameraMaxDistance - this.cameraDistance ) * 0.4, this.cameraMaxDistance );
 
-			this.camera.position.setLength( this.cameraDistance );
-			this.model.visible = this.cameraDistance > 2;
-
-		}
+		this.camera.position.setLength( this.cameraDistance );
+		this.model.visible = this.cameraDistance > 2;
 
 	}
 
@@ -528,6 +529,14 @@ class Player {
 
 	}
 
+	mouseWheel( e ) {
+
+		this.cameraMaxDistance += Math.sign( e.deltaY ) * 0.5;
+		if ( this.cameraMaxDistance < 0.01 ) this.cameraMaxDistance = 0.01;
+		if ( this.cameraMaxDistance > this.cameraOriginalDistance * 2 ) this.cameraMaxDistance = this.cameraOriginalDistance * 2;
+		this.updateCameraCollision();
+
+	}
 
 
 

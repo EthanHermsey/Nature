@@ -257,6 +257,13 @@ function onMouseMove( e ) {
 
 }
 
+// eslint-disable-next-line no-unused-vars
+function mouseWheel( e ) {
+
+	if ( app.running ) player.mouseWheel( e );
+
+}
+
 
 
 
