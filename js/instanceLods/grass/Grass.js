@@ -123,10 +123,10 @@ class Grass extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 500; i ++ ) {
+		for ( let i = 0; i < 800; i ++ ) {
 
 			let d, terrainHeight;
-			let tries = 12;
+			let tries = 8;
 			do {
 
 				surfaceSampler.sample( _position, _normal );

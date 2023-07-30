@@ -35,7 +35,7 @@ class Fern extends CachedInstancedLOD {
 
 	loadObjects() {
 
-		modelBank.fern.scale.set( 0.35, 0.3, 0.35 );
+		modelBank.fern.scale.set( 0.25, 0.2, 0.25 );
 		modelBank.fern.geometry.translate( 0, - 0.2, 0 );
 		modelBank.fern.geometry.boundingSphere.radius = 128;
 		modelBank.fern.material.map.encoding = THREE.sRGBEncoding;
@@ -96,9 +96,9 @@ class Fern extends CachedInstancedLOD {
 			if ( _position.y > chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) ) ) {
 
 				dummy.scale.set(
-					3 + Math.random(),
 					2 + Math.random(),
-					3 + Math.random()
+					1 + Math.random(),
+					2 + Math.random()
 				);
 				dummy.position
 					.copy( chunk.position )
