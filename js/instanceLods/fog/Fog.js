@@ -1,21 +1,21 @@
 
 class Fog extends CachedPoints {
 
-    constructor( terrain, viewDistance ){
+	constructor( terrain, viewDistance ) {
 
-        let fogGeo = new THREE.BufferGeometry();
-		let fogMat = new THREE.PointsMaterial({
-            map: new THREE.TextureLoader().load('./resources/fog.png'),
+		let fogGeo = new THREE.BufferGeometry();
+		let fogMat = new THREE.PointsMaterial( {
+			map: new THREE.TextureLoader().load( './resources/fog.png' ),
 			size: 500,
 			transparent: true,
 			opacity: 0.08,
 			alphaTest: 0.02
-		})
+		} );
 		fogMat.onBeforeCompile = ( shader ) => {
-						
+
 			shader.uniforms.time = { value: 0 };
 
-			shader.vertexShader = 'uniform float time;\n' + 
+			shader.vertexShader = 'uniform float time;\n' +
 				shader.vertexShader.replace(
 					`#include <begin_vertex>`,
 					`
@@ -30,52 +30,59 @@ class Fog extends CachedPoints {
 					`
 				);
 
-				fogMat.userData.shader = shader;
+			fogMat.userData.shader = shader;
 
 		};
-        super( fogGeo, fogMat );
+		super( fogGeo, fogMat );
 
-        this.renderOrder = 1;
-        this.frustumCulled = false;
-        this.terrain = terrain;
-        this.viewDistance = viewDistance;
-        this.positionBuffer = []; 
-        app.scene.add( this );
+		this.renderOrder = 1;
+		this.frustumCulled = false;
+		this.terrain = terrain;
+		this.viewDistance = viewDistance;
+		this.positionBuffer = [];
+		app.scene.add( this );
 
-    }
+	}
 
-    removeMatricesOnDistanceFromPoint(){}
+	removeMatricesOnDistanceFromPoint() {}
 
-    animate( delta ){
-		if ( this.material.userData.shader ){            
-            this.material.userData.shader.uniforms.time.value += delta * 0.8;
+	animate( delta ) {
+
+		if ( this.material.userData.shader ) {
+
+			this.material.userData.shader.uniforms.time.value += delta * 0.8;
+
 		}
 
-    }
-    
+	}
 
-    update( position ){
 
-        super.update( position );
-        this.geometry.setFromPoints( this.positionBuffer );
+	update( position ) {
 
-    }
+		super.update( position );
+		this.geometry.setFromPoints( this.positionBuffer );
 
-    clearData(){
-        this.positionBuffer.length = 0;
-    }
+	}
 
-    addData( data ){
-        this.positionBuffer = [ 
-            ...this.positionBuffer,
-            ...data
-        ];
-    }
+	clearData() {
 
-    generateData( chunk ){
+		this.positionBuffer.length = 0;
 
-        const mesh = chunk.mesh;
-        const geo = mesh.geometry.attributes.position;
+	}
+
+	addData( data ) {
+
+		this.positionBuffer = [
+			...this.positionBuffer,
+			...data
+		];
+
+	}
+
+	generateData( chunk ) {
+
+		const mesh = chunk.mesh;
+		const geo = mesh.geometry.attributes.position;
 		const dummy = new THREE.Vector3();
 
 		const modelPositions = [];
@@ -95,10 +102,10 @@ class Fog extends CachedPoints {
 			modelPositions.push( dummy.clone() );
 
 		}
-    
-        
-        return modelPositions;
 
-    }
+
+		return modelPositions;
+
+	}
 
 }

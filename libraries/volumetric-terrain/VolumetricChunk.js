@@ -1,11 +1,11 @@
 
-class VolumetricChunk{
+class VolumetricChunk {
 
-    constructor( x, z, terrain, callback ) {
+	constructor( x, z, terrain, callback ) {
 
 		//parent
 		this.terrain = terrain;
-        this.needsUpdate = false;
+		this.needsUpdate = false;
 
 		//offset coordinates
 		this.offset = { x, z };
@@ -19,26 +19,43 @@ class VolumetricChunk{
 			this.offset.z * ( this.terrain.gridSize.z - CHUNK_OVERLAP ) * this.terrain.terrainScale.z
 		);
 
-		this.modelMatrices = {};
 		this.grid;
-        this.terrainHeights;
-		
+		this.terrainHeights;
+		this.meshBuffer = {};
+
 		//initialize the grid
 		this.generateGrid()
-            .then( () => {
-                this.generateMeshData().then( ()=>{
+			.then( () => {
 
-                    callback( this );
-        
-                } );
-            });		
+				this.generateMeshData().then( ()=>{
+
+					callback( this );
+
+				} );
+
+			} );
 
 	}
 
-    getTerrainHeight(x, z){
-        return this.terrainHeights[ z * this.terrain.gridSize.x + x];
-    }
+	getTerrainHeight( x, z ) {
 
+		return this.terrainHeights[ z * this.terrain.gridSize.x + x ];
+
+	}
+
+	flipMesh() {
+
+		if ( this.meshBuffer.mesh ) {
+
+			this.dispose();
+			this.mesh = this.meshBuffer.mesh;
+			this.LODMesh = this.meshBuffer.LODMesh;
+			this.meshBuffer = {};
+			this.terrain.add( this.mesh );
+
+		}
+
+	}
 
 	//                              .o8                .
 	//                             "888              .o8
@@ -75,35 +92,37 @@ class VolumetricChunk{
 	// "Y88888P'
 
 
-    generateGrid() {
+	generateGrid() {
 
-        return new Promise( resolve => {
+		return new Promise( resolve => {
 
-            this.terrain.gridWorkerBank.work(
-                {
-                    offset: this.offset, 
-                    gridSize: this.terrain.gridSize 
-                }, 
-                async ( { data } ) => {
-                    this.grid = data.grid;
-                    this.terrainHeights = data.terrainHeights;
+			this.terrain.gridWorkerBank.work(
+				{
+					offset: this.offset,
+					gridSize: this.terrain.gridSize
+				},
+				async ( { data } ) => {
 
-                    if ( this.terrain.DB ){
-                
-                        const data = await this.terrain.DB.getAll( this.chunkKey );
-                        for( let {id, value} of data ) {
+					this.grid = data.grid;
+					this.terrainHeights = data.terrainHeights;
 
-                            this.grid[id] = value;
+					if ( this.terrain.DB ) {
 
-                        }
-        
-                    }
+						const data = await this.terrain.DB.getAll( this.chunkKey );
+						for ( let { id, value } of data ) {
 
-                    resolve();
-                }
-            );
-            
-        })
+							this.grid[ id ] = value;
+
+						}
+
+					}
+
+					resolve();
+
+				}
+			);
+
+		} );
 
 	}
 
@@ -129,56 +148,57 @@ class VolumetricChunk{
 
 		return new Promise( resolve =>{
 
-            this.terrain.meshWorkerBank.work(
-                {
-                    grid: this.grid, 
-                    gridSize: this.terrain.gridSize,
-                    terrainHeights: this.terrainHeights
-                }, 
-                async ( { data } ) => {
-                    
-                    this.generateMesh( data );
-                    
-                    resolve( this.chunkKey );
-                }
-            );
+			this.terrain.meshWorkerBank.work(
+				{
+					grid: this.grid,
+					gridSize: this.terrain.gridSize,
+					terrainHeights: this.terrainHeights
+				},
+				async ( { data } ) => {
+
+					this.generateMesh( data );
+
+					resolve( this.chunkKey );
+
+				}
+			);
 
 		} );
 
 	}
 
-    generateMesh( data ){
+	generateMesh( data ) {
 
-        this.dispose();      
-        
-        const {
-            vertices,
-            indices
-        } = data;
+		this.dispose();
 
-        //create new geometry
-        const geo = new THREE.BufferGeometry();
-                
-        geo.setIndex( new THREE.BufferAttribute( indices, 1 ) );
-        geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
-        geo.computeVertexNormals();
+		const {
+			vertices,
+			indices
+		} = data;
 
-        //create new mesh with preloaded material
-        this.mesh = new THREE.Mesh( geo, this.terrain.material );
-        this.mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );                    
-        this.mesh.chunk = this;
-        this.mesh.position.x = this.position.x;
-        this.mesh.position.z = this.position.z;
-        this.mesh.material.needsUpdate = true;
+		//create new geometry
+		const geo = new THREE.BufferGeometry();
 
-        this.mesh.updateWorldMatrix();
-        this.mesh.matrixAutoUpdate = false;
-        this.mesh.name = "terrain";
-        this.terrain.add( this.mesh );
+		geo.setIndex( new THREE.BufferAttribute( indices, 1 ) );
+		geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+		geo.computeVertexNormals();
 
-    }
+		//create new mesh with preloaded material
+		this.meshBuffer.mesh = new THREE.Mesh( geo, this.terrain.material );
+		this.meshBuffer.mesh.scale.set( this.terrain.terrainScale.x, this.terrain.terrainScale.y, this.terrain.terrainScale.z );
+		this.meshBuffer.mesh.chunk = this;
+		this.meshBuffer.mesh.position.x = this.position.x;
+		this.meshBuffer.mesh.position.z = this.position.z;
+		this.meshBuffer.mesh.material.needsUpdate = true;
 
-	
+		this.meshBuffer.mesh.updateWorldMatrix();
+		this.meshBuffer.mesh.matrixAutoUpdate = false;
+		this.meshBuffer.mesh.name = "terrain";
+		this.meshBuffer.terrain.add( this.mesh );
+
+	}
+
+
 
 	//                 .o8      o8o                          .
 	//                "888      `"'                        .o8
@@ -201,48 +221,48 @@ class VolumetricChunk{
 	// "Y88888P'
 
 
-    adjust( center, radius, value ){
+	adjust( center, radius, value ) {
 
-        if ( this.terrain.updating !== false ) return;
+		if ( this.terrain.updating !== false ) return;
 
-        center = center
-            .sub( this.mesh.position )
-            .divide( this.terrain.terrainScale )
-            .round();
+		center = center
+			.sub( this.mesh.position )
+			.divide( this.terrain.terrainScale )
+			.round();
 
-        this.adjustGrid( center, radius, value, true )
+		this.adjustGrid( center, radius, value, true );
 
-    }
+	}
 
 	async adjustGrid( center, radius, val, checkNeighbors = false ) {
 
-			//square loop around a sphere brush
-			let loopRadius = radius;
+		//square loop around a sphere brush
+		let loopRadius = radius;
 
-			for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
+		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
-				for ( let z = - loopRadius; z <= loopRadius; z ++ ) {
+			for ( let z = - loopRadius; z <= loopRadius; z ++ ) {
 
-					for ( let x = - loopRadius; x <= loopRadius; x ++ ) {
+				for ( let x = - loopRadius; x <= loopRadius; x ++ ) {
 
-						//if within radius, add value to grid
-						let d = x * x + y * y + z * z;
-						if ( d < radius ) {
+					//if within radius, add value to grid
+					let d = x * x + y * y + z * z;
+					if ( d < radius ) {
 
-                            let p = map(d, 0, radius * 0.8, 1, 0, true);                            
+						let p = map( d, 0, radius * 0.8, 1, 0, true );
 
-							//grid position in sphere around center (x y and z go from -looprad to +looprad)
-							let newPosition = new THREE.Vector3( x, y, z ).add( center );
+						//grid position in sphere around center (x y and z go from -looprad to +looprad)
+						let newPosition = new THREE.Vector3( x, y, z ).add( center );
 
-							if ( this.isInsideGrid( newPosition ) ) {
+						if ( this.isInsideGrid( newPosition ) ) {
 
-								//if not lower that 0 or height that this.terrain.gridSize, add value
-								this.addScaleValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
+							//if not lower that 0 or height that this.terrain.gridSize, add value
+							this.addScaleValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
 
-                                if ( this.terrain.DB ) {
-                                    const index = this.gridIndex( newPosition.x, newPosition.y, newPosition.z );
-                                    this.terrain.DB.add( this.chunkKey, index, gridValue );
-                                }
+							if ( this.terrain.DB ) {
+
+								const index = this.gridIndex( newPosition.x, newPosition.y, newPosition.z );
+								this.terrain.DB.add( this.chunkKey, index, gridValue );
 
 							}
 
@@ -254,12 +274,14 @@ class VolumetricChunk{
 
 			}
 
-			//put this chunk in the list of chunk that need updates
-			this.needsUpdate = true;
+		}
 
-			// if the player clicks near a chunk edge, make sure to
-			// check the neighbors for terrain adjusting
-			if ( checkNeighbors ) this.adjustNeighbors( center, radius, val );
+		//put this chunk in the list of chunk that need updates
+		this.needsUpdate = true;
+
+		// if the player clicks near a chunk edge, make sure to
+		// check the neighbors for terrain adjusting
+		if ( checkNeighbors ) this.adjustNeighbors( center, radius, val );
 
 
 	}
@@ -290,7 +312,7 @@ class VolumetricChunk{
 	adjustNeighbors( center, radius, val ) {
 
 		//x-axis
-		if ( center.x <= radius) {
+		if ( center.x <= radius ) {
 
 			let nChunk = this.terrain.getChunkKey( { x: this.offset.x - 1, z: this.offset.z } );
 			let nCenter = center.clone();
@@ -391,11 +413,11 @@ class VolumetricChunk{
 
 	}
 
-    addScaleValueToGrid( x, y, z, val ) {
+	addScaleValueToGrid( x, y, z, val ) {
 
 		let gridOffset = this.gridIndex( x, y, z );
-        const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
-		return this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + (val * oldValueScale), - 0.5, 0.5 );
+		const oldValueScale = map( abs( this.grid[ gridOffset ] ), 0, 0.5, 0.001, 3 );
+		return this.grid[ gridOffset ] = constrain( this.grid[ gridOffset ] + ( val * oldValueScale ), - 0.5, 0.5 );
 
 	}
 
@@ -417,13 +439,14 @@ class VolumetricChunk{
 
 	async dispose() {
 
-        if ( this.mesh ) {
+		if ( this.mesh ) {
 
-            this.mesh.geometry.dispose();
-            this.terrain.remove( this.mesh );
-            this.mesh = undefined;            
+			this.mesh.geometry.dispose();
+			this.terrain.remove( this.mesh );
+			this.mesh = undefined;
 
-        }
+		}
 
 	}
+
 }
