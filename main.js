@@ -83,7 +83,7 @@ const app = {
 	},
 	stop: function () {
 
-		if ( player.position.length() > 0 ) localStorage.setItem( 'position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ) } ) );
+		if ( player.position.length() > 0 ) localStorage.setItem( 'position', JSON.stringify( { position: player.position.toArray(), offset: terrainController.getCoordFromPosition( player.position ), crystals: player.crystals } ) );
 
 		app.running = false;
 		app.clock.stop();

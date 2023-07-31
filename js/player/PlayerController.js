@@ -35,9 +35,9 @@ class Player {
 		//raycast point
 		this.intersectPoint = null;
 
-		//grabbing gem
-		this.gems = 0;
-		this.grabbingGem = false;
+		//grabbing crystal
+		this.crystals = 0;
+		this.grabbing = false;
 
 		//brush vars
 		this.terrainAdjustStrength = 0.05;
@@ -421,7 +421,7 @@ class Player {
 
 		let d = new THREE.Vector3();
 
-		this.grabbingGem = keyIsDown( app.key.grab );
+		this.grabbing = keyIsDown( app.key.grab );
 
 		//x axis
 		if ( keyIsDown( app.key.up ) ) {

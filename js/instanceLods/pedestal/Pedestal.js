@@ -28,10 +28,10 @@ class Pedestal extends CachedMesh {
 
 				if ( mesh.children[ 0 ].visible ) {
 
-					if ( player.grabbingGem && mesh.position.distanceTo( player.position ) < 6 ) {
+					if ( player.grabbing && mesh.position.distanceTo( player.position ) < 6 ) {
 
-						player.gems ++;
-						uiController.elements.gem.innerHTML = player.gems;
+						player.crystals ++;
+						uiController.updateCrystalDisplay();
 						mesh.children[ 0 ].visible = false;
 						mesh.children[ 3 ].visible = false;
 						break;

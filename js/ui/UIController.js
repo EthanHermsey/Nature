@@ -23,7 +23,7 @@ class UIController {
 			mouseSensitivity: document.getElementById( 'mouse_sensitivity' ),
 			backButton: document.getElementById( 'back-button' ),
 
-			gem: document.getElementById( 'gem' ),
+			crystal: document.getElementById( 'crystal' ),
 
 		};
 
@@ -58,12 +58,18 @@ class UIController {
 
 		} else {
 
-			const { position, offset } = JSON.parse( localStorage.getItem( 'position' ) );
+			const { position, offset, crystals } = JSON.parse( localStorage.getItem( 'position' ) );
 			app.startLoading( offset, this.getViewDistance() )
 				.then( () => {
 
 					player.position.fromArray( position );
 					player.position.y += 10;
+					if ( crystals != null ) {
+
+						player.crystals = crystals;
+						this.updateCrystalDisplay();
+
+					}
 
 					this.loadSettings();
 					terrainController.updateInstancedObjects();
@@ -207,6 +213,12 @@ class UIController {
 	showGame( show ) {
 
 		this.elements.mainMenu.classList.toggle( 'hidden', show );
+
+	}
+
+	updateCrystalDisplay() {
+
+		this.elements.crystal.innerHTML = player.crystals;
 
 	}
 

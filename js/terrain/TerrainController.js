@@ -14,7 +14,7 @@ class TerrainController extends VolumetricTerrain {
 				farViewDistance: viewDistance.viewDistance,
 				fps: 24,
 				material: terrainMaterial,
-				workers: 6,
+				workers: 4,
 				gridWorkerScript: './js/terrain/gridworker/GridWorker.js',
 				meshWorkerScript: './js/terrain/meshworker/MeshWorker.js',
 				gridWorkerOptions: { terrainSeed: seed },

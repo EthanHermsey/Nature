@@ -30,7 +30,7 @@ function generateMesh( { grid, gridSize, terrainHeights } ) {
 
 			let v = generatedSurface.vertices[ i ];
 
-			// //fix z-fighting
+			// fix z-fighting
 			if ( v[ 0 ] < 0.3 ) v[ 1 ] -= 0.01;
 			if ( v[ 2 ] < 0.3 ) v[ 1 ] -= 0.01;
 

@@ -30,7 +30,7 @@ html {
     z-index: 100;
 }
 
-#gem {
+#crystal {
     position: absolute;
     height: 6vh;
     width: 6vh;
@@ -38,7 +38,7 @@ html {
     right: 4vh;
     padding-top: 4.5vh;
 
-    background: url('./resources/gem.png');
+    background: url('./resources/crystal.png');
     background-repeat: no-repeat;
     background-size: 60%;
     background-position: 50% 0%;
