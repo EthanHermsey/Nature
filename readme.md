@@ -87,9 +87,9 @@ Every level is associated with an object, and rendering can be switched between 
 
     function render(){
         tree.animate();
-        if ( player.hasWalked > 500 ){
-            tree.update( player.position );
-            player.hasWalked = 0;
+        if ( app.player.hasWalked > 500 ){
+            tree.update( app.player.position );
+            app.player.hasWalked = 0;
         }
     }
 

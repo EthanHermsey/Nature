@@ -1,0 +1,20 @@
+{
+    "name": "nature",
+    "version": "1.0.0",
+    "description": "volumetric-terrain nature",
+    "scripts": {
+        "vite": "vite --port=5500",
+        "build": "vite build"
+    },
+    "repository": {
+        "type": "git",
+        "url": " "
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "three": "^0.132.2",
+        "three-mesh-bvh": "^0.6.3",
+        "vite": "^4.4.8"
+    }
+}
