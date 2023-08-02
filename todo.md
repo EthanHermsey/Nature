@@ -1,9 +1,9 @@
-- make terrain move instead of player, no more float precision shit
+- loadfromstorage no instancedobject lod update?
 
-- multi ?
-    spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen
-    server kan spelers dichtbij speler zoeken om aan elkaar te koppelen 
-   
+- new does not generate new chunks after viewdistance change
+
+- checkbox; save progress
+
 - efficiently save/load from db ( alleen changed, mischien alleen changed indexes..) ?
     db -> nature-grids
     objectStore -> chunkKey
@@ -13,4 +13,10 @@
 
     bij genereren van chunk -> getall van objectstore -> overschrijven in grid
 
-    extra array met aangepastte indices, zodat er geen vegetation groeit?
+    !!!!!!!!!!!!!!!!!!!!   extra array met aangepastte indices, zodat er geen vegetation groeit? + dirt texture als aangepast boven underground    !!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+- multi ?
+    spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen
+    server kan spelers dichtbij speler zoeken om aan elkaar te koppelen 

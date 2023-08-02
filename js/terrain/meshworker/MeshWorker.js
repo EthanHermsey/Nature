@@ -14,7 +14,7 @@ self.onmessage = ( { data } ) => {
 
 };
 
-function generateMesh( { grid, gridSize, terrainHeights } ) {
+function generateMesh( { grid, gridSize, terrainHeights, adjustedIndices } ) {
 
 	surfaceNetEngine.createSurface( grid, [ gridSize.x, gridSize.y, gridSize.z ] ).then( generatedSurface => {
 
@@ -23,6 +23,7 @@ function generateMesh( { grid, gridSize, terrainHeights } ) {
 		const indices = new Uint16Array( generatedSurface.faces.length * 6 );
 		const vertices = new Float32Array( generatedSurface.vertices.length * 3 );
 		const underground = new Float32Array( generatedSurface.vertices.length );
+		const adjusted = new Int8Array( generatedSurface.vertices.length );
 
 
 		let x, y, z, terrainHeight, smoothRange = 2, topIndex = 0;
@@ -42,6 +43,7 @@ function generateMesh( { grid, gridSize, terrainHeights } ) {
 			y = v[ 1 ];
 			z = Math.round( v[ 2 ] );
 			terrainHeight = terrainHeights[ z * gridSize.x + x ];
+			adjusted[ i ] = adjustedIndices[ ( z * ( gridSize.x * gridSize.y ) ) + ( Math.round( y ) * gridSize.z ) + x ];
 
 			if ( y < terrainHeight ) {
 
@@ -103,14 +105,16 @@ function generateMesh( { grid, gridSize, terrainHeights } ) {
 				vertices,
 				underground,
 				topindices,
-				topvertices
+				topvertices,
+				adjusted
 			},
 			[
 				indices.buffer,
 				vertices.buffer,
 				underground.buffer,
 				topindices.buffer,
-				topvertices.buffer
+				topvertices.buffer,
+				adjusted.buffer
 			]
 		);
 

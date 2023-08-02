@@ -82,16 +82,17 @@ class Fern extends CachedInstancedLOD {
 
 		for ( let i = 0; i < 20; i ++ ) {
 
-			let d, terrainHeight;
+			let d, terrainHeight, adjusted;
 			let tries = 20;
 			do {
 
 				surfaceSampler.sample( _position, _normal );
 				d = 1.0 - _normal.y;
 				terrainHeight = chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) );
+				adjusted = chunk.adjustedIndices[ chunk.gridIndex( Math.floor( _position.x ), Math.floor( _position.y ), Math.floor( _position.z ) ) ];
 				tries --;
 
-			} while ( tries > 0 && d > 0.13 || _position.y < terrainHeight );
+			} while ( tries > 0 && ( d > 0.13 || _position.y < terrainHeight || adjusted ) );
 
 			if ( _position.y > chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) ) ) {
 

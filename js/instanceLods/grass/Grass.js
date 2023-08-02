@@ -125,16 +125,17 @@ class Grass extends CachedInstancedLOD {
 
 		for ( let i = 0; i < 800; i ++ ) {
 
-			let d, terrainHeight;
+			let d, terrainHeight, adjusted;
 			let tries = 8;
 			do {
 
 				surfaceSampler.sample( _position, _normal );
 				d = 1.0 - _normal.y;
 				terrainHeight = chunk.getTerrainHeight( Math.floor( _position.x ), Math.floor( _position.z ) );
+				adjusted = chunk.adjustedIndices[ chunk.gridIndex( Math.floor( _position.x ), Math.floor( _position.y ), Math.floor( _position.z ) ) ];
 				tries --;
 
-			} while ( tries > 0 && ( d < 0 || d > 0.12 || _position.y < terrainHeight ) );
+			} while ( tries > 0 && ( d < 0 || d > 0.12 || _position.y < terrainHeight || adjusted ) );
 
 			if ( tries === 0 ) continue;
 

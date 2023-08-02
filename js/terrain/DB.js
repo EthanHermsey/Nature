@@ -3,7 +3,7 @@ class DB {
 	constructor() {
 
 		this.dbName = 'world';
-		this.keyPath = 'id';
+		this.keyPath = 'index';
 		this.version = 1;
 		this.updateVersion();
 
@@ -24,62 +24,69 @@ class DB {
 
 	}
 
-	getConnection( chunkKey ) {
+	getTransaction( chunkKey, connection ) {
+
+		return connection?.transaction ? connection.transaction( chunkKey, "readwrite" ).objectStore( chunkKey ) : undefined;
+
+	}
+
+	getConnection( chunkKey, createObjectStore ) {
 
 		return new Promise( ( resolve, reject ) => {
 
-			console.log( 'connection v ' + this.version );
 
 			const DBRequest = indexedDB.open( this.dbName, this.version );
 			DBRequest.onupgradeneeded = () => {
 
 				const db = DBRequest.result;
+				if ( ! db.objectStoreNames.contains( chunkKey ) ) db.createObjectStore( chunkKey, { keyPath: this.keyPath } );
+
+			};
+			DBRequest.onsuccess = async () => {
+
+				const db = DBRequest.result;
 				if ( ! db.objectStoreNames.contains( chunkKey ) ) {
 
-					console.log( chunkKey, this.version );
-					db.createObjectStore( chunkKey, { keyPath: this.keyPath } );
+					if ( createObjectStore ) {
+
+						db.close();
+						this.version ++;
+						resolve( await this.getConnection( chunkKey ) );
+
+					} else {
+
+						resolve();
+
+					}
 
 				}
 
+				resolve( db );
+
 			};
-			DBRequest.onsuccess = () => resolve( DBRequest.result );
 			DBRequest.onerror = () => reject( DBRequest.error );
 
 		} );
 
 	}
 
-	request( type, chunkKey, data, second ) {
-
-		if ( second ) console.log( type, chunkKey, data, 'SECOND' );
+	request( type, chunkKey, data ) {
 
 		if ( type !== 'get' && type !== 'getAll' && type !== 'put' && type !== 'clear' ) return;
 
 		return new Promise( async ( resolve ) => {
 
 			const DBConnection = await this.getConnection( chunkKey );
-			const chunkKeyExists = DBConnection.objectStoreNames.contains( chunkKey );
+			const transaction = this.getTransaction( chunkKey, DBConnection );
+			if ( transaction ) {
 
-			if ( ( type === 'get' || type === 'getAll' ) && ! chunkKeyExists ) {
-
-				resolve();
-				return;
-
-			}
-
-			if ( ! chunkKeyExists ) {
-
-				console.log( type, chunkKey, data );
-				DBConnection.close();
-				this.version ++;
-				resolve( await this.request( type, chunkKey, data, true ) );
+				const request = transaction[ type ]( data );
+				request.onsuccess = () => resolve( request.result );
+				request.onerror = () => resolve();
 
 			} else {
 
-				const transaction = DBConnection.transaction( chunkKey, "readwrite" );
-				const request = transaction.objectStore( chunkKey )[ type ]( data );
-				request.onsuccess = () => resolve( request.result );
-				request.onerror = () => resolve();
+				resolve();
 
 			}
 
@@ -99,9 +106,18 @@ class DB {
 
 	}
 
-	add( chunkKey, index, value ) {
+	async add( chunkKey, data ) {
 
-		return this.request( 'put', chunkKey, { [ this.keyPath ]: index, value } );
+		const DBConnection = await this.getConnection( chunkKey, true );
+		const transaction = this.getTransaction( chunkKey, DBConnection );
+
+		for ( let { index, value } of data ) {
+
+			transaction.put( { [ this.keyPath ]: index, value } );
+
+		}
+
+		DBConnection.close();
 
 	}
 

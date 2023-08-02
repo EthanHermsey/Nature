@@ -106,17 +106,6 @@ class VolumetricChunk {
 					this.grid = data.grid;
 					this.terrainHeights = data.terrainHeights;
 
-					if ( this.terrain.DB ) {
-
-						const data = await this.terrain.DB.getAll( this.chunkKey );
-						for ( let { id, value } of data ) {
-
-							this.grid[ id ] = value;
-
-						}
-
-					}
-
 					resolve();
 
 				}
@@ -239,6 +228,8 @@ class VolumetricChunk {
 		//square loop around a sphere brush
 		let loopRadius = radius;
 
+		let p, gridPosition = new THREE.Vector3();
+
 		for ( let y = - loopRadius; y <= loopRadius; y ++ ) {
 
 			for ( let z = - loopRadius; z <= loopRadius; z ++ ) {
@@ -249,22 +240,15 @@ class VolumetricChunk {
 					let d = x * x + y * y + z * z;
 					if ( d < radius ) {
 
-						let p = map( d, 0, radius * 0.8, 1, 0, true );
-
 						//grid position in sphere around center (x y and z go from -looprad to +looprad)
-						let newPosition = new THREE.Vector3( x, y, z ).add( center );
+						gridPosition.set( x, y, z ).add( center );
 
-						if ( this.isInsideGrid( newPosition ) ) {
+						if ( this.isInsideGrid( gridPosition ) ) {
 
 							//if not lower that 0 or height that this.terrain.gridSize, add value
-							this.addScaleValueToGrid( newPosition.x, newPosition.y, newPosition.z, val * p );
-
-							if ( this.terrain.DB ) {
-
-								const index = this.gridIndex( newPosition.x, newPosition.y, newPosition.z );
-								this.terrain.DB.add( this.chunkKey, index, gridValue );
-
-							}
+							p = map( d, 0, radius * 0.8, 1, 0, true );
+							this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
+							this.saveGridPosition( gridPosition );
 
 						}
 
@@ -285,6 +269,8 @@ class VolumetricChunk {
 
 
 	}
+
+	saveGridPosition() {}
 
 
 

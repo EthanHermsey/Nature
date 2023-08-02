@@ -121,6 +121,7 @@ class Boulder extends CachedMesh {
 		let placedVerts = [];
 
 		// check each vertex
+		let d, inRange, adjusted;
 		for ( let i = 0; i < geo.attributes.position.array.length; i += 3 ) {
 
 			v.set(
@@ -136,10 +137,11 @@ class Boulder extends CachedMesh {
 
 			//check to see if slope is steep enough
 			//check to see if not underground
-			const d = n.y;
-			const inRange = d > 0.55 && d < 0.68;
+			d = n.y;
+			inRange = d > 0.55 && d < 0.68;
+			adjusted = chunk.adjustedIndices[ chunk.gridIndex( Math.floor( v.x ), Math.floor( v.y ), Math.floor( v.z ) ) ];
 
-			if ( inRange &&
+			if ( inRange && ! adjusted &&
                 abs( v.y - chunk.getTerrainHeight( Math.floor( v.x ), Math.floor( v.z ) ) ) < 15 &&
                 v.y < this.terrain.upperBoulderHeightLimit ) {
 
@@ -153,6 +155,8 @@ class Boulder extends CachedMesh {
 		placedVerts = placedVerts.sort( ()=> ( Math.random() > 0.5 ) ? 1 : - 1 );
 
 		//group verts
+		const v1 = new THREE.Vector3();
+		const v2 = new THREE.Vector3();
 		let chunked = [];
 
 		for ( let vert of placedVerts ) {
@@ -160,10 +164,10 @@ class Boulder extends CachedMesh {
 			let found = false;
 			for ( let i = 0; i < chunked.length; i ++ ) {
 
-				let c = chunked[ i ].filter( c=>{
+				let c = chunked[ i ].filter( chunkedVert=>{
 
-					let v1 = vert.v.clone();
-					let v2 = c.v.clone();
+					v1.copy( vert.v );
+					v2.copy( chunkedVert.v );
 					return ( v1.distanceToSquared( v2 ) <= 3.5 );
 
 				} );

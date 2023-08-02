@@ -6,7 +6,8 @@ class Chunk extends VolumetricChunk {
 
 		this.lodLevel = 0;
 		this.sampler;
-		this.firstRender = true;
+		this.adjustedBuffer = [];
+		this.adjustedIndices = new Int8Array( this.terrain.gridSize.x * this.terrain.gridSize.y * this.terrain.gridSize.z );
 
 	}
 
@@ -19,6 +20,31 @@ class Chunk extends VolumetricChunk {
 	}
 
 
+	generateMeshData() {
+
+		return new Promise( resolve =>{
+
+			this.terrain.meshWorkerBank.work(
+				{
+					grid: this.grid,
+					gridSize: this.terrain.gridSize,
+					terrainHeights: this.terrainHeights,
+					adjustedIndices: this.adjustedIndices
+				},
+				async ( { data } ) => {
+
+					this.generateMesh( data );
+
+					resolve( this.chunkKey );
+
+				}
+			);
+
+		} );
+
+	}
+
+
 	generateMesh( data ) {
 
 		const {
@@ -26,7 +52,8 @@ class Chunk extends VolumetricChunk {
 			vertices,
 			underground,
 			topindices,
-			topvertices
+			topvertices,
+			adjusted
 		} = data;
 
 		const geo = new THREE.BufferGeometry();
@@ -35,6 +62,7 @@ class Chunk extends VolumetricChunk {
 		geo.setIndex( new THREE.BufferAttribute( indices, 1 ) );
 		geo.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
 		geo.setAttribute( 'force_stone', new THREE.Float32BufferAttribute( underground, 1 ) );
+		geo.setAttribute( 'adjusted', new THREE.BufferAttribute( adjusted, 1 ) );
 		geo.computeVertexNormals();
 		geo.computeBoundsTree = computeBoundsTree;
 		geo.disposeBoundsTree = disposeBoundsTree;
@@ -88,6 +116,67 @@ class Chunk extends VolumetricChunk {
 		}
 
 	}
+
+	generateGrid() {
+
+		return new Promise( resolve => {
+
+			this.terrain.gridWorkerBank.work(
+				{
+					offset: this.offset,
+					gridSize: this.terrain.gridSize
+				},
+				async ( { data } ) => {
+
+					this.grid = data.grid;
+					this.terrainHeights = data.terrainHeights;
+
+					if ( this.terrain.DB ) {
+
+						const data = await this.terrain.DB.getAll( this.chunkKey );
+						for ( let { index, value } of data ) {
+
+							this.grid[ index ] = value;
+							this.adjustedIndices[ index ] = 1;
+
+						}
+
+					}
+
+					resolve();
+
+				}
+			);
+
+		} );
+
+	}
+
+	async adjustGrid( ...args ) {
+
+		super.adjustGrid( ...args );
+
+		if ( this.terrain.DB && this.adjustedBuffer.length > 0 ) {
+
+			this.terrain.DB.add( this.chunkKey, this.adjustedBuffer )
+				.then( () => {
+
+					this.adjustedBuffer.length = 0;
+
+				} );
+
+		}
+
+	}
+
+	saveGridPosition( gridPosition ) {
+
+		const index = this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z );
+		this.adjustedIndices[ this.gridIndex( gridPosition.x, gridPosition.y, gridPosition.z ) ] = 1;
+		if ( this.terrain.DB ) this.adjustedBuffer.push( { index, value: this.grid[ index ] } );
+
+	}
+
 
 	async adjust( center, radius, val, checkNeighbors ) {
 

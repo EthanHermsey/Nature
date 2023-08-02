@@ -91,6 +91,8 @@ class Trees extends Cached {
 		const treeNarrowNoiseScale = 0.35;
 		const v = new THREE.Vector3();
 		const n = new THREE.Vector3();
+		const wp = new THREE.Vector3();
+		let d, adjusted;
 
 		const modelMatrices = {};
 		modelMatrices[ 'tree' ] = [];
@@ -108,13 +110,16 @@ class Trees extends Cached {
 				geo.attributes.normal.array[ i + 1 ],
 				geo.attributes.normal.array[ i + 2 ]
 			);
-			const d = 1.0 - n.y;
 
-			let wp = v.clone()
+			d = 1.0 - n.y;
+
+			wp.copy( v )
 				.multiply( this.terrain.terrainScale )
 				.add( chunk.position );
 
-			if ( wp.y < this.terrain.upperTreeHeightLimit && v.y >= chunk.getTerrainHeight( Math.floor( v.x ), Math.floor( v.z ) ) ) {
+			adjusted = chunk.adjustedIndices[ chunk.gridIndex( Math.floor( v.x ), Math.floor( v.y ), Math.floor( v.z ) ) ];
+
+			if ( ! adjusted && wp.y < this.terrain.upperTreeHeightLimit && v.y >= chunk.getTerrainHeight( Math.floor( v.x ), Math.floor( v.z ) ) ) {
 
 				let worldNoise = noise(
 					wp.x * treeWorldNoiseScale,

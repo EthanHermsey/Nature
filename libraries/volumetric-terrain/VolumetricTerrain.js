@@ -7,7 +7,6 @@ class VolumetricTerrain extends THREE.Object3D {
 		super();
 
 		this.isVolumetricTerrain = true;
-		this.DB = options.db === true ? new DB() : undefined;
 		this.fps = options.fps || 20;
 
 		this.currentCoord = options.currentCoord || { x: 0, z: 0 };
@@ -32,12 +31,16 @@ class VolumetricTerrain extends THREE.Object3D {
 		this.gridWorkerBank = new WorkerBank( options.gridWorkerScript || './libraries/volumetric-terrain/GridWorker.js', options.gridWorkerOptions || {}, num_workers );
 		this.meshWorkerBank = new WorkerBank( options.meshWorkerScript || './libraries/volumetric-terrain/MeshWorker.js', options.meshWorkerOptions || {}, num_workers );
 
-		this.init()
-			.then( ()=>{
+		if ( cb ) {
 
-				cb( this );
+			this.init()
+				.then( ()=>{
 
-			} );
+					cb( this );
+
+				} );
+
+		}
 
 	}
 
@@ -81,7 +84,6 @@ class VolumetricTerrain extends THREE.Object3D {
 			}
 			this.chunks = {};
 
-			let max_initial_chunks = 0;
 			let num_initial_chunks = 0;
 			let LOAD_INITIAL_TERRAIN = async ( chunk ) => {
 
@@ -114,7 +116,6 @@ class VolumetricTerrain extends THREE.Object3D {
 						} );
 
 						num_initial_chunks ++;
-						max_initial_chunks ++;
 
 					}
 

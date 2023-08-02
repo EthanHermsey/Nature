@@ -5,49 +5,50 @@ class TerrainController extends VolumetricTerrain {
 
 	constructor( offset, viewDistance, seed, callback ) {
 
-		super(
-			{
-				gridSize: { x: 16, y: 256, z: 16 },
-				terrainScale: { x: 10, y: 10, z: 10 },
-				currentCoord: offset,
-				viewDistance: viewDistance.viewDetail,
-				farViewDistance: viewDistance.viewDistance,
-				fps: 24,
-				material: terrainMaterial,
-				workers: 4,
-				gridWorkerScript: './js/terrain/gridworker/GridWorker.js',
-				meshWorkerScript: './js/terrain/meshworker/MeshWorker.js',
-				gridWorkerOptions: { terrainSeed: seed },
-				chunkClass: Chunk,
-				db: false ////////////////////////////////    <<-------------------------------
-			},
-			()=>{
+		super( {
+			gridSize: { x: 16, y: 256, z: 16 },
+			terrainScale: { x: 10, y: 10, z: 10 },
+			currentCoord: offset,
+			viewDistance: viewDistance.viewDetail,
+			farViewDistance: viewDistance.viewDistance,
+			fps: 24,
+			material: terrainMaterial,
+			workers: 4,
+			gridWorkerScript: './js/terrain/gridworker/GridWorker.js',
+			meshWorkerScript: './js/terrain/meshworker/MeshWorker.js',
+			gridWorkerOptions: { terrainSeed: seed },
+			chunkClass: Chunk
+		} );
 
-				this.instancedObjectViewDistance = Math.min( this.totalViewDistance, 16 );
-				this.grassViewDistance = 6;
-				this.grassHighViewDistance = 2;
-				this.fernViewDistance = 3;
-				this.fogViewDistance = 6;
-				this.treeViewDistance = 16;
-				this.treeHighViewDistance = 4;
-				this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
-				this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
+		// this.DB = new DB();
+		this.instancedObjectViewDistance = Math.min( this.totalViewDistance, 16 );
+		this.grassViewDistance = 6;
+		this.grassHighViewDistance = 2;
+		this.fernViewDistance = 3;
+		this.fogViewDistance = 6;
+		this.treeViewDistance = 16;
+		this.treeHighViewDistance = 4;
+		this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
+		this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
 
-				this.instancedObjects = {
-					"Grass": new Grass( this, this.grassViewDistance ),
-					"Tree": new Trees( this, this.treeViewDistance ),
-					"Fern": new Fern( this, this.fernViewDistance ),
-					"Fog": new Fog( this, this.fogViewDistance ),
-					"Boulder": new Boulder( this, this.instancedObjectViewDistance ),
-					"Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
-				};
+		this.instancedObjects = {
+			"Grass": new Grass( this, this.grassViewDistance ),
+			"Tree": new Trees( this, this.treeViewDistance ),
+			"Fern": new Fern( this, this.fernViewDistance ),
+			"Fog": new Fog( this, this.fogViewDistance ),
+			"Boulder": new Boulder( this, this.instancedObjectViewDistance ),
+			"Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
+		};
+
+		this.init()
+			.then( () => {
 
 				this.updateCastChunkTerrainArray( this.currentCoord );
 				this.updateChunkLODs();
 				callback( this );
 
-			}
-		);
+			} );
+
 
 	}
 
