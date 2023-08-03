@@ -2,20 +2,21 @@
 import * as THREE from 'three';
 import App from './js/app/App';
 
+console.warn = () => {};
+
 window.THREE = THREE;
 window.app = new App();
-window.setup = app.setup;
-window.render = app.render;
 
-
+window.setup = () => app.setup();
+window.render = () => app.render();
 window.keyPressed = ( e ) => {
 
-	if ( app.running && e.code == 'KeyC' ) app.uiController.zoom( true );
+	if ( app.running && e.code == 'KeyC' ) app.zoom( true );
 
 };
 window.keyReleased = ( e ) => {
 
-	if ( app.running && e.code == 'KeyC' ) app.uiController.zoom( false );
+	if ( app.running && e.code == 'KeyC' ) app.zoom( false );
 
 };
 window.onMouseMove = ( e ) => {

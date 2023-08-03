@@ -23,8 +23,8 @@ export default class TerrainController extends VolumetricTerrain {
 			fps: 24,
 			material: terrainMaterial,
 			workers: 4,
-			gridWorkerScript: './src/js/terrain/gridworker/GridWorker.js',
-			meshWorkerScript: './src/js/terrain/meshworker/MeshWorker.js',
+			gridWorkerScript: './resources/js/gridworker/GridWorker.js',
+			meshWorkerScript: './resources/js/meshworker/MeshWorker.js',
 			gridWorkerOptions: { terrainSeed: seed },
 			chunkClass: Chunk
 		} );

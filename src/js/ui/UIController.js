@@ -23,6 +23,7 @@ export default class UIController {
 			backButton: document.getElementById( 'back-button' ),
 
 			crystal: document.getElementById( 'crystal' ),
+			compass: document.getElementById( 'compass' ),
 
 		};
 
@@ -228,15 +229,6 @@ export default class UIController {
 
 	}
 
-
-	zoom( zoomin ) {
-
-		app.player.camera.fov = zoomin ? 21 : 70;
-		app.player.mouseSensitivity *= zoomin ? 0.5 : 2;
-		this.windowResized();
-
-	}
-
 	lockPointer() {
 
 		document.addEventListener( "mousemove", onMouseMove, false );
@@ -255,10 +247,9 @@ export default class UIController {
 
 	windowResized() {
 
-		resizeCanvas( windowWidth, windowHeight );
-
-		app.renderer.setSize( windowWidth, windowHeight );
-		app.player.camera.aspect = windowWidth / windowHeight;
+		resizeCanvas( window.innerWidth, window.innerHeight );
+		app.renderer.setSize( window.innerWidth, window.innerHeight );
+		app.player.camera.aspect = window.innerWidth / window.innerHeight;
 		app.player.camera.updateProjectionMatrix();
 
 	}

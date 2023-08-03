@@ -106,7 +106,7 @@ export default class Player extends THREE.Object3D {
 			this.model.children[ 1 ].material.metalness = 0.0;
 			this.model.children[ 1 ].material.roughness = 0.85;
 			this.model.children[ 1 ].material.normalMap = new THREE.TextureLoader()
-				.load( './src/resources/model/n.png' );
+				.load( './resources/models/knight/n.png' );
 			this.model.scale.multiplyScalar( this.height * 0.9 );
 			this.model.position.y -= this.height;
 			this.model.rotation.order = "YXZ";
@@ -150,7 +150,7 @@ export default class Player extends THREE.Object3D {
 					64
 				),
 				new THREE.MeshBasicMaterial( {
-					map: new THREE.TextureLoader().load( './src/resources/background.jpg' ),
+					map: new THREE.TextureLoader().load( './resources/images/background.jpg' ),
 					side: THREE.BackSide
 				} )
 			);

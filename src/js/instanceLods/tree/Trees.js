@@ -71,8 +71,10 @@ export default class Trees extends Cached {
 
 	}
 
-	addData( { tree, tree1 } ) {
+	addData( data ) {
 
+		if ( ! data ) return;
+		const { tree, tree1 } = data;
 		this.tree.addMatrices( tree );
 		this.tree1.addMatrices( tree1 );
 
@@ -81,12 +83,8 @@ export default class Trees extends Cached {
 	generateData( chunk ) {
 
 		const mesh = chunk.mesh;
-		if ( ! mesh ) {
+		if ( ! mesh ) return;
 
-			console.log( chunk );
-			return;
-
-		}
 		const geo = mesh.geometry;
 		const dummy = new THREE.Object3D();
 

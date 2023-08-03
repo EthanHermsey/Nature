@@ -48,6 +48,14 @@ export default class App {
 
 	}
 
+	zoom( zoomin ) {
+
+		this.player.camera.fov = zoomin ? 21 : 70;
+		this.player.mouseSensitivity *= zoomin ? 0.5 : 2;
+		this.uiController.windowResized();
+
+	}
+
 	//              .                          .
 	//            .o8                        .o8
 	//  .oooo.o .o888oo  .oooo.   oooo d8b .o888oo
@@ -293,26 +301,9 @@ export default class App {
 		text( `chunk: x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.96 );
 		text( `x: ${floor( this.player.position.x )} y: ${floor( this.player.position.y )} z: ${floor( this.player.position.z )}`, width * 0.99, height * 0.98 );
 
-		if ( this.player ) {
-
-			const compass = [ ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'SW', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'W', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'NW', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'N', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'NE', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'E', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'SE', ' ', ' ', '╷', ' ', ' ', '╷', ' ', ' ', 'S' ];
-			const rotation = ( this.player.cameraRig.rotation.y + PI ) * 0.5;
-			const index = floor( map( rotation, 0, PI, compass.length, 0, true ) );
-
-			let str = '';
-			for ( let i = index - 12; i <= index + 12; i ++ ) {
-
-				let c = i;
-				if ( c < 0 ) c += compass.length;
-				if ( c >= compass.length ) c = c -= compass.length;
-				str += compass[ c ] + '  ';
-
-			}
-
-			textAlign( CENTER );
-			text( str, width * 0.57, height * 0.05 );
-
-		}
+		//compass
+		const m = map( app.player.cameraRig.rotation.y + PI, 0, TWO_PI, - 894, 894, true );
+		this.uiController.elements.compass.style.backgroundPositionX = `${ 330 + m }px`;
 
 	}
 

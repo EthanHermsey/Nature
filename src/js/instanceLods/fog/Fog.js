@@ -6,7 +6,7 @@ export default class Fog extends CachedPoints {
 
 		let fogGeo = new THREE.BufferGeometry();
 		let fogMat = new THREE.PointsMaterial( {
-			map: new THREE.TextureLoader().load( './src/resources/fog.png' ),
+			map: new THREE.TextureLoader().load( './resources/images/fog.png' ),
 			size: 500,
 			transparent: true,
 			opacity: 0.08,

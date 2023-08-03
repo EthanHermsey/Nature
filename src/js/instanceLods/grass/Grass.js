@@ -56,7 +56,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		const grassMaterial = new THREE.MeshLambertMaterial( {
 			alphaTest: 0.35,
-			map: new THREE.TextureLoader().load( './src/resources/grass/grassdiff.png' ),
+			map: new THREE.TextureLoader().load( './resources/images/grass/grassdiff.png' ),
 			side: THREE.DoubleSide
 		} );
 		grassMaterial.onBeforeCompile = ( shader ) => {
@@ -86,7 +86,7 @@ export default class Grass extends CachedInstancedLOD {
 		models.grassModelHigh = modelBank.grassHigh;
 		models.grassModelHigh.geometry.scale( 0.4, 0.55, 0.4 );
 
-		models.grassModelHigh.material.map = new THREE.TextureLoader().load( './src/resources/grass/grassdiffhigh.png' );
+		models.grassModelHigh.material.map = new THREE.TextureLoader().load( './resources/images/grass/grassdiffhigh.png' );
 		models.grassModelHigh.material.map.alphaTest = 0.2;
 
 		models.grassModelHigh.material.onBeforeCompile = ( shader ) => {

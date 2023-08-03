@@ -7,9 +7,9 @@ import * as THREE from 'three';
 //   888   888ooo888  888      888      .oP"888   888   888   888
 //   888 . 888    .o  888      888     d8(  888   888   888   888
 //   "888" `Y8bod8P' d888b    d888b    `Y888""8o o888o o888o o888o
-let rocktex = new THREE.TextureLoader().load( './src/resources/terrain/rock.jpg' );
-let grasstex = new THREE.TextureLoader().load( './src/resources/terrain/grass.png' );
-let dirttex = new THREE.TextureLoader().load( './src/resources/terrain/dirt.png' );
+let rocktex = new THREE.TextureLoader().load( '../resources/images/terrain/rock.jpg' );
+let grasstex = new THREE.TextureLoader().load( '../resources/images/terrain/grass.png' );
+let dirttex = new THREE.TextureLoader().load( '../resources/images/terrain/dirt.png' );
 
 rocktex.anisotropy = 8;
 grasstex.anisotropy = 8;

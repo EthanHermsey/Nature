@@ -9,7 +9,6 @@ export default class Pedestal extends CachedMesh {
 	constructor( terrain, viewDistance ) {
 
 		super();
-		this.app = app;
 		this.terrain = terrain;
 		this.viewDistance = viewDistance;
 		this.frustumCulled = false;
@@ -37,7 +36,7 @@ export default class Pedestal extends CachedMesh {
 					if ( app.player.grabbing && mesh.position.distanceTo( app.player.position ) < 6 ) {
 
 						app.player.crystals ++;
-						uiController.updateCrystalDisplay();
+						app.uiController.updateCrystalDisplay();
 						mesh.children[ 0 ].visible = false;
 						mesh.children[ 3 ].visible = false;
 						break;
