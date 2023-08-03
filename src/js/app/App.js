@@ -75,7 +75,7 @@ export default class App {
 	//                                     o888o
 
 
-	startLoading( offset, viewDistance ) {
+	startLoading( offset, viewDistance, saveProgress ) {
 
 		return new Promise( async ( resolve ) => {
 
@@ -89,6 +89,7 @@ export default class App {
 						this,
 						offset,
 						viewDistance,
+						saveProgress,
 						this.terrainSeed,
 						() => resolve()
 					);
@@ -98,7 +99,7 @@ export default class App {
 
 			} else {
 
-				await this.terrainController.init( viewDistance );
+				await this.terrainController.init( viewDistance, saveProgress );
 
 			}
 
@@ -129,6 +130,12 @@ export default class App {
 
 	}
 
+	stopGame() {
+
+		this.uiController.stopGame();
+
+	}
+
 	stop() {
 
 		if ( this.player.position.length() > 0 ) localStorage.setItem( 'position', JSON.stringify( { position: this.player.position.toArray(), offset: this.terrainController.getCoordFromPosition( this.player.position ), crystals: this.player.crystals } ) );
@@ -139,6 +146,7 @@ export default class App {
 		document.querySelector( 'audio' ).pause();
 
 	}
+
 
 
 
@@ -276,7 +284,7 @@ export default class App {
 		ellipse( width / 2, height / 2, min( width, height ) * 0.025 );
 
 		noStroke();
-		fill( 200, 200 );
+		fill( 240, 200 );
 		textAlign( LEFT );
 		text( "WASD", width * 0.01, height * 0.88 );
 		text( "- move", width * 0.05, height * 0.88 );

@@ -1,3 +1,5 @@
+import DB from "../terrain/DB";
+
 export default class UIController {
 
 	constructor() {
@@ -20,12 +22,20 @@ export default class UIController {
 			viewDistance: document.getElementById( 'view-distance' ),
 			shadows: document.getElementById( 'shadows' ),
 			mouseSensitivity: document.getElementById( 'mouse_sensitivity' ),
+			saveProgress: document.getElementById( 'save_progress' ),
 			backButton: document.getElementById( 'back-button' ),
 
 			crystal: document.getElementById( 'crystal' ),
 			compass: document.getElementById( 'compass' ),
 
 		};
+
+		this.addEvents();
+		this.loadOptions();
+
+	}
+
+	addEvents() {
 
 		window.addEventListener( 'resize', this.windowResized, true );
 
@@ -40,8 +50,6 @@ export default class UIController {
 
 		this.elements.mouseSensitivity.addEventListener( 'input', this.updateValueLabel, true );
 
-		this.loadOptions();
-
 	}
 
 	loadFromStorage() {
@@ -50,7 +58,11 @@ export default class UIController {
 
 		this.lockPointer();
 
-		if ( app.loaded ) {
+		const viewDistance = this.getViewDistance();
+		const viewDistanceChanged = ( viewDistance.viewHigh !== app.terrainController?.viewDistanceHigh ||
+                                      viewDistance.viewLow !== app.terrainController?.viewDistanceLow );
+
+		if ( ! viewDistanceChanged && app.loaded ) {
 
 			this.loadSettings();
 			app.start( true );
@@ -59,7 +71,7 @@ export default class UIController {
 		} else {
 
 			const { position, offset, crystals } = JSON.parse( localStorage.getItem( 'position' ) );
-			app.startLoading( offset, this.getViewDistance() )
+			app.startLoading( offset, viewDistance, this.getSaveProgress() )
 				.then( () => {
 
 					app.player.position.fromArray( position );
@@ -72,8 +84,11 @@ export default class UIController {
 					}
 
 					this.loadSettings();
+
 					app.terrainController.updateInstancedObjects();
-					this.showGame( true );
+
+					setTimeout( () => this.showGame( true ), 500 );
+
 
 				} );
 
@@ -87,7 +102,10 @@ export default class UIController {
 
 		this.lockPointer();
 
-		app.startLoading( undefined, this.getViewDistance() )
+		const db = new DB();
+		db.clear();
+
+		app.startLoading( undefined, this.getViewDistance(), this.getSaveProgress() )
 			.then( () => {
 
 				this.loadSettings();
@@ -100,9 +118,15 @@ export default class UIController {
 
 	getViewDistance() {
 
-		const viewDetail = Number( this.elements.viewDetail.querySelector( 'input:checked' ).value );
-		const viewDistance = Number( this.elements.viewDistance.querySelector( 'input:checked' ).value );
-		return { viewDetail, viewDistance };
+		const viewHigh = Number( this.elements.viewDetail.querySelector( 'input:checked' ).value );
+		const viewLow = Number( this.elements.viewDistance.querySelector( 'input:checked' ).value );
+		return { viewHigh, viewLow };
+
+	}
+
+	getSaveProgress() {
+
+		return this.elements.saveProgress.checked;
 
 	}
 
@@ -125,6 +149,8 @@ export default class UIController {
 		app.player.shadowLight.shadow.camera.updateProjectionMatrix();
 
 		app.player.mouseSensitivity = app.player.defaultMouseSensitivity * 2 * mouseSensitivity;
+
+		app.terrainController.setDB( this.elements.saveProgress.checked );
 
 	}
 
@@ -161,6 +187,8 @@ export default class UIController {
 			this.elements.mouseSensitivity.value = options.mouseSensitivity;
 			this.updateValueLabel( { target: this.elements.mouseSensitivity } );
 
+			this.elements.saveProgress.checked = options.saveProgress != undefined ? options.saveProgress : true;
+
 		}
 
 	}
@@ -171,7 +199,8 @@ export default class UIController {
 		const viewDistance = Number( this.elements.viewDistance.querySelector( 'input:checked' ).value );
 		const shadows = this.elements.shadows.querySelector( 'input:checked' ).value;
 		const mouseSensitivity = Number( this.elements.mouseSensitivity.value );
-		localStorage.setItem( 'options', JSON.stringify( { viewDetail, viewDistance, shadows, mouseSensitivity } ) );
+		const saveProgress = this.elements.saveProgress.checked;
+		localStorage.setItem( 'options', JSON.stringify( { viewDetail, viewDistance, shadows, mouseSensitivity, saveProgress } ) );
 
 	}
 

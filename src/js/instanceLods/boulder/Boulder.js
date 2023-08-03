@@ -118,6 +118,8 @@ export default class Boulder extends CachedMesh {
 
 	generateData( chunk ) {
 
+		if ( ! chunk?.mesh ) return;
+
 		const mesh = chunk.mesh;
 		const geo = mesh.geometry;
 		const v = new THREE.Vector3();

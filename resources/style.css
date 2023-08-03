@@ -41,6 +41,8 @@ html {
     background-size: auto 40px;
     background-position-x: 330px;
     background-repeat: repeat no-repeat;
+    color: rgb(245, 245, 245);
+    opacity: 0.7;
 }
 
 #crystal {
@@ -49,18 +51,23 @@ html {
     width: 6vh;
     top: 4vh;
     right: 4vh;
-    padding-top: 4.5vh;
 
     background: url('./images/crystal.png');
     background-repeat: no-repeat;
-    background-size: 60%;
-    background-position: 50% 0%;
+    background-size: 50%;
+    background-position-x: 100%;
+    background-position-y: 40%;
 
     text-align: center;
     color: rgb(245, 245, 245);
-    opacity: 0.5;
+    opacity: 0.7;
     font-size: 1.6em;
     font-weight: 500;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
 }
 
 #banner {
@@ -323,6 +330,49 @@ html {
 }
 
 
+
+.checkcontainer {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.checkcontainer p {
+    margin: 5px;
+    user-select: none;
+    color: white;
+    width: 150px;
+}
+
+.checkcontainer input {
+    display: none;
+}
+
+.checkcontainer label {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    border: 2px white solid;
+    border-radius: 4px;
+    background-color: #fff6;
+}
+
+.checkcontainer label:hover {
+    background-color: #fff7;
+}
+
+.checkcontainer input:checked+label::after {
+    position: absolute;
+    inset: 0;
+    content: '✓';
+    text-align: center;
+    font-size: 0.8em;
+    font-weight: 700;
+    line-height: 20px;
+    color: white;
+}
 
 
 

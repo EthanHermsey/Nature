@@ -44,15 +44,15 @@ export default class CachedInstancedLOD extends InstancedLOD {
 
 	}
 
-	addCachedChunkData( chunkKey ) {
+	addCachedData( chunkKey ) {
 
 		this.addData( this.cachedData[ chunkKey ] );
 
 	}
 
-	addCachedChunkData( chunkKey ) {
+	removeCachedData( chunkKey ) {
 
-		this.addData( this.cachedData[ chunkKey ] );
+		delete this.cachedData[ chunkKey ];
 
 	}
 

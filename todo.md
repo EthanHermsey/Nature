@@ -1,9 +1,4 @@
-- loadfromstorage no instancedobject lod update?
-
-- new does not generate new chunks after viewdistance change
-
-- checkbox; save progress
-
+- dig speed on slow machines
 
 - multi ?
     - spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen

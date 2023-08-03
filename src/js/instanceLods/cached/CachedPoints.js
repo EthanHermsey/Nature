@@ -37,9 +37,15 @@ export default class CachedPoints extends THREE.Points {
 
 	}
 
-	addCachedChunkData( chunkKey ) {
+	addCachedData( chunkKey ) {
 
 		this.addData( this.cachedData[ chunkKey ] );
+
+	}
+
+	removeCachedData( chunkKey ) {
+
+		delete this.cachedData[ chunkKey ];
 
 	}
 

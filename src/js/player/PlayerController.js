@@ -43,7 +43,7 @@ export default class Player extends THREE.Object3D {
 
 		//brush vars
 		this.terrainAdjustStrength = 0.05;
-		this.brushRadius = 5;
+		this.brushRadius = 6;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
 		this.maxBuildDistance = 450;
@@ -145,7 +145,7 @@ export default class Player extends THREE.Object3D {
 			//add a skybox. This position is updated in the update function
 			this.skyBox = new THREE.Mesh(
 				new THREE.SphereGeometry(
-					startChunk.terrain.chunkSize * 2 * Math.min( startChunk.terrain.viewDistance + startChunk.terrain.farViewDistance + 2, 14 ),
+					startChunk.terrain.chunkSize * 2 * Math.min( startChunk.terrain.viewDistance + 2, 14 ),
 					64,
 					64
 				),
@@ -543,7 +543,7 @@ export default class Player extends THREE.Object3D {
 
 
 
-	adjustTerrain( delta ) {
+	adjustTerrain() {
 
 		// this.buildTimer > this.maxBuildTime &&
 		if ( app.terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {

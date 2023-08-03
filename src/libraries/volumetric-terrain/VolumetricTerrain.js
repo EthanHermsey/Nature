@@ -20,8 +20,6 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		this.gridSize = options.gridSize || { x: 16, y: 256, z: 16 };
 		this.terrainScale = options.terrainScale || { x: 5, y: 5, z: 5 };
 		this.viewDistance = options.viewDistance || 6;
-		this.farViewDistance = options.farViewDistance || 0;
-		this.totalViewDistance = this.viewDistance + this.farViewDistance;
 		this.chunkSize = this.terrainScale.x * this.gridSize.x;
 		this.chunkSizeOverlap = ( this.gridSize.x - CHUNK_OVERLAP ) * this.terrainScale.x;
 
@@ -99,9 +97,9 @@ export default class VolumetricTerrain extends THREE.Object3D {
 			setTimeout( () => {
 
 				const addChunks = [];
-				for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
+				for ( let x = - this.viewDistance; x <= this.viewDistance; x ++ ) {
 
-					for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
+					for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
 
 						addChunks.push( {
 							dist: x * x + z * z,
@@ -309,9 +307,9 @@ export default class VolumetricTerrain extends THREE.Object3D {
         	let newVisibleChunks = {};
 
         	//new chunk coordinate
-        	for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
+        	for ( let x = - this.viewDistance; x <= this.viewDistance; x ++ ) {
 
-        		for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
+        		for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
 
         			let coord = { x: currentCoord.x + x, z: currentCoord.z + z };
         			let chunkKey = this.getChunkKey( coord );

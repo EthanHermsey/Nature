@@ -71,6 +71,12 @@ export default class Trees extends Cached {
 
 	}
 
+	removeCachedData( chunkKey ) {
+
+		// what to do here
+
+	}
+
 	addData( data ) {
 
 		if ( ! data ) return;

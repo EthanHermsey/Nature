@@ -12,6 +12,7 @@ window.render = () => app.render();
 window.keyPressed = ( e ) => {
 
 	if ( app.running && e.code == 'KeyC' ) app.zoom( true );
+	if ( app.running && e.code == 'Escape' ) app.stopGame();
 
 };
 window.keyReleased = ( e ) => {

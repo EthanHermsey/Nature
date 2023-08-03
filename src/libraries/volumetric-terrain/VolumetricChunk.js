@@ -249,7 +249,7 @@ export default class VolumetricChunk {
 						if ( this.isInsideGrid( gridPosition ) ) {
 
 							//if not lower that 0 or height that this.terrain.gridSize, add value
-							p = map( d, 0, radius * 0.8, 1, 0, true );
+							p = map( d, 0, radius * 0.75, 1, 0, true );
 							this.addScaleValueToGrid( gridPosition.x, gridPosition.y, gridPosition.z, val * p );
 							this.saveGridPosition( gridPosition );
 

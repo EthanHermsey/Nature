@@ -82,6 +82,8 @@ export default class Fog extends CachedPoints {
 
 	generateData( chunk ) {
 
+		if ( ! chunk.mesh ) return;
+
 		const mesh = chunk.mesh;
 		const geo = mesh.geometry.attributes.position;
 		const dummy = new THREE.Vector3();

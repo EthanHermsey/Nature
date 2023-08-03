@@ -43,9 +43,15 @@ export default class CachedMesh extends THREE.Mesh {
 
 	}
 
-	addCachedChunkData( chunkKey ) {
+	addCachedData( chunkKey ) {
 
 		this.addData( chunkKey );
+
+	}
+
+	removeCachedData( chunkKey ) {
+
+		delete this.cachedData[ chunkKey ];
 
 	}
 

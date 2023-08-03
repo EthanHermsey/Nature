@@ -1,6 +1,7 @@
 import VolumetricTerrain from '../../libraries/volumetric-terrain/VolumetricTerrain';
 import terrainMaterial from './Material';
 import Chunk from './Chunk';
+import DB from './DB';
 
 import Grass from '../instanceLods/grass/Grass';
 import Trees from '../instanceLods/tree/Trees';
@@ -12,14 +13,13 @@ import Pedestal from '../instanceLods/pedestal/Pedestal';
 // eslint-disable-next-line no-unused-vars
 export default class TerrainController extends VolumetricTerrain {
 
-	constructor( app, offset, viewDistance, seed, callback ) {
+	constructor( app, offset, viewDistance, saveProgress, seed, callback ) {
 
 		super( {
 			gridSize: { x: 16, y: 256, z: 16 },
 			terrainScale: { x: 10, y: 10, z: 10 },
 			currentCoord: offset,
-			viewDistance: viewDistance.viewDetail,
-			farViewDistance: viewDistance.viewDistance,
+			viewDistance: viewDistance.viewHigh + viewDistance.viewLow,
 			fps: 24,
 			material: terrainMaterial,
 			workers: 4,
@@ -29,9 +29,11 @@ export default class TerrainController extends VolumetricTerrain {
 			chunkClass: Chunk
 		} );
 
-		// this.DB = new DB();
-		this.app = app;
-		this.instancedObjectViewDistance = Math.min( this.totalViewDistance, 16 );
+		this.setDB( saveProgress );
+
+		this.viewDistanceHigh = viewDistance.viewHigh;
+		this.viewDistanceLow = viewDistance.viewLow;
+		this.instancedObjectViewDistance = Math.min( this.viewDistance, 16 );
 		this.grassViewDistance = 6;
 		this.grassHighViewDistance = 2;
 		this.fernViewDistance = 3;
@@ -63,6 +65,11 @@ export default class TerrainController extends VolumetricTerrain {
 	}
 
 
+	setDB( set ) {
+
+		this.DB = ( set == true ) ? new DB() : undefined;
+
+	}
 
 	//   o8o               o8o      .
 	//   `"'               `"'    .o8
@@ -71,19 +78,21 @@ export default class TerrainController extends VolumetricTerrain {
 	//   888   888   888   888    888
 	//   888   888   888   888    888 .
 	//  o888o o888o o888o o888o   "888"
-	init( viewDistance ) {
+	init( viewDistance, saveProgress ) {
 
 		if ( viewDistance ) {
 
-			this.viewDistance = viewDistance.viewDetail;
-			this.farViewDistance = viewDistance.viewDistance;
-			this.totalViewDistance = this.viewDistance + this.farViewDistance;
+			this.viewDistanceHigh = viewDistance.viewHigh;
+			this.viewDistanceLow = viewDistance.viewLow;
+			this.viewDistance = this.viewDistanceHigh + this.viewDistanceLow;
 
 		}
 
+		if ( saveProgress != undefined ) this.setDB( saveProgress );
+
 		return new Promise( resolve =>{
 
-			//init chunks
+			//reset chunks
 			for ( let chunk of Object.keys( this.chunks ) ) {
 
 				this.chunks[ chunk ].dispose();
@@ -112,7 +121,7 @@ export default class TerrainController extends VolumetricTerrain {
 
 			};
 
-			const gridAmount = this.totalViewDistance * 2 + 1;
+			const gridAmount = this.viewDistance * 2 + 1;
 			grid.style.gridTemplateRows = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
 			grid.style.gridTemplateColumns = `repeat(${gridAmount},calc(100% / ${gridAmount}))`;
 			grid.innerHTML = '';
@@ -121,9 +130,9 @@ export default class TerrainController extends VolumetricTerrain {
 			setTimeout( () => {
 
 				const addChunks = [];
-				for ( let x = - this.totalViewDistance; x <= this.totalViewDistance; x ++ ) {
+				for ( let x = - this.viewDistance; x <= this.viewDistance; x ++ ) {
 
-					for ( let z = - this.totalViewDistance; z <= this.totalViewDistance; z ++ ) {
+					for ( let z = - this.viewDistance; z <= this.viewDistance; z ++ ) {
 
 						addChunks.push( {
 							dist: x * x + z * z,

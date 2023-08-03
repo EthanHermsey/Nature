@@ -1,4 +1,4 @@
-class DB {
+export default class DB {
 
 	constructor() {
 
@@ -121,9 +121,9 @@ class DB {
 
 	}
 
-	clear( chunkKey ) {
+	clear() {
 
-		return this.request( 'clear', chunkKey );
+		indexedDB.deleteDatabase( this.dbName );
 
 	}
 
