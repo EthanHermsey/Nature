@@ -9,6 +9,7 @@ import Fern from '../instanceLods/fern/Fern';
 import Fog from '../instanceLods/fog/Fog';
 import Boulder from '../instanceLods/boulder/Boulder';
 import Pedestal from '../instanceLods/pedestal/Pedestal';
+import BerryBush from '../instanceLods/berry-bush/BerryBush';
 
 // eslint-disable-next-line no-unused-vars
 export default class TerrainController extends VolumetricTerrain {
@@ -37,6 +38,7 @@ export default class TerrainController extends VolumetricTerrain {
 		this.grassViewDistance = 6;
 		this.grassHighViewDistance = 2;
 		this.fernViewDistance = 3;
+		this.berryViewDistance = 6;
 		this.fogViewDistance = 6;
 		this.treeViewDistance = 16;
 		this.treeHighViewDistance = 4;
@@ -47,6 +49,7 @@ export default class TerrainController extends VolumetricTerrain {
 			"Grass": new Grass( this, this.grassViewDistance ),
 			"Tree": new Trees( this, this.treeViewDistance ),
 			"Fern": new Fern( this, this.fernViewDistance ),
+			"BerryBush": new BerryBush( this, this.berryViewDistance ),
 			"Fog": new Fog( this, this.fogViewDistance ),
 			"Boulder": new Boulder( this, this.instancedObjectViewDistance ),
 			"Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
@@ -380,7 +383,7 @@ export default class TerrainController extends VolumetricTerrain {
 
 	updateCastChunkTerrainArray( currentCoord ) { //adding boulders to castables
 
-		if ( this.instancedObjects[ 'Boulder' ] ) {
+		if ( this.instancedObjects[ 'Boulder' ] && this.instancedObjects[ 'Pedestal' ] ) {
 
 			super.updateCastChunkTerrainArray( currentCoord, [ this.instancedObjects[ 'Boulder' ], this.instancedObjects[ 'Pedestal' ] ] );
 

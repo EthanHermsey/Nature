@@ -39,7 +39,6 @@ export default class Fern extends CachedInstancedLOD {
 
 		modelBank.fern.scale.set( 0.25, 0.2, 0.25 );
 		modelBank.fern.geometry.translate( 0, - 0.2, 0 );
-		modelBank.fern.geometry.boundingSphere.radius = 128;
 		modelBank.fern.material.map.encoding = THREE.sRGBEncoding;
 
 		const mat1 = new THREE.MeshLambertMaterial().copy( modelBank.fern.material );
@@ -82,7 +81,7 @@ export default class Fern extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 20; i ++ ) {
+		for ( let i = 0; i < 16; i ++ ) {
 
 			let d, terrainHeight, adjusted, up = new THREE.Vector3( 0, 1, 0 );
 			let tries = 20;

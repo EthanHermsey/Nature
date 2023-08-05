@@ -30,6 +30,23 @@ html {
     z-index: 100;
 }
 
+
+
+
+
+
+
+
+/* o8o                                                               
+ `"'                                                               
+oooo  ooo. .oo.    .oooooooo  .oooo.   ooo. .oo.  .oo.    .ooooo.  
+`888  `888P"Y88b  888' `88b  `P  )88b  `888P"Y88bP"Y88b  d88' `88b 
+ 888   888   888  888   888   .oP"888   888   888   888  888ooo888 
+ 888   888   888  `88bod8P'  d8(  888   888   888   888  888    .o 
+o888o o888o o888o `8oooooo.  `Y888""8o o888o o888o o888o `Y8bod8P' 
+                  d"     YD                                        
+                  "Y88888P'                                        
+                                                                    */
 #compass {
     position: fixed;
     top: 50px;
@@ -47,29 +64,150 @@ html {
 
 #crystal {
     position: absolute;
-    height: 6vh;
-    width: 6vh;
     top: 4vh;
     right: 4vh;
 
-    background: url('./images/crystal.png');
-    background-repeat: no-repeat;
-    background-size: 50%;
-    background-position-x: 100%;
-    background-position-y: 40%;
-
-    text-align: center;
-    color: rgb(245, 245, 245);
-    opacity: 0.7;
-    font-size: 1.6em;
-    font-weight: 500;
-
     display: flex;
-    justify-content: flex-start;
     align-items: center;
+    gap: 8px;
 
 }
 
+#crystal-amount {
+    margin: 0;
+    width: 25px;
+    text-align: center;
+    color: white;
+    font-size: 1.4em;
+    font-weight: 500;
+}
+
+#crystal-icon {
+    width: 25px;
+    height: 25px;
+    background: url('./images/crystal.png');
+    background-size: cover;
+    background-position: center;
+}
+
+
+#berry-container {
+    position: absolute;
+    top: 7.5vh;
+    right: 4vh;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#berry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#berry-amount {
+    width: 25px;
+    margin: 0;
+    text-align: center;
+    font-size: 1.4em;
+    color: white;
+    font-weight: 500;
+}
+
+#berry-icon {
+    width: 25px;
+    height: 25px;
+    background: url('./images/berry.png');
+    background-size: cover;
+    background-position: center;
+}
+
+#food {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+#food-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    border: 1px white solid;
+    border-radius: 4px;
+}
+
+.food-meter {
+    position: relative;
+    width: 16px;
+    height: 28px;
+    background-color: #fff2;
+}
+
+.food-level {
+    position: absolute;
+    bottom: 0;
+    top: 40%;
+    left: 0;
+    width: 16px;
+    border-radius: 0 0 4px 4px;
+    background-color: #fff7;
+}
+
+#food-icon {
+    width: 25px;
+    height: 25px;
+    background: url('./images/food.png');
+    background-size: cover;
+    background-position: center;
+}
+
+#sprint-bar {
+    position: absolute;
+    bottom: 5vh;
+    left: calc(50vw - 160px);
+    width: 320px;
+    padding: 4px;
+    background: linear-gradient(90deg, #fff0 0%, #fff7 50%, #fff0 100%);
+
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#sprint-level {
+    height: 6px;
+    width: 50%;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    border-radius: 3px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* o8o                                                                       
+                             `"'                                                                       
+ooo. .oo.  .oo.    .oooo.   oooo  ooo. .oo.        ooo. .oo.  .oo.    .ooooo.  ooo. .oo.   oooo  oooo  
+`888P"Y88bP"Y88b  `P  )88b  `888  `888P"Y88b       `888P"Y88bP"Y88b  d88' `88b `888P"Y88b  `888  `888  
+ 888   888   888   .oP"888   888   888   888        888   888   888  888ooo888  888   888   888   888  
+ 888   888   888  d8(  888   888   888   888        888   888   888  888    .o  888   888   888   888  
+o888o o888o o888o `Y888""8o o888o o888o o888o      o888o o888o o888o `Y8bod8P' o888o o888o  `V88V"V8P' 
+                                                                                                       
+                                                                                                       
+                                                                                                        */
 #banner {
     position: absolute;
     height: 100vh;
@@ -86,10 +224,6 @@ html {
     inset: 0;
     backdrop-filter: blur(6px);
 }
-
-
-
-
 
 #menu-content {
     position: relative;
@@ -184,7 +318,16 @@ html {
 
 
 
-
+/* .       .    o8o                                  
+                     .o8     .o8    `"'                                  
+ .oooo.o  .ooooo.  .o888oo .o888oo oooo  ooo. .oo.    .oooooooo  .oooo.o 
+d88(  "8 d88' `88b   888     888   `888  `888P"Y88b  888' `88b  d88(  "8 
+`"Y88b.  888ooo888   888     888    888   888   888  888   888  `"Y88b.  
+o.  )88b 888    .o   888 .   888 .  888   888   888  `88bod8P'  o.  )88b 
+8""888P' `Y8bod8P'   "888"   "888" o888o o888o o888o `8oooooo.  8""888P' 
+                                                     d"     YD           
+                                                     "Y88888P'           
+                                                                          */
 
 
 #settings-content {
@@ -381,9 +524,16 @@ html {
 
 
 
-
-
-
+/* oooo                            .o8   o8o                         
+`888                           "888   `"'                         
+ 888   .ooooo.   .oooo.    .oooo888  oooo  ooo. .oo.    .oooooooo 
+ 888  d88' `88b `P  )88b  d88' `888  `888  `888P"Y88b  888' `88b  
+ 888  888   888  .oP"888  888   888   888   888   888  888   888  
+ 888  888   888 d8(  888  888   888   888   888   888  `88bod8P'  
+o888o `Y8bod8P' `Y888""8o `Y8bod88P" o888o o888o o888o `8oooooo.  
+                                                       d"     YD  
+                                                       "Y88888P'  
+                                                                   */
 #loading-content {
     position: relative;
     height: 100vh;

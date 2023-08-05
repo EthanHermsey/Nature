@@ -7,7 +7,6 @@ export default class Player extends THREE.Object3D {
 
 		//create camera
 		super();
-		this.app = app;
 		this.rotation.order = "YXZ";
 		this.frustumCulled = false;
 
@@ -39,6 +38,7 @@ export default class Player extends THREE.Object3D {
 
 		//grabbing crystal
 		this.crystals = 0;
+		this.berries = 0;
 		this.grabbing = false;
 
 		//brush vars
@@ -65,6 +65,12 @@ export default class Player extends THREE.Object3D {
 		//flymode selector
 		this.flyMode = false;
 		this.godMode = false;
+
+	}
+
+	eat() {
+
+		if ( this.berries > 0 ) this.berries --;
 
 	}
 
@@ -396,12 +402,29 @@ export default class Player extends THREE.Object3D {
 	//                    888
 	//                   o888o
 
+	keyPressed( e ) {
+
+		if ( ! app.running ) return;
+
+		if ( e.code == app.key.zoom ) app.zoom( true );
+		if ( e.code == app.key.eat ) this.eat();
+	    if ( e.code == app.key.escape ) app.stopGame();
+		if ( e.code == app.key.grab ) this.grabbing = true;
+
+	}
+
+	keyReleased( e ) {
+
+		if ( ! app.running ) return;
+
+		if ( e.code == app.key.zoom ) app.zoom( false );
+		if ( e.code == app.key.grab ) this.grabbing = false;
+
+	}
 
 	getKeyInput( delta ) {
 
 		let d = new THREE.Vector3();
-
-		this.grabbing = keyIsDown( app.key.grab );
 
 		//x axis
 		if ( keyIsDown( app.key.up ) ) {
@@ -495,6 +518,8 @@ export default class Player extends THREE.Object3D {
 
 	mouseMoved( e ) {
 
+		if ( ! app.running ) return;
+
 		//rotate object on Y
 		this.cameraRig.rotateY( e.movementX * - this.mouseSensitivity );
 
@@ -510,6 +535,8 @@ export default class Player extends THREE.Object3D {
 	}
 
 	mouseWheel( e ) {
+
+		if ( ! app.running ) return;
 
 		this.cameraMaxDistance += Math.sign( e.deltaY ) * 0.5;
 		if ( this.cameraMaxDistance < 0.01 ) this.cameraMaxDistance = 0.01;

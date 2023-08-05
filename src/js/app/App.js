@@ -43,7 +43,10 @@ export default class App {
 			shift: 16,
 			space: 32,
 			flyMode: 70,
-			grab: 69
+			grab: 'KeyE',
+			zoom: 'KeyC',
+			eat: 'KeyR',
+			escape: 'Escape'
 		};
 
 	}
@@ -286,17 +289,20 @@ export default class App {
 		noStroke();
 		fill( 240, 200 );
 		textAlign( LEFT );
-		text( "WASD", width * 0.01, height * 0.88 );
-		text( "- move", width * 0.05, height * 0.88 );
+		text( "WASD", width * 0.01, height * 0.86 );
+		text( "- move", width * 0.05, height * 0.86 );
 
-		text( "SHIFT", width * 0.01, height * 0.90 );
-		text( "- sprint", width * 0.05, height * 0.90 );
+		text( "SHIFT", width * 0.01, height * 0.88 );
+		text( "- sprint", width * 0.05, height * 0.88 );
 
-		text( "SPACE", width * 0.01, height * 0.92 );
-		text( "- jump", width * 0.05, height * 0.92 );
+		text( "SPACE", width * 0.01, height * 0.90 );
+		text( "- jump", width * 0.05, height * 0.90 );
 
-		text( "E", width * 0.01, height * 0.94 );
-		text( "- grab", width * 0.05, height * 0.94 );
+		text( "E", width * 0.01, height * 0.92 );
+		text( "- grab", width * 0.05, height * 0.92 );
+
+		text( "R", width * 0.01, height * 0.94 );
+		text( "- eat", width * 0.05, height * 0.94 );
 
 		text( "C", width * 0.01, height * 0.96 );
 		text( "- zoom", width * 0.05, height * 0.96 );
@@ -304,9 +310,9 @@ export default class App {
 		text( "MOUSE", width * 0.01, height * 0.98 );
 		text( "- remove/add terrain", width * 0.05, height * 0.98 );
 
-		const coord = this.terrainController.getCoordFromPosition( this.player.position );
+		// const coord = this.terrainController.getCoordFromPosition( this.player.position );
 		textAlign( RIGHT );
-		text( `chunk: x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.96 );
+		// text( `chunk: x: ${coord.x} z: ${coord.z}`, width * 0.99, height * 0.96 );
 		text( `x: ${floor( this.player.position.x )} y: ${floor( this.player.position.y )} z: ${floor( this.player.position.z )}`, width * 0.99, height * 0.98 );
 
 		//compass

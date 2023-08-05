@@ -25,7 +25,8 @@ export default class UIController {
 			saveProgress: document.getElementById( 'save_progress' ),
 			backButton: document.getElementById( 'back-button' ),
 
-			crystal: document.getElementById( 'crystal' ),
+			crystalAmount: document.getElementById( 'crystal-amount' ),
+			berryAmount: document.getElementById( 'berry-amount' ),
 			compass: document.getElementById( 'compass' ),
 
 		};
@@ -247,7 +248,13 @@ export default class UIController {
 
 	updateCrystalDisplay() {
 
-		this.elements.crystal.innerHTML = app.player.crystals;
+		this.elements.crystalAmount.innerHTML = app.player.crystals;
+
+	}
+
+	updateBerryDisplay() {
+
+		this.elements.berryAmount.innerHTML = app.player.berries;
 
 	}
 
@@ -276,7 +283,7 @@ export default class UIController {
 
 	windowResized() {
 
-		resizeCanvas( window.innerWidth, window.innerHeight );
+		window.resizeCanvas( window.innerWidth, window.innerHeight );
 		app.renderer.setSize( window.innerWidth, window.innerHeight );
 		app.player.camera.aspect = window.innerWidth / window.innerHeight;
 		app.player.camera.updateProjectionMatrix();

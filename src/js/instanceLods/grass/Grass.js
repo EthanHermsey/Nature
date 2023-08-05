@@ -52,7 +52,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		models.grassModel = modelBank.grass;
 		models.grassModel.geometry.translate( 0, - 0.051, 0 );
-		models.grassModel.geometry.scale( 1.4, 1.2, 1.4 );
+		models.grassModel.geometry.scale( 1.45, 1.25, 1.45 );
 
 		const grassMaterial = new THREE.MeshLambertMaterial( {
 			alphaTest: 0.35,
@@ -84,27 +84,26 @@ export default class Grass extends CachedInstancedLOD {
 
 
 		models.grassModelHigh = modelBank.grassHigh;
-		models.grassModelHigh.geometry.scale( 0.4, 0.55, 0.4 );
-
-		models.grassModelHigh.material.map = new THREE.TextureLoader().load( './resources/images/grass/grassdiffhigh.png' );
+		models.grassModelHigh.material.map = new THREE.TextureLoader().load( './resources/images/grass/grassdiffhigh2.png' );
 		models.grassModelHigh.material.map.alphaTest = 0.2;
+		models.grassModelHigh.material.color.setStyle( 'rgb(210, 250, 210)' );
 
 		models.grassModelHigh.material.onBeforeCompile = ( shader ) => {
 
 			shader.uniforms.time = { value: 0 };
 
 			shader.vertexShader = 'uniform float time;\n' +
-                shader.vertexShader.replace(
-                	`#include <begin_vertex>`,
-                	`
-                    vec3 transformed = vec3( position );
-                    float r = rand( transformed.xz );
-                    if ( transformed.y > 0.5){
-                        transformed.x += sin( time * r ) * 0.06;
-                        transformed.z += sin( time * r * 0.9734 ) * 0.04;
-                    }
-                    `
-                );
+		        shader.vertexShader.replace(
+		        	`#include <begin_vertex>`,
+		        	`
+		            vec3 transformed = vec3( position );
+		            float r = rand( transformed.xz );
+		            if ( transformed.y > 0.5){
+		                transformed.x += sin( time * r ) * 0.06;
+		                transformed.z += sin( time * r * 0.9734 ) * 0.04;
+		            }
+		            `
+		        );
 
 			models.grassModelHigh.material.userData.shader = shader;
 
@@ -125,7 +124,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 800; i ++ ) {
+		for ( let i = 0; i < 1000; i ++ ) {
 
 			let d, terrainHeight, adjusted, up = new THREE.Vector3( 0, 1, 0 );
 			let tries = 8;
@@ -144,9 +143,9 @@ export default class Grass extends CachedInstancedLOD {
 			if ( _position.y > terrainHeight ) {
 
 				dummy.scale.set(
-					5 + Math.random(),
-					1 + Math.random() * 0.5,
-					5 + Math.random()
+					1.1 + Math.random() * 0.6,
+					1 + Math.random() * 0.1,
+					1.1 + Math.random() * 0.6,
 				);
 				dummy.position
 					.copy( chunk.position )
