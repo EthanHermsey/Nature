@@ -9,8 +9,8 @@
 	<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.3.1/p5.min.js"></script>    
 
 	
-  <script type="module" crossorigin src="/nature/assets/index-e39cd588.js"></script>
-  <link rel="stylesheet" href="/nature/assets/index-68e7f99b.css">
+  <script type="module" crossorigin src="/nature/assets/index-c43e0d88.js"></script>
+  <link rel="stylesheet" href="/nature/assets/index-ee64847e.css">
 </head>
 
 <body oncontextmenu="return false;">
@@ -98,7 +98,33 @@
     </div>
     <div id="three-div">
         <div id="compass"></div>
-        <div id="crystal">0</div>
+        <div id="crystal">
+            <div id="crystal-icon"></div>
+            <p id="crystal-amount">0</p>
+        </div>
+        <div id="berry-container">
+            <div id="berry">
+                <div id="berry-icon"></div>
+                <p id="berry-amount">0</p>
+            </div>
+            <div id="food">
+                <div id="food-icon"></div>
+                <div id="food-container">
+                    <div class="food-meter">
+                        <div class="food-level"></div>
+                    </div>
+                    <div class="food-meter">
+                        <div class="food-level"></div>
+                    </div>
+                    <div class="food-meter">
+                        <div class="food-level"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="sprint-bar">
+            <div id="sprint-level"></div>
+        </div>
     </div>
     <div id="p5-div"></div>
     <audio loop src="./resources/sound/birds.mp3"></audio>

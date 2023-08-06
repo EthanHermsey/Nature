@@ -29,8 +29,8 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		this.chunkClass = options.chunkClass || VolumetricChunk;
 
 		const num_workers = options.workers || 4;
-		this.gridWorkerBank = new WorkerBank( options.gridWorkerScript || './libraries/volumetric-terrain/GridWorker.js', options.gridWorkerOptions || {}, num_workers );
-		this.meshWorkerBank = new WorkerBank( options.meshWorkerScript || './libraries/volumetric-terrain/MeshWorker.js', options.meshWorkerOptions || {}, num_workers );
+		this.gridWorkerBank = new WorkerBank( options.gridWorkerScript || new URL( './GridWorker.js', import.meta.url ), options.gridWorkerOptions || {}, num_workers );
+		this.meshWorkerBank = new WorkerBank( options.meshWorkerScript || new URL( './MeshWorker.js', import.meta.url ), options.meshWorkerOptions || {}, num_workers );
 
 		if ( cb ) {
 

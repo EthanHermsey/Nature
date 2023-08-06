@@ -84,7 +84,7 @@ export default class Grass extends CachedInstancedLOD {
 
 
 		models.grassModelHigh = modelBank.grassHigh;
-		models.grassModelHigh.material.map = new THREE.TextureLoader().load( './resources/images/grass/grassdiffhigh2.png' );
+		models.grassModelHigh.material.map = new THREE.TextureLoader().load( './resources/images/grass/grassdiffhigh.png' );
 		models.grassModelHigh.material.map.alphaTest = 0.2;
 		models.grassModelHigh.material.color.setStyle( 'rgb(210, 250, 210)' );
 
