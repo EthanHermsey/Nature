@@ -30,8 +30,6 @@ export default class BerryBush extends CachedInstancedLOD {
 
 		if ( app.player.grabbing ) {
 
-			console.log( true );
-
 			let changed = false;
 			const dummy = new THREE.Object3D();
 			dummy.rotation.order = "YXZ";

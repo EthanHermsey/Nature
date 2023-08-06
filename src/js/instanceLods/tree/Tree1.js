@@ -33,30 +33,29 @@ export default class Tree1 extends InstancedLOD {
 
 		const models = {};
 
-		modelBank.tree1.material.alphaTest = 0.45;
-		modelBank.tree1.material.needsUpdate = true;
-		modelBank.tree1.material.blending = THREE.NoBlending;
-		modelBank.tree1.material.needsUpdate = true;
+		models.treeModel = modelBank.tree1.clone();
+		models.treeModelHigh = modelBank.treeHigh1.clone();
 
-		modelBank.tree1.geometry.scale( 9, 9, 9 );
-		modelBank.tree1.geometry.translate( 0, - 0.1, 0 );
-		models.treeModel = modelBank.tree1;
-
+		models.treeModel.material.alphaTest = 0.45;
+		models.treeModel.material.needsUpdate = true;
+		models.treeModel.material.blending = THREE.NoBlending;
+		models.treeModel.material.needsUpdate = true;
 
 
-		modelBank.treeHigh1.children[ 0 ].geometry.scale( 0.75, 0.75, 0.75 );
-		modelBank.treeHigh1.children[ 0 ].material.map.encoding = THREE.sRGBEncoding;
-		modelBank.treeHigh1.children[ 0 ].material.map.wrapT = modelBank.treeHigh1.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
+		models.treeModelHigh.children[ 0 ].geometry.scale( 0.75, 0.75, 0.75 );
+		models.treeModelHigh.children[ 0 ].material.map.encoding = THREE.sRGBEncoding;
+		models.treeModelHigh.children[ 0 ].material.map.wrapT = models.treeModelHigh.children[ 0 ].material.map.wrapS = THREE.RepeatWrapping;
 
-		modelBank.treeHigh1.children[ 1 ].geometry.scale( 0.75, 0.75, 0.75 );
-		modelBank.treeHigh1.children[ 1 ].material.map.encoding = THREE.sRGBEncoding;
-		modelBank.treeHigh1.children[ 1 ].material.blending = THREE.NoBlending;
-		modelBank.treeHigh1.children[ 1 ].material.transparent = true;
-		modelBank.treeHigh1.children[ 1 ].material.opacity = 0.3;
-		modelBank.treeHigh1.children[ 1 ].material.alphaTest = 0.075;
+		models.treeModelHigh.children[ 1 ].geometry.scale( 0.75, 0.75, 0.75 );
+		models.treeModelHigh.children[ 1 ].material.map.encoding = THREE.sRGBEncoding;
+		models.treeModelHigh.children[ 1 ].material.blending = THREE.NoBlending;
+		models.treeModelHigh.children[ 1 ].material.transparent = true;
+		models.treeModelHigh.children[ 1 ].material.opacity = 0.3;
+		models.treeModelHigh.children[ 1 ].material.alphaTest = 0.075;
+		models.treeModelHigh.children[ 1 ].material.color.setStyle( 'rgb(200, 255, 200)' );
 
 		//trunk
-		modelBank.treeHigh1.children[ 0 ].material.onBeforeCompile = ( shader ) => {
+		models.treeModelHigh.children[ 0 ].material.onBeforeCompile = ( shader ) => {
 
 			shader.uniforms.time = { value: 0 };
 
@@ -74,13 +73,13 @@ export default class Tree1 extends InstancedLOD {
                 `
             );
 
-			modelBank.treeHigh1.children[ 0 ].material.userData.shader = shader;
+			models.treeModelHigh.children[ 0 ].material.userData.shader = shader;
 
 		};
-		modelBank.treeHigh1.children[ 0 ].material.needsUpdate = true;
+		models.treeModelHigh.children[ 0 ].material.needsUpdate = true;
 
 		//leaves
-		modelBank.treeHigh1.children[ 1 ].material.onBeforeCompile = ( shader ) => {
+		models.treeModelHigh.children[ 1 ].material.onBeforeCompile = ( shader ) => {
 
 			shader.uniforms.time = { value: 0 };
 
@@ -107,12 +106,11 @@ export default class Tree1 extends InstancedLOD {
                 `
             );
 
-			modelBank.treeHigh1.children[ 1 ].material.userData.shader = shader;
+			models.treeModelHigh.children[ 1 ].material.userData.shader = shader;
 
 		};
+		models.treeModelHigh.children[ 1 ].material.needsUpdate = true;
 
-		modelBank.treeHigh1.children[ 1 ].material.needsUpdate = true;
-		models.treeModelHigh = modelBank.treeHigh1;
 
 		this.addObjects( models );
 

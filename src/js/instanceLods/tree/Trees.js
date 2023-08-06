@@ -18,6 +18,13 @@ export default class Trees extends Cached {
 
 	}
 
+	dispose() {
+
+		this.tree.dispose();
+		this.tree1.dispose();
+
+	}
+
 	animate( delta ) {
 
 		let r = 1.0 + ( Math.random() * 0.5 );
@@ -71,11 +78,14 @@ export default class Trees extends Cached {
 
 	}
 
-	removeCachedData( chunkKey ) {
+	dispose() {
 
-		// what to do here
+		this.tree.dispose();
 
 	}
+
+	removeCachedData( chunkKey ) {}
+
 
 	addData( data ) {
 

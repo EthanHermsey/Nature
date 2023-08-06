@@ -124,7 +124,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 1000; i ++ ) {
+		for ( let i = 0; i < 1500; i ++ ) {
 
 			let d, terrainHeight, adjusted, up = new THREE.Vector3( 0, 1, 0 );
 			let tries = 8;

@@ -141,7 +141,17 @@ export default class App {
 
 	stop() {
 
-		if ( this.player.position.length() > 0 ) localStorage.setItem( 'position', JSON.stringify( { position: this.player.position.toArray(), offset: this.terrainController.getCoordFromPosition( this.player.position ), crystals: this.player.crystals } ) );
+		if ( this.player.position.length() > 0 ) {
+
+			localStorage.setItem( 'position', JSON.stringify( {
+				position: this.player.position.toArray(),
+				offset: this.terrainController.getCoordFromPosition( this.player.position ),
+				crystals: this.player.crystals,
+				berries: this.player.berries,
+				food: this.player.food
+			} ) );
+
+		}
 
 		this.running = false;
 		this.clock.stop();

@@ -15,6 +15,14 @@ export default class CachedMesh extends THREE.Mesh {
 	addData() {}
 	removeData() {}
 
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+		this.parent.remove( this );
+
+	}
+
 	update( position ) {
 
 		const currentCoord = this.terrain.getCoordFromPosition( position );

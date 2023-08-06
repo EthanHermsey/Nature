@@ -48,6 +48,8 @@ const preloadModels = () => {
 
 		ObjectLoader.load( './resources/models/trees/tree.json', model => {
 
+			model.geometry.scale( 11, 11, 11 );
+		    model.geometry.translate( 0, - 0.1, 0 );
 			modelBank.tree = model;
 			check();
 
@@ -55,6 +57,8 @@ const preloadModels = () => {
 
 		ObjectLoader.load( './resources/models/trees/tree1.json', model => {
 
+			model.geometry.scale( 9, 9, 9 );
+		    model.geometry.translate( 0, - 0.1, 0 );
 			modelBank.tree1 = model;
 			check();
 

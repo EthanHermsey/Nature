@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 export default class Player extends THREE.Object3D {
 
-	constructor( app ) {
+	constructor() {
 
 		//create camera
 		super();
@@ -36,9 +36,11 @@ export default class Player extends THREE.Object3D {
 		//raycast point
 		this.intersectPoint = null;
 
-		//grabbing crystal
+		// grabbing / eating / crystal & berry amounts
 		this.crystals = 0;
 		this.berries = 0;
+		this.food = [ 0, 0, 0 ];
+		this.sprint = 0;
 		this.grabbing = false;
 
 		//brush vars
@@ -70,7 +72,22 @@ export default class Player extends THREE.Object3D {
 
 	eat() {
 
-		if ( this.berries > 0 ) this.berries --;
+		if ( this.berries == 0 ) return;
+
+		for ( let i = 0; i < this.food.length; i ++ ) {
+
+			if ( this.food[ i ] == 0 ) {
+
+				this.food[ i ] = 1;
+				this.berries --;
+				break;
+
+			}
+
+		}
+
+		app.uiController.updateFoodDisplay();
+		app.uiController.updateBerryDisplay();
 
 	}
 
@@ -186,7 +203,9 @@ export default class Player extends THREE.Object3D {
 
 	update( delta ) {
 
-		this.movePlayer( delta );
+		const keyInputVector = this.getKeyInput( delta );
+
+		this.movePlayer( keyInputVector, delta );
 
 		this.model.mixer.update( delta );
 
@@ -195,18 +214,11 @@ export default class Player extends THREE.Object3D {
 		//timer for adjusting terrain
 		if ( mouseIsPressed ) this.adjustTerrain();
 
-		//move skybox along with the object/camera
-		this.skyBox.position.copy( this.position );
-		this.skyBox.position.y *= 0.4;
-		this.skyBox.rotation.x += 0.00004;
+		this.moveSkyboxAndLight();
 
-		if ( ++ this.cameraTimer > 200 ) {
+		this.updateFood( delta );
 
-			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
-			this.shadowLight.target.position.copy( this.position );
-			this.cameraTimer = 0;
-
-		}
+		this.updateSprinting( keyInputVector, delta );
 
 	}
 
@@ -223,6 +235,60 @@ export default class Player extends THREE.Object3D {
 
 	}
 
+	moveSkyboxAndLight() {
+
+		//move skybox along with the object/camera
+		this.skyBox.position.copy( this.position );
+		this.skyBox.position.y *= 0.4;
+		this.skyBox.rotation.x += 0.00004;
+
+		if ( ++ this.cameraTimer > 200 ) {
+
+			this.shadowLight.position.copy( this.position ).add( this.shadowLightOffset );
+			this.shadowLight.target.position.copy( this.position );
+			this.cameraTimer = 0;
+
+		}
+
+	}
+
+	updateFood( delta ) {
+
+		let foodUpdated = false;
+		for ( let i = 0; i < this.food.length; i ++ ) {
+
+			if ( this.food[ i ] > 0 ) {
+
+				this.food[ i ] = Math.max( this.food[ i ] - ( delta * random( 0.01, 0.012 ) ), 0 );
+				foodUpdated = true;
+
+			}
+
+		}
+
+		if ( foodUpdated ) app.uiController.updateFoodDisplay();
+
+	}
+
+	updateSprinting( keyInputVector, delta ) {
+
+		const food = this.food.reduce( ( acc, val ) => val > 0 ? acc + 1 : acc, 0 );
+
+		if ( keyIsDown( app.key.shift ) && keyInputVector.length() > 0 ) {
+
+			const amount = map( food, 0, 3, 0.1, 0.012 );
+			this.sprint = Math.min( this.sprint + ( delta * amount ), 1 );
+
+		} else {
+
+			const amount = map( food, 0, 3, 0.15, 0.35 );
+			this.sprint = Math.max( this.sprint - ( delta * amount ), 0 );
+
+		}
+
+		app.uiController.updateSprintDisplay();
+
+	}
 
 
 
@@ -250,7 +316,7 @@ export default class Player extends THREE.Object3D {
 	//  888                       .o..P'
 	// o888o                      `Y8P'
 
-	movePlayer( delta ) {
+	movePlayer( keyInputVector, delta ) {
 
 		return new Promise( resolve => {
 
@@ -258,7 +324,7 @@ export default class Player extends THREE.Object3D {
 			let playerEuler = new THREE.Euler( 0, this.cameraRig.rotation.y, 0, 'YXZ' );
 
 			//get keyinput and rotate to camera direction (y axis rotation )
-			let walkDirection = this.getKeyInput( delta ).applyEuler( playerEuler );
+			let walkDirection = keyInputVector.clone().applyEuler( playerEuler );
 
 			if ( walkDirection.length() > 0 ) {
 
@@ -280,7 +346,7 @@ export default class Player extends THREE.Object3D {
 				this.model.animations.running.play();
 				this.model.animations.idle.stop();
 
-				if ( keyIsDown( 16 ) ) {
+				if ( keyIsDown( app.key.shift ) ) {
 
 					this.model.animations.running.timeScale = 1.25;
 
@@ -451,7 +517,12 @@ export default class Player extends THREE.Object3D {
 		//y axis up
 		if ( keyIsDown( app.key.space ) ) {
 
-			if ( this.flyMode == false ) {
+			if ( this.flyMode || this.godMode ) {
+
+				//only position
+				d.y += 1;
+
+			} else {
 
 				if ( this.grounded ) {
 
@@ -461,16 +532,11 @@ export default class Player extends THREE.Object3D {
 
 				}
 
-			} else {
-
-				//only position
-				d.y += 1;
-
 			}
 
 		}
 
-		//y axis down
+		//shift key ( y axis down / sprinting )
 		if ( this.flyMode == true || this.godMode == true ) {
 
 			if ( keyIsDown( app.key.shift ) ) {
@@ -489,7 +555,7 @@ export default class Player extends THREE.Object3D {
 			d.setLength( this.walkSpeed * delta );
 
 			//add sprint only when shift key is pressed
-			if ( keyIsDown( app.key.shift ) ) d.multiplyScalar( this.sprintSpeedMultiplier );
+			if ( keyIsDown( app.key.shift ) && this.sprint < 1 ) d.multiplyScalar( this.sprintSpeedMultiplier );
 
 		}
 

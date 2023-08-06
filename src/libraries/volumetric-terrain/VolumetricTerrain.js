@@ -1,3 +1,4 @@
+import VolumetricChunk from './VolumetricChunk';
 import WorkerBank from '../workerbank/WorkerBank';
 import * as THREE from 'three';
 const CHUNK_OVERLAP = 2;
@@ -62,6 +63,17 @@ export default class VolumetricTerrain extends THREE.Object3D {
 
 	}
 
+	clearChunks() {
+
+		for ( let chunk in this.chunks ) {
+
+			this.chunks[ chunk ].dispose();
+
+		}
+		this.chunks = {};
+
+	}
+
 
 
 	//  o8o               o8o      .
@@ -77,12 +89,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 		return new Promise( resolve =>{
 
 			//init chunks
-			for ( let chunk of Object.keys( this.chunks ) ) {
-
-				this.chunks[ chunk ].dispose();
-
-			}
-			this.chunks = {};
+			this.clearChunks();
 
 			let num_initial_chunks = 0;
 			let LOAD_INITIAL_TERRAIN = async ( chunk ) => {

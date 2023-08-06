@@ -12,6 +12,18 @@ export default class InstancedLOD extends THREE.Object3D {
 
 	}
 
+	dispose() {
+
+		for ( let child of this.children ) {
+
+			child.geometry.dispose();
+			child.material.dispose();
+			this.remove( child );
+
+		}
+
+	}
+
 	addLevel( object, amount, distance ) {
 
 		let l;

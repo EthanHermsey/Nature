@@ -67,6 +67,34 @@ export default class TerrainController extends VolumetricTerrain {
 
 	}
 
+	clearChunks() {
+
+		for ( let chunk in this.chunks ) {
+
+			this.chunks[ chunk ].dispose();
+
+		}
+		this.chunks = {};
+
+		for ( let instancedObject in this.instancedObjects ) {
+
+			this.instancedObjects[ instancedObject ].dispose();
+
+			if ( instancedObject == 'Tree' ) {
+
+				app.scene.remove( this.instancedObjects[ instancedObject ].tree );
+				app.scene.remove( this.instancedObjects[ instancedObject ].tree1 );
+
+			} else {
+
+				app.scene.remove( this.instancedObjects[ instancedObject ] );
+
+			}
+
+		}
+
+	}
+
 
 	setDB( set ) {
 

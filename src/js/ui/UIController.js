@@ -25,9 +25,11 @@ export default class UIController {
 			saveProgress: document.getElementById( 'save_progress' ),
 			backButton: document.getElementById( 'back-button' ),
 
+			compass: document.getElementById( 'compass' ),
+			sprint: document.getElementById( 'sprint-level' ),
 			crystalAmount: document.getElementById( 'crystal-amount' ),
 			berryAmount: document.getElementById( 'berry-amount' ),
-			compass: document.getElementById( 'compass' ),
+			foodAmount: document.getElementsByClassName( 'food-level' ),
 
 		};
 
@@ -71,7 +73,9 @@ export default class UIController {
 
 		} else {
 
-			const { position, offset, crystals } = JSON.parse( localStorage.getItem( 'position' ) );
+			const { position, offset, crystals, berries, food } = JSON.parse( localStorage.getItem( 'position' ) );
+			console.log( JSON.parse( localStorage.getItem( 'position' ) ) );
+
 			app.startLoading( offset, viewDistance, this.getSaveProgress() )
 				.then( () => {
 
@@ -80,7 +84,11 @@ export default class UIController {
 					if ( crystals != null ) {
 
 						app.player.crystals = crystals;
+						app.player.berries = berries;
+						app.player.food = food;
 						this.updateCrystalDisplay();
+						this.updateBerryDisplay();
+						this.updateFoodDisplay();
 
 					}
 
@@ -105,6 +113,13 @@ export default class UIController {
 
 		const db = new DB();
 		db.clear();
+
+		if ( app.terrainController ) {
+
+			app.terrainController.clearChunks();
+			app.terrainController = undefined;
+
+		}
 
 		app.startLoading( undefined, this.getViewDistance(), this.getSaveProgress() )
 			.then( () => {
@@ -258,6 +273,30 @@ export default class UIController {
 
 	}
 
+	updateFoodDisplay() {
+
+		for ( let i = 0; i < app.player.food.length; i ++ ) {
+
+			this.elements.foodAmount[ i ].style.height = `${ app.player.food[ i ] * 100 }%`;
+
+		}
+
+	}
+
+	updateSprintDisplay() {
+
+		if ( app.player.sprint == 0 ) {
+
+			this.elements.sprint.parentElement.style.opacity = 0;
+
+		} else {
+
+			this.elements.sprint.parentElement.style.opacity = 1;
+			this.elements.sprint.style.width = `${ app.player.sprint * 100 }%`;
+
+		}
+
+	}
 
 	updateValueLabel( e ) {
 

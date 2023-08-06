@@ -10,6 +10,14 @@ export default class CachedPoints extends THREE.Points {
 
 	}
 
+	dispose() {
+
+		this.geometry.dispose();
+		this.material.dispose();
+		this.parent.remove( this );
+
+	}
+
 	update( position ) {
 
 		const currentCoord = this.terrain.getCoordFromPosition( position );
