@@ -43,9 +43,9 @@ export default class App {
 			shift: 16,
 			space: 32,
 			flyMode: 70,
-			grab: 'KeyE',
+			grab: 'KeyF',
 			zoom: 'KeyC',
-			eat: 'KeyR',
+			eat: 'KeyE',
 			escape: 'Escape'
 		};
 

@@ -1,4 +1,3 @@
-import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from '../../../libraries/raycast-bvh/RaycastBVH';
 import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler';
 import { modelBank } from '../../modelloader/ModelLoader';
 import CachedMesh from '../cached/CachedMesh';
@@ -14,7 +13,6 @@ export default class Pedestal extends CachedMesh {
 		this.frustumCulled = false;
 		this.receiveShadow = true;
 		this.castShadow = true;
-		this.raycast = acceleratedRaycast;
 		app.scene.add( this );
 
 		this.spreadRange = 4;
@@ -38,7 +36,7 @@ export default class Pedestal extends CachedMesh {
 						app.player.crystals ++;
 						app.uiController.updateCrystalDisplay();
 						mesh.children[ 0 ].visible = false;
-						mesh.children[ 3 ].visible = false;
+						mesh.children[ 2 ].visible = false;
 						break;
 
 					}
@@ -100,9 +98,6 @@ export default class Pedestal extends CachedMesh {
 
 		this.model = modelBank.pedestal;
 		this.model.children[ 0 ].children[ 0 ].renderOrder = 1;
-		this.model.children[ 2 ].geometry.computeBoundsTree = computeBoundsTree;
-		this.model.children[ 2 ].geometry.disposeBoundsTree = disposeBoundsTree;
-		this.model.children[ 2 ].geometry.computeBoundsTree();
 
 	}
 
@@ -143,7 +138,6 @@ export default class Pedestal extends CachedMesh {
 				mesh.rotation.y = random( TWO_PI );
 				mesh.position.copy( _position ).multiply( this.terrain.terrainScale ).add( chunk.position );
 				mesh.count = 0;
-				mesh.children[ 2 ].raycast = acceleratedRaycast;
 
 				mesh.smoke = new Smoke();
 				for ( let i = 0; i < 200; i ++ ) mesh.smoke.animate( 0.01 );

@@ -25,14 +25,14 @@ const preloadModels = () => {
 
 		} );
 
-		gltfLoader.load( './resources/models/pedestal/archedPedestal.gltf', ( model ) => {
+		gltfLoader.load( './resources/models/pedestal/Pedestal.gltf', ( model ) => {
 
 			modelBank.pedestal = model.scene.children[ 0 ];
 			check();
 
 		} );
 
-		gltfLoader.load( './resources/models/berrybush/BerryBush2.gltf', model => {
+		gltfLoader.load( './resources/models/berrybush/BerryBush.gltf', model => {
 
 			modelBank.bush = model.scene;
 			check();

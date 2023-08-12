@@ -35,13 +35,13 @@ export default class TerrainController extends VolumetricTerrain {
 		this.viewDistanceHigh = viewDistance.viewHigh;
 		this.viewDistanceLow = viewDistance.viewLow;
 		this.instancedObjectViewDistance = Math.min( this.viewDistance, 16 );
-		this.grassViewDistance = 6;
-		this.grassHighViewDistance = 2;
-		this.fernViewDistance = 3;
-		this.berryViewDistance = 6;
-		this.fogViewDistance = 6;
-		this.treeViewDistance = 16;
-		this.treeHighViewDistance = 4;
+		this.grassViewDistance = Math.min( this.viewDistance, 6 );
+		this.grassHighViewDistance = Math.min( this.viewDistance, 2 );
+		this.fernViewDistance = Math.min( this.viewDistance, 3 );
+		this.berryViewDistance = Math.min( this.viewDistance, 6 );
+		this.fogViewDistance = Math.min( this.viewDistance, 6 );
+		this.treeViewDistance = Math.min( this.viewDistance, 16 );
+		this.treeHighViewDistance = Math.min( this.viewDistance, 4 );
 		this.upperTreeHeightLimit = this.gridSize.y * this.terrainScale.y * 0.7;
 		this.upperBoulderHeightLimit = this.gridSize.y * 0.55;
 
@@ -360,9 +360,18 @@ export default class TerrainController extends VolumetricTerrain {
 						z: ( playerCoord?.z || 0 ) + z,
 					};
 					const key = this.getChunkKey( chunkCoord );
-					const chunk = this.chunks[ key ];
 
-					if ( chunk ) object.addChunkData( chunk );
+					if ( object.hasData( key ) ) {
+
+						object.addCachedData( key );
+
+					} else {
+
+						const chunk = this.chunks[ key ];
+						if ( chunk ) object.addChunkData( chunk );
+
+					}
+
 
 				}
 
@@ -420,9 +429,6 @@ export default class TerrainController extends VolumetricTerrain {
 			super.updateCastChunkTerrainArray( currentCoord );
 
 		}
-
-		if ( window.watchtower ) this.castables.push( window.watchtower );
-
 
 	}
 

@@ -7,9 +7,7 @@ export default class Smoke extends THREE.Points {
 		let fogGeo = new THREE.BufferGeometry();
 		let fogMat = new THREE.PointsMaterial( {
 			color: 'rgb(60, 5, 5)',
-			size: 3,
-			transparent: true,
-			opacity: 0.8,
+			size: 2.5,
 			sizeAttenuation: false
 		} );
 		super( fogGeo, fogMat );
@@ -52,7 +50,7 @@ export default class Smoke extends THREE.Points {
 
 				if ( particle.position.length() > 1000 ) {
 
-					particle.position.multiplyScalar( 0 );
+					particle.position.set( 0, - 99999, 0 );
 					particle.velocity.set( 1.2, random( 5, 8 ), 0 );
 					particle.active = false;
 
@@ -64,14 +62,25 @@ export default class Smoke extends THREE.Points {
 
 				this.positionBuffer[ i ] = particle;
 
-			} else if ( addParticle ) {
+			} else {
 
-				particle.active = true;
-				addParticle = false;
-				this.positionBuffer[ i ] = particle;
+				if ( addParticle ) {
+
+					particle.active = true;
+					particle.position.random().subScalar( 0.5 ).multiplyScalar( 2 );
+					addParticle = false;
+					this.positionBuffer[ i ] = particle;
+
+
+				} else {
+
+				    vertices[ i * 3 + 1 ] = - 99999;
+
+				}
+
+
 
 			}
-
 
 		}
 
@@ -85,12 +94,12 @@ export default class Smoke extends THREE.Points {
 		for ( let i = 0; i < 200; i ++ ) {
 
 			this.positionBuffer.push( {
-				position: new THREE.Vector3(),
+				position: new THREE.Vector3( 0, - 99999, 0 ),
 				velocity: new THREE.Vector3( 1.2, random( 5, 8 ), 0 ),
 				active: false
 			} );
 			vertices[ i * 3 + 0 ] = 0;
-			vertices[ i * 3 + 1 ] = 0;
+			vertices[ i * 3 + 1 ] = - 99999;
 			vertices[ i * 3 + 2 ] = 0;
 
 		}

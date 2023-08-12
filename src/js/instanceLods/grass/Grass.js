@@ -37,7 +37,6 @@ export default class Grass extends CachedInstancedLOD {
 			this.addLevel( models.grassModel, 100000, this.terrain.chunkSize * this.terrain.grassHighViewDistance );
 			for ( let child of this.levels[ 0 ].object ) {
 
-				child.castShadow = true;
 				child.receiveShadow = true;
 
 			}
@@ -124,7 +123,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 1500; i ++ ) {
+		for ( let i = 0; i < 900; i ++ ) {
 
 			let d, terrainHeight, adjusted, up = new THREE.Vector3( 0, 1, 0 );
 			let tries = 8;
@@ -143,9 +142,9 @@ export default class Grass extends CachedInstancedLOD {
 			if ( _position.y > terrainHeight ) {
 
 				dummy.scale.set(
-					1.1 + Math.random() * 0.6,
+					1.2 + Math.random() * 0.6,
 					1 + Math.random() * 0.1,
-					1.1 + Math.random() * 0.6,
+					1.2 + Math.random() * 0.6,
 				);
 				dummy.position
 					.copy( chunk.position )

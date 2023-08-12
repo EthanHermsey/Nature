@@ -1,4 +1,6 @@
 
+- falling through terrain!?
+
 - dig speed on slow machines
     - something something deltaTime
 

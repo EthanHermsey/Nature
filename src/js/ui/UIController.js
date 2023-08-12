@@ -74,7 +74,6 @@ export default class UIController {
 		} else {
 
 			const { position, offset, crystals, berries, food } = JSON.parse( localStorage.getItem( 'position' ) );
-			console.log( JSON.parse( localStorage.getItem( 'position' ) ) );
 
 			app.startLoading( offset, viewDistance, this.getSaveProgress() )
 				.then( () => {
@@ -83,9 +82,9 @@ export default class UIController {
 					app.player.position.y += 10;
 					if ( crystals != null ) {
 
-						app.player.crystals = crystals;
-						app.player.berries = berries;
-						app.player.food = food;
+						app.player.crystals = crystals || 0;
+						app.player.berries = berries || 0;
+						app.player.food = food || [ 0, 0, 0 ];
 						this.updateCrystalDisplay();
 						this.updateBerryDisplay();
 						this.updateFoodDisplay();
