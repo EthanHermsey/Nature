@@ -52,10 +52,9 @@ The matrices can be generated on the terrain using the THREE.MeshSurfaceSampler 
 
 
 ## TerrainController wrapper
-The project uses a wrapper around Volumetric-terrain to be able to have LODed chunks. It uses a custom meshWorker that 
-duplicates and returns the vertices and faces of the top surface of the mesh, without the caves that are generated.
-Every time a chunk update is started, the appropriate level is shown, so that chunks that are far away are a lot 
-faster to render without geometry that you'd normally never see.
+The project uses a wrapper around Volumetric-terrain to be able to have LODed chunks. In the custom meshWorker, the vertices and faces of the top surface of the
+mesh are copied to create a new mesh, without the caves that are generated. Every time a chunk update is started, the appropriate level is shown, so that chunks
+that are far away are a lot faster to render without geometry that you'd normally never see.
 
 #### cached instanced mesh / pointcloud / instancedLod
 The wrapper also allows to add instanced meshes and pointclouds. Because they are tied to the generation of the 
