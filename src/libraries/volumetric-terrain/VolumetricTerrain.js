@@ -152,7 +152,7 @@ export default class VolumetricTerrain extends THREE.Object3D {
 	//              888
 	//             o888o
 
-	async update( position, updateCallback ) {
+	async update( position ) {
 
 		if ( this.updating ) return;
 

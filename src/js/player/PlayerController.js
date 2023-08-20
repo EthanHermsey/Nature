@@ -44,7 +44,7 @@ export default class Player extends THREE.Object3D {
 		this.grabbing = false;
 
 		//brush vars
-		this.terrainAdjustStrength = 0.05;
+		this.terrainAdjustStrength = 4;
 		this.brushRadius = 6;
 		this.buildTimer = 0;
 		this.maxBuildTime = 0.05;
@@ -212,7 +212,7 @@ export default class Player extends THREE.Object3D {
 		this.getCameraIntersect();
 
 		//timer for adjusting terrain
-		if ( mouseIsPressed ) this.adjustTerrain();
+		if ( mouseIsPressed ) this.adjustTerrain( delta );
 
 		this.moveSkyboxAndLight();
 
@@ -391,6 +391,7 @@ export default class Player extends THREE.Object3D {
 						}
 						this.grounded = false;
 
+
 					} else {
 
 						//climbing up terrain
@@ -416,7 +417,8 @@ export default class Player extends THREE.Object3D {
 				} else {
 
 					nPos.copy( this.position );
-					this.vDown = 0;
+					nPos.y += 0.1;
+					this.vDown = this.gravity + 0.5;
 
 				}
 
@@ -636,7 +638,7 @@ export default class Player extends THREE.Object3D {
 
 
 
-	adjustTerrain() {
+	adjustTerrain( delta ) {
 
 		// this.buildTimer > this.maxBuildTime &&
 		if ( app.terrainController.updating == false && this.intersectPoint && this.intersectPoint.object?.parent?.isVolumetricTerrain ) {
@@ -645,7 +647,7 @@ export default class Player extends THREE.Object3D {
 			let d = this.intersectPoint.point.distanceTo( this.position );
 			if ( d > this.maxBuildDistance || ( mouseButton == RIGHT && d < this.minDigDistance ) ) return;
 
-			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength : this.terrainAdjustStrength;
+			let val = ( mouseButton == LEFT ) ? - this.terrainAdjustStrength * delta : this.terrainAdjustStrength * delta;
 
 			//tell chunk to change the terrain
 			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, true );

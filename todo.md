@@ -1,9 +1,3 @@
-
-- falling through terrain!?
-
-- dig speed on slow machines
-    - something something deltaTime
-
 - multi ?
     - spelers id name chunkKey - bij verplaatsen van x chunks -> nieuwe connecties ophalen
     - server kan spelers dichtbij speler zoeken om aan elkaar te koppelen 
