@@ -152,6 +152,10 @@ class SurfaceNets{
           //Add vertex to buffer, store pointer to vertex index in buffer
           buffer[m] = vertices.length;
           vertices.push(v);
+
+          if ((x[0] === 0 || x[1] === 0 || x[2] === 0) && i < 6) {
+            continue;
+          }
           
           //Now we need to add faces together, to do this we just loop over 3 basis components
           for(var i=0; i<3; ++i) {
