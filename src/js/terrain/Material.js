@@ -15,12 +15,19 @@ rocktex.anisotropy = 8;
 grasstex.anisotropy = 8;
 dirttex.anisotropy = 8;
 
+rocktex.wrapS = THREE.RepeatWrapping;
+grasstex.wrapS = THREE.RepeatWrapping;
+dirttex.wrapS = THREE.RepeatWrapping;
+rocktex.wrapT = THREE.RepeatWrapping;
+grasstex.wrapT = THREE.RepeatWrapping;
+dirttex.wrapT = THREE.RepeatWrapping;
+
 rocktex.encoding = THREE.sRGBEncoding;
 grasstex.encoding = THREE.sRGBEncoding;
 dirttex.encoding = THREE.sRGBEncoding;
 
 const terrainMaterial = new THREE.MeshLambertMaterial( {
-	dithering: true,
+	// dithering: false,
 	map: rocktex, // enables UV's in shader
 } );
 terrainMaterial.onBeforeCompile = ( shader ) => {
@@ -77,29 +84,41 @@ terrainMaterial.onBeforeCompile = ( shader ) => {
                                     
                 //mesh scaled
                 float rockRepeat = 0.025;
-                float grassRepeat = 0.1;
+                float grassRepeat = 0.025;
                 float dirtRepeat = 0.025;
 
                 vec3 blending = getTriPlanarBlend( vNormal2 );
-                vec3 xaxis = texture2D( tDiff[0], mod(vPos.yz * rockRepeat, 1.0) ).rgb;
-                vec3 zaxis = texture2D( tDiff[0], mod(vPos.xy * rockRepeat, 1.0) ).rgb;
+                
+                vec3 xaxis = mix(
+                        
+                        texture2D( tDiff[0], (vPos.yz * rockRepeat) ).rgb,
+                        texture2D( tDiff[2], (vPos.yz * dirtRepeat) ).rgb,
+                        vAdjusted
+                    );
+
+                vec3 zaxis = mix(
+                        
+                        texture2D( tDiff[0], (vPos.xy * rockRepeat) ).rgb,
+                        texture2D( tDiff[2], (vPos.xy * dirtRepeat) ).rgb,
+                        vAdjusted
+                    );
                 
                 vec3 yaxis;
                 if ( vNormal2.y < 0.2){
 
-                    yaxis = texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb;
+                    yaxis = texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb;
 
                 } else {
                         
                     vec3 yaxis1 = mix(
-                        texture2D( tDiff[1], mod(vPos.xz * grassRepeat, 1.0) ).rgb,
-                        texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb,
+                        texture2D( tDiff[1], (vPos.xz * grassRepeat) ).rgb,
+                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
                         vForceStone
                     );
 
                     vec3 yaxis2 = mix(
-                        texture2D( tDiff[2], mod(vPos.xz * dirtRepeat, 1.0) ).rgb,
-                        texture2D( tDiff[0], mod(vPos.xz * rockRepeat, 1.0) ).rgb,
+                        texture2D( tDiff[2], (vPos.xz * dirtRepeat) ).rgb,
+                        texture2D( tDiff[0], (vPos.xz * rockRepeat) ).rgb,
                         vForceStone
                     );
 
