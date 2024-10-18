@@ -11,10 +11,10 @@ export default class DB {
 
 	updateVersion() {
 
-		const DBRequest = indexedDB.open( this.dbName );
+		const DBRequest = indexedDB.open( this.dbName, this.version );
 		DBRequest.onupgradeneeded = () => this.setVersion( DBRequest.result.version );
 		DBRequest.onsuccess = () => this.setVersion( DBRequest.result.version );
-		DBRequest.onerror = () => this.setVersion( DBRequest.result.version );
+		DBRequest.onerror = (err) => this.setVersion( Number( err.target.error.message.split(') is')[1].match(/\((\d+)\)/)[1] ) );
 
 	}
 

@@ -27,7 +27,6 @@ grasstex.encoding = THREE.sRGBEncoding;
 dirttex.encoding = THREE.sRGBEncoding;
 
 const terrainMaterial = new THREE.MeshLambertMaterial( {
-	// dithering: false,
 	map: rocktex, // enables UV's in shader
 } );
 terrainMaterial.onBeforeCompile = ( shader ) => {
