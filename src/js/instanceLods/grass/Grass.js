@@ -1,5 +1,5 @@
-import CachedInstancedLOD from '../cached/CachedInstancedLOD';
 import { modelBank } from '../../modelloader/ModelLoader';
+import CachedInstancedLOD from '../cached/CachedInstancedLOD';
 
 export default class Grass extends CachedInstancedLOD {
 
@@ -33,8 +33,8 @@ export default class Grass extends CachedInstancedLOD {
 
 		if ( models.grassModel && models.grassModelHigh ) {
 
-			this.addLevel( models.grassModelHigh, 15000, 0 );
-			this.addLevel( models.grassModel, 100000, this.terrain.chunkSize * this.terrain.grassHighViewDistance );
+			this.addLevel( models.grassModelHigh, 25000, 0 );
+			this.addLevel( models.grassModel, 125000, this.terrain.chunkSize * this.terrain.grassHighViewDistance );
 			for ( let child of this.levels[ 0 ].object ) {
 
 				child.receiveShadow = true;
@@ -123,7 +123,7 @@ export default class Grass extends CachedInstancedLOD {
 
 		const modelMatrices = [];
 
-		for ( let i = 0; i < 900; i ++ ) {
+		for ( let i = 0; i < 1000; i ++ ) {
 
 			let d, terrainHeight, adjusted, up = new THREE.Vector3( 0, 1, 0 );
 			let tries = 8;
@@ -135,7 +135,7 @@ export default class Grass extends CachedInstancedLOD {
 				adjusted = chunk.adjustedIndices[ chunk.gridIndex( Math.floor( _position.x ), Math.floor( _position.y ), Math.floor( _position.z ) ) ];
 				tries --;
 
-			} while ( tries > 0 && ( d < 0 || d > 0.12 || _position.y < terrainHeight || adjusted ) );
+			} while ( tries > 0 && ( d < 0 || d > 0.10 || _position.y < terrainHeight || adjusted ) );
 
 			if ( tries === 0 ) continue;
 

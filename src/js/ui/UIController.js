@@ -165,8 +165,6 @@ export default class UIController {
 
 		app.player.mouseSensitivity = app.player.defaultMouseSensitivity * 2 * mouseSensitivity;
 
-		app.terrainController.setDB( this.elements.saveProgress.checked );
-
 	}
 
 	loadOptions() {

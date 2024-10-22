@@ -385,7 +385,6 @@ export default class VolumetricChunk {
 	// o888o    `V88V"V8P' o888o o888o `Y8bod8P'   "888" o888o `Y8bod8P' o888o o888o 8""888P'
 
 
-
 	//add a value to the grid on coordinate xyz
 	addValueToGrid( x, y, z, val ) {
 

@@ -1,20 +1,20 @@
 export default class DB {
 
-	constructor() {
+	constructor(cb) {
 
 		this.dbName = 'world';
 		this.keyPath = 'index';
 		this.version = 1;
-		this.updateVersion();
+		this.updateVersion(cb);
 
 	}
 
-	updateVersion() {
+	updateVersion( cb ) {
 
 		const DBRequest = indexedDB.open( this.dbName, this.version );
-		DBRequest.onupgradeneeded = () => this.setVersion( DBRequest.result.version );
-		DBRequest.onsuccess = () => this.setVersion( DBRequest.result.version );
-		DBRequest.onerror = (err) => this.setVersion( Number( err.target.error.message.split(') is')[1].match(/\((\d+)\)/)[1] ) );
+		DBRequest.onupgradeneeded = () => {this.setVersion( DBRequest.result.version ); cb && cb()}
+		DBRequest.onsuccess = () => {this.setVersion( DBRequest.result.version ); cb && cb()}
+		DBRequest.onerror = (err) => {this.setVersion( Number( err.target.error.message.split(') is')[1].match(/\((\d+)\)/)[1] ) ); cb && cb()}
 
 	}
 

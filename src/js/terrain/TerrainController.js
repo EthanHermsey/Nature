@@ -1,15 +1,15 @@
 import VolumetricTerrain from '../../libraries/volumetric-terrain/VolumetricTerrain';
-import terrainMaterial from './Material';
 import Chunk from './Chunk';
 import DB from './DB';
+import terrainMaterial from './Material';
 
-import Grass from '../instanceLods/grass/Grass';
-import Trees from '../instanceLods/tree/Trees';
+import BerryBush from '../instanceLods/berry-bush/BerryBush';
+import Boulder from '../instanceLods/boulder/Boulder';
 import Fern from '../instanceLods/fern/Fern';
 import Fog from '../instanceLods/fog/Fog';
-import Boulder from '../instanceLods/boulder/Boulder';
+import Grass from '../instanceLods/grass/Grass';
 import Pedestal from '../instanceLods/pedestal/Pedestal';
-import BerryBush from '../instanceLods/berry-bush/BerryBush';
+import Trees from '../instanceLods/tree/Trees';
 
 // eslint-disable-next-line no-unused-vars
 export default class TerrainController extends VolumetricTerrain {
@@ -29,8 +29,6 @@ export default class TerrainController extends VolumetricTerrain {
 			gridWorkerOptions: { terrainSeed: seed },
 			chunkClass: Chunk
 		} );
-
-		this.setDB( saveProgress );
 
 		this.viewDistanceHigh = viewDistance.viewHigh;
 		this.viewDistanceLow = viewDistance.viewLow;
@@ -55,15 +53,18 @@ export default class TerrainController extends VolumetricTerrain {
 			"Pedestal": new Pedestal( this, this.instancedObjectViewDistance )
 		};
 
-		this.init()
-			.then( () => {
+		this.setDB( saveProgress ).then(() => {
+			
+			this.init()
+				.then( () => {
+	
+					this.updateCastChunkTerrainArray( this.currentCoord );
+					this.updateChunkLODs();
+					callback( this );
+	
+				} );
 
-				this.updateCastChunkTerrainArray( this.currentCoord );
-				this.updateChunkLODs();
-				callback( this );
-
-			} );
-
+		});
 
 	}
 
@@ -98,7 +99,11 @@ export default class TerrainController extends VolumetricTerrain {
 
 	setDB( set ) {
 
-		this.DB = ( set == true ) ? new DB() : undefined;
+		return new Promise((resolve) => {
+
+			this.DB = ( set == true ) ? new DB(resolve) : undefined;
+
+		});
 
 	}
 
@@ -109,7 +114,7 @@ export default class TerrainController extends VolumetricTerrain {
 	//   888   888   888   888    888
 	//   888   888   888   888    888 .
 	//  o888o o888o o888o o888o   "888"
-	init( viewDistance, saveProgress ) {
+	async init( viewDistance, saveProgress ) {
 
 		if ( viewDistance ) {
 
@@ -119,7 +124,7 @@ export default class TerrainController extends VolumetricTerrain {
 
 		}
 
-		if ( saveProgress != undefined ) this.setDB( saveProgress );
+		if ( saveProgress != undefined ) await this.setDB( saveProgress );
 
 		return new Promise( resolve =>{
 

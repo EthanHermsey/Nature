@@ -1,7 +1,7 @@
 import ModelLoader from '../modelloader/ModelLoader';
 import Player from '../player/PlayerController';
-import UIController from '../ui/UIController';
 import TerrainController from '../terrain/TerrainController';
+import UIController from '../ui/UIController';
 
 
 
@@ -106,18 +106,22 @@ export default class App {
 
 			}
 
-			offset = offset || { x: 0, z: 0 };
+			app.terrainController.DB.updateVersion(() => {
+				
+				offset = offset || { x: 0, z: 0 };
+				this.player.init(
+					this.terrainController.getChunk( this.terrainController.getChunkKey( offset ) ),
+					() => {
 
-			this.player.init(
-				this.terrainController.getChunk( this.terrainController.getChunkKey( offset ) ),
-				() => {
+						this.loaded = true;
+						this.start();
+						resolve();
 
-					this.loaded = true;
-					this.start();
-					resolve();
+					}
+				);
+				resolve();
 
-				}
-			);
+			})
 
 		} );
 

@@ -1,5 +1,5 @@
-import { modelBank } from '../modelloader/ModelLoader';
 import * as THREE from 'three';
+import { modelBank } from '../modelloader/ModelLoader';
 
 export default class Player extends THREE.Object3D {
 
@@ -67,6 +67,8 @@ export default class Player extends THREE.Object3D {
 		//flymode selector
 		this.flyMode = false;
 		this.godMode = false;
+
+		this.digAnimation = new DigAnimation();
 
 	}
 
@@ -219,6 +221,8 @@ export default class Player extends THREE.Object3D {
 		this.updateFood( delta );
 
 		this.updateSprinting( keyInputVector, delta );
+
+		this.digAnimation.update(delta);
 
 	}
 
@@ -653,6 +657,19 @@ export default class Player extends THREE.Object3D {
 			this.intersectPoint.object.chunk.adjust( this.intersectPoint.point, this.brushRadius, val, true );
 			app.terrainController.updateInstancedObjects();
 
+			if ( mouseButton == LEFT ){ 				
+				this.digAnimation.addParticles(
+					this.intersectPoint.point.clone().multiply(app.terrainController.terrainScale).add( this.intersectPoint.object.chunk.position),
+					this.position
+				);
+			} else {
+				const target = this.intersectPoint.point.clone().multiply(app.terrainController.terrainScale).add( this.intersectPoint.object.chunk.position);
+				this.digAnimation.addParticles(
+					this.position.clone().lerp(target, 0.45),
+					target,
+				);
+			}
+
 		}
 
 	}
@@ -787,6 +804,112 @@ export default class Player extends THREE.Object3D {
 
 		this.model.geometry.dispose();
 		this.model.material.dispose();
+
+	}
+
+}
+
+class DigAnimation {
+
+	constructor() {
+
+		this.modelBank = [];
+		this.particles = [];
+
+		this.fillModelBank();
+
+	}
+
+	update( delta ) {
+
+		for ( let i = this.particles.length - 1; i >= 0; i -- ) {
+
+			let particle = this.particles[ i ];
+			particle.time += delta * particle.timeInc;
+			if ( particle.time >= 0.9 ) {
+
+				this.removeParticle( i );
+				continue;
+
+			}
+			particle.position.lerpVectors( particle.origin, particle.target, particle.time );
+			
+		}
+
+	}
+
+	hide() {
+
+		for ( let i = this.particles.length - 1; i >= 0; i -- ) {
+
+			this.removeParticle( i );
+
+		}
+
+	}
+
+	fillModelBank() {
+
+		for ( let i = 0; i < 5; i ++ ) {
+
+			let nMesh = new THREE.Mesh(
+				new THREE.IcosahedronGeometry( 1, 1 ),
+				new THREE.MeshLambertMaterial( {
+					map: new THREE.TextureLoader().load( './resources/images/terrain/dirt.png' ),
+					opacity: 0.8,
+					color: 'rgb(100, 100, 100)'
+				} )
+			);
+			
+			for(let i = 0; i < nMesh.geometry.attributes.position.array.length; i+=3){
+				let rnd = 0.8 + (Math.random() * 0.4);
+				nMesh.geometry.attributes.position.array[i + 0] *= rnd;
+				nMesh.geometry.attributes.position.array[i + 1] *= rnd;
+				nMesh.geometry.attributes.position.array[i + 2] *= rnd;
+			}
+			this.modelBank.push( nMesh );
+
+		}
+
+	}
+
+	addParticles( position, target) {
+
+		let maxParticles = Math.floor( 1 + Math.random() * 2 );
+
+		for ( let i = 0; i < maxParticles; i ++ ) {
+
+			let nMesh = this.modelBank[ Math.floor( Math.random() * this.modelBank.length ) ].clone();
+
+			let rndOffset = new THREE.Vector3(
+				-1 + Math.random() * 2,
+				-1 + Math.random() * 2,
+				-1 + Math.random() * 2,
+			).setLength( 6 );
+
+			let origin = position.clone().add( rndOffset );
+
+			nMesh.position.copy( origin );
+			nMesh.scale.setScalar(  0.06 + Math.random() * 0.2 );
+			nMesh.rotation.x = Math.random() * Math.PI;
+			nMesh.rotation.z = Math.random() * Math.PI;
+
+			nMesh.origin = origin;
+			nMesh.target = target;
+			nMesh.time = 0;
+			nMesh.timeInc = 1 + Math.random();
+
+			app.scene.add( nMesh );
+			this.particles.push( nMesh );			
+
+		}
+
+	}
+
+	removeParticle( index ) {
+		
+		app.scene.remove( this.particles[ index ] );
+		this.particles.splice( index, 1 );
 
 	}
 

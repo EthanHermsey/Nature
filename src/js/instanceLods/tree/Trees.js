@@ -99,6 +99,8 @@ export default class Trees extends Cached {
 		const mesh = chunk.mesh;
 		if ( ! mesh ) return;
 
+		let maxTreeHeight =  app.terrainController.terrainScale.y * app.terrainController.gridSize.y * 0.51;
+
 		const geo = mesh.geometry;
 		const dummy = new THREE.Object3D();
 
@@ -142,7 +144,7 @@ export default class Trees extends Cached {
 					wp.z * treeWorldNoiseScale
 				);
 
-				if ( d < 0.09 && worldNoise > 0.4 ) {
+				if ( wp.y < maxTreeHeight && d < 0.09 && worldNoise > 0.4 ) {
 
 					let narrowNoise = noise(
 						wp.x * treeNarrowNoiseScale,

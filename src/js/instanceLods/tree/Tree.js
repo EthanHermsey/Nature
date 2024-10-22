@@ -15,8 +15,8 @@ export default class Tree extends InstancedLOD {
 
 		if ( models.treeModel && models.treeModelHigh ) {
 
-			this.addLevel( models.treeModelHigh, 1500, 0 );
-			this.addLevel( models.treeModel, 50000, this.terrain.chunkSize * this.terrain.treeHighViewDistance );
+			this.addLevel( models.treeModelHigh, 2500, 0 );
+			this.addLevel( models.treeModel, 75000, this.terrain.chunkSize * this.terrain.treeHighViewDistance );
 			for ( let child of this.levels[ 0 ].object ) {
 
 				child.castShadow = true;
